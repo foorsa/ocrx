@@ -1,23 +1,29 @@
+import Link from "next/link";
 import React from "react";
 
 export default function Jumbotron() {
     return (
-        <section className="bg-white dark:bg-gray-900">
-            <div className="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16">
-                <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
-                    We invest in the world’s potential
+        <section className="">
+            <div className="p-10 mx-auto max-w-screen-xl text-center lg:py-16">
+                <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 sm:text-6xl md:text-6xl lg:text-6xl dark:text-white">
+                    The AI-powered successor to{" "}
+                    <span className="relative inline-block px-2 py-px text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-blue-500 dark:from-violet-400 dark:to-blue-400">
+                        Document Translation
+                    </span>
                 </h1>
-                <p className="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 lg:px-48 dark:text-gray-400">
-                    Here at Flowbite we focus on markets where technology,
-                    innovation, and capital can unlock long-term value and drive
-                    economic growth.
+                <p className="mb-8 text-lg font-normal text-violet-950 lg:text-xl sm:px-12 lg:px-48 dark:text-violet-100 text-opacity-75 dark:text-opacity-75">
+                    Experience seamless translation with OCRX - Foorsa
+                    Translations. Effortlessly translate text from one language
+                    to another with accuracy and speed. Join our beta testing
+                    phase and be a part of refining this revolutionary
+                    translation app.
                 </p>
                 <div className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-                    <a
-                        href="#"
-                        className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900"
+                    <Link
+                        href="/translate"
+                        className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-violet-700 hover:bg-violet-800 focus:ring-4 focus:ring-violet-300 dark:focus:ring-violet-900"
                     >
-                        Get started
+                        Translate
                         <svg
                             aria-hidden="true"
                             className="ml-2 -mr-1 w-5 h-5"
@@ -31,13 +37,7 @@ export default function Jumbotron() {
                                 clip-rule="evenodd"
                             ></path>
                         </svg>
-                    </a>
-                    <a
-                        href="#"
-                        className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-gray-900 rounded-lg border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
-                    >
-                        Learn more
-                    </a>
+                    </Link>
                 </div>
             </div>
         </section>

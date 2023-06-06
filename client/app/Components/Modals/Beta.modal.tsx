@@ -1,15 +1,31 @@
 "use client";
-
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { useTheme } from "next-themes";
 
 export default function BetaModal() {
     const [open, setOpen] = useState(true);
     const cancelButtonRef = useRef(null);
+    const { theme } = useTheme();
+
+    const closeModal = () => {
+        setOpen(false);
+        sessionStorage.setItem("ModalClosed", "true");
+    };
+
+    const getDialogClasses = () => {
+        return theme === "dark" ? "bg-violet-900" : "bg-white";
+    };
+
+    const getTextClasses = () => {
+        return theme === "dark" ? "text-white" : "text-gray-800";
+    };
+
+    const isBannerClosed = sessionStorage.getItem("ModalClosed");
 
     return (
-        <Transition.Root show={open} as={Fragment}>
+        <Transition.Root show={open && !isBannerClosed} as={Fragment}>
             <Dialog
                 as="div"
                 className="relative z-10"
@@ -39,10 +55,14 @@ export default function BetaModal() {
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-violet-900 text-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                                <div className="bg-violet-900 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                            <Dialog.Panel
+                                className={`relative transform overflow-hidden rounded-lg transition-all sm:my-8 sm:w-full sm:max-w-lg ${getDialogClasses()}`}
+                            >
+                                <div
+                                    className={`px-4 pb-4 pt-5 sm:p-6 sm:pb-4 ${getTextClasses()}`}
+                                >
                                     <div className="sm:flex sm:items-start">
-                                        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-violet-600 sm:mx-0 sm:h-10 sm:w-10">
+                                        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-violet-300 dark:bg-violet-600 text-violet-900 dark:text-violet-100 sm:mx-0 sm:h-10 sm:w-10">
                                             <ExclamationTriangleIcon
                                                 className="h-6 w-6"
                                                 aria-hidden="true"
@@ -51,66 +71,64 @@ export default function BetaModal() {
                                         <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                                             <Dialog.Title
                                                 as="h3"
-                                                className="text-base font-semibold leading-6"
+                                                className={`text-base font-semibold leading-6 ${getTextClasses()}`}
                                             >
                                                 Welcome to OCRX - Foorsa
                                                 Translations (Beta)
                                             </Dialog.Title>
                                             <div className="mt-2">
-                                                <p className="text-sm font-light text-violet-300">
-                                                    Thank you for using OCRX -
-                                                    Foorsa Translations! Please
-                                                    note that this web app is
-                                                    currently in beta testing
-                                                    phase, which means it is
-                                                    still undergoing development
-                                                    and refinement. While we
-                                                    have taken every effort to
-                                                    ensure accurate
-                                                    translations, there may be
-                                                    occasional errors or
-                                                    limitations.
+                                                <p
+                                                    className={`text-sm font-light ${getTextClasses()}`}
+                                                >
+                                                    Thank you for choosing OCRX
+                                                    - Foorsa Translations! Our
+                                                    web app is currently in beta
+                                                    testing, undergoing
+                                                    development and refinement.
+                                                    While we strive for
+                                                    accuracy, occasional errors
+                                                    may occur.
                                                 </p>
 
-                                                <p className="text-sm mt-2 font-light text-violet-300">
-                                                    We value your feedback and
-                                                    appreciate your patience as
-                                                    we work towards improving
-                                                    the app. If you encounter
-                                                    any issues or have
-                                                    suggestions for
-                                                    enhancements, please let us
-                                                    know through the provided
-                                                    feedback channels.
+                                                <p
+                                                    className={`text-sm mt-2 font-light ${getTextClasses()}`}
+                                                >
+                                                    Your feedback is invaluable
+                                                    to us as we enhance the app.
+                                                    Please share any issues or
+                                                    suggestions through the
+                                                    provided channels.
                                                 </p>
 
-                                                <p className="text-sm mt-2 font-light text-violet-300">
-                                                    By using this web app, you
-                                                    acknowledge that it is in
-                                                    the beta stage, and any
-                                                    translations provided may
-                                                    not be 100% perfect. We
-                                                    encourage you to use the
-                                                    translated results as
-                                                    reference and verify them
-                                                    for accuracy before making
-                                                    any critical decisions.
+                                                <p
+                                                    className={`text-sm mt-2 font-light ${getTextClasses()}`}
+                                                >
+                                                    Please note that
+                                                    translations may not be
+                                                    perfect in this beta stage.
+                                                    We recommend using them as a
+                                                    reference and verifying
+                                                    accuracy.
                                                 </p>
 
-                                                <p className="text-sm mt-2 font-light text-violet-300">
-                                                    Thank you for being a part
-                                                    of the OCRX - Foorsa
-                                                    Translations beta testing
-                                                    phase. We hope you find the
-                                                    app helpful and we look
-                                                    forward to your valuable
+                                                <p
+                                                    className={`text-sm mt-2 font-light ${getTextClasses()}`}
+                                                >
+                                                    Thank you for joining our
+                                                    beta testing phase. We hope
+                                                    you find the app helpful and
+                                                    await your valuable
                                                     feedback.
                                                 </p>
 
-                                                <p className="text-sm mt-4 font-light text-violet-300">
+                                                <p
+                                                    className={`text-sm mt-4 font-light ${getTextClasses()}`}
+                                                >
                                                     Best regards,
                                                 </p>
-                                                <p className="text-sm mt-1 font-light text-violet-300">
+                                                <p
+                                                    className={`text-sm mt-1 font-light ${getTextClasses()}`}
+                                                >
                                                     The OCRX - Foorsa
                                                     Translations Team
                                                 </p>
@@ -118,11 +136,11 @@ export default function BetaModal() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-violet-950 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                                <div className="bg-violet-100 dark:bg-violet-950 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                                     <button
                                         type="button"
-                                        className="mt-3 inline-flex w-full justify-center rounded-md bg-violet-800 px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset ring-violet-700 hover:bg-violet-700 sm:mt-0 sm:w-auto"
-                                        onClick={() => setOpen(false)}
+                                        className={`mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm text-violet-600 dark:text-white font-semibold bg-violet-100 hover:bg-violet-200 dark:bg-violet-600 dark:hover:bg-violet-700 sm:mt-0 sm:w-auto ring-0`}
+                                        onClick={() => closeModal()}
                                         ref={cancelButtonRef}
                                     >
                                         Close

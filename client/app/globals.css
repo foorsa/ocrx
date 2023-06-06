@@ -18,6 +18,21 @@
 
 body {
     color: rgb(var(--foreground-rgb));
-    background: black;
+    /*
+    background: linear-gradient(
+        to bottom right,
+        rgb(var(--background-start-rgb)),
+        rgb(var(--background-end-rgb))
+    );
+    */
+    transition: background 0.5s ease;
+    will-change: background;
     z-index: -50;
+    overflow-x: hidden;
+}
+
+@layer base {
+    body {
+        @apply dark:bg-gray-800 bg-white;
+    }
 }
