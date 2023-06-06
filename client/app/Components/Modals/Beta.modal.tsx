@@ -1,11 +1,12 @@
 "use client";
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useTheme } from "next-themes";
 
 export default function BetaModal() {
     const [open, setOpen] = useState(true);
+    const [isBannerClosed, setIsBannerClosed] = useState(false);
     const cancelButtonRef = useRef(null);
     const { theme } = useTheme();
 
@@ -13,6 +14,13 @@ export default function BetaModal() {
         setOpen(false);
         sessionStorage.setItem("ModalClosed", "true");
     };
+
+    // Use Effect
+    useEffect(() => {
+        if (sessionStorage.getItem("ModalClosed")) {
+            setIsBannerClosed(true);
+        }
+    }, []);
 
     const getDialogClasses = () => {
         return theme === "dark" ? "bg-violet-900" : "bg-white";
@@ -22,7 +30,7 @@ export default function BetaModal() {
         return theme === "dark" ? "text-white" : "text-gray-800";
     };
 
-    const isBannerClosed = sessionStorage.getItem("ModalClosed");
+    // const isBannerClosed = sessionStorage.getItem("ModalClosed");
 
     return (
         <Transition.Root show={open && !isBannerClosed} as={Fragment}>
