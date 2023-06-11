@@ -3,30 +3,90 @@
 import React from "react";
 import StarsBackground from "./Layout/StarsBackground";
 
-export default function Background() {
+interface Props {
+    Variant?: "Home" | "App";
+}
+
+export default function Background({ Variant }: Props) {
     return (
         <div
-            className="fixed h-screen w-screen min-h-screen top-0 left-0 right-0 bottom-0 bg-violet-950 dark:bg-gray-900 overflow-hidden bg-opacity-0 dark:bg-opacity-60 -z-50"
+            className="absolute h-full w-screen min-h-screen top-0 left-0 right-0 bottom-0 bg-violet-950 dark:bg-gray-900 bg-opacity-0 dark:bg-opacity-60 -z-50  overflow-hidden"
             id="Background"
         >
-            <StarsBackground />
-            {/* Bottom Center - Wide Violet Gradient */}
-            {/* Division for Blurry Elements */}
-            <div className="absolute h-screen w-screen min-h-screen top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100">
-                <div className="absolute w-3/5 h-3/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-violet-800 to-violet-400 -z-50 dark:from-transparent dark:via-violet-800 dark:to-violet-400"></div>
+            {Variant == "Home" ? (
+                <>
+                    <StarsBackground />
+                    {/* Bottom Center - Wide Violet Gradient */}
+                    {/* Division for Blurry Elements */}
+                    <div className="absolute h-full w-full min-h-full top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100">
+                        <div className="absolute w-3/5 h-3/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-violet-800 to-violet-400 -z-50 dark:from-transparent dark:via-violet-800 dark:to-violet-400"></div>
 
-                {/* Bottom Center - Light Violet */}
-                <div className="absolute w-1/5 h-2/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-violet-500 to-violet-50 -z-50 dark:from-transparent dark:via-violet-500 dark:to-violet-50"></div>
+                        {/* Bottom Center - Light Violet */}
+                        <div className="absolute w-1/5 h-2/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-violet-500 to-violet-50 -z-50 dark:from-transparent dark:via-violet-500 dark:to-violet-50"></div>
 
-                {/* Bottom Center - Middle White */}
-                <div className="absolute w-1/5 h-2/5 -bottom-1/2 -translate-y-full left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-gray-200 to-gray-50 -z-50 dark:from-transparent dark:via-gray-200 dark:to-gray-50"></div>
+                        {/* Bottom Center - Middle White */}
+                        <div className="absolute w-1/5 h-2/5 -bottom-1/2 -translate-y-full left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-gray-200 to-gray-50 -z-50 dark:from-transparent dark:via-gray-200 dark:to-gray-50"></div>
 
-                {/* Top Middle Left */}
-                <div className="absolute w-1/2 h-1/5 top-1/4 left-2/4 -translate-x-1/2 rotate-45 blur-3xl bg-blue-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-blue-500"></div>
+                        {/* Top Middle Left */}
+                        <div className="absolute w-1/2 h-1/5 top-1/4 left-2/4 -translate-x-1/2 rotate-45 blur-3xl bg-blue-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-blue-500"></div>
 
-                {/* Bottom Right */}
-                <div className="absolute w-1/2 h-1/5 -bottom-0 right-0 blur-3xl bg-violet-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-violet-500"></div>
-            </div>
+                        {/* Bottom Right */}
+                        <div className="absolute w-1/2 h-1/5 -bottom-0 right-0 blur-3xl bg-violet-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-violet-500"></div>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="absolute h-full w-full min-h-full top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="1440"
+                            height="450"
+                            className="absolute -top-1/4 -left-1/5 right-0 -z-50 dark:opacity-100 blur-2xl"
+                        >
+                            <defs>
+                                <linearGradient
+                                    id="a"
+                                    x1="19.609%"
+                                    x2="50%"
+                                    y1="14.544%"
+                                    y2="100%"
+                                >
+                                    <stop offset="0%" stop-color="#6366F1" />
+                                    <stop
+                                        offset="100%"
+                                        stop-color="#6366F1"
+                                        stop-opacity="0"
+                                    />
+                                </linearGradient>
+                                <linearGradient
+                                    id="b"
+                                    x1="50%"
+                                    x2="19.609%"
+                                    y1="100%"
+                                    y2="14.544%"
+                                >
+                                    <stop offset="0%" stop-color="#A855F7" />
+                                    <stop
+                                        offset="100%"
+                                        stop-color="#6366F1"
+                                        stop-opacity="0"
+                                    />
+                                </linearGradient>
+                            </defs>
+                            <g fill="none" fill-rule="evenodd">
+                                <path
+                                    fill="url(#a)"
+                                    d="m473 23 461 369-284 58z"
+                                />
+                                <path
+                                    fill="url(#b)"
+                                    d="m259 0 461 369-284 58z"
+                                />
+                            </g>
+                        </svg>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

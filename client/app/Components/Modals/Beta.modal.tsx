@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 
 export default function BetaModal() {
     const [open, setOpen] = useState(true);
-    const [isBannerClosed, setIsBannerClosed] = useState(false);
+    const [isBannerClosed, setIsBannerClosed] = useState(true);
     const cancelButtonRef = useRef(null);
     const { theme } = useTheme();
 
@@ -19,6 +19,9 @@ export default function BetaModal() {
     useEffect(() => {
         if (sessionStorage.getItem("ModalClosed")) {
             setIsBannerClosed(true);
+        } else {
+            setOpen(true);
+            setIsBannerClosed(false);
         }
     }, []);
 

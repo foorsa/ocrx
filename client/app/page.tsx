@@ -9,15 +9,11 @@ import BetaBanner from "./Components/Banners/Beta.banner";
 export default function Home() {
     return (
         <>
-            <Background />
-
-            <main className="flex min-h-screen flex-col items-center justify-between">
-                <BetaBanner />
-                <Header />
-                <Jumbotron />
-                <BetaModal />
-                <Footer />
-            </main>
+            <BetaBanner />
+            <Header />
+            <Jumbotron />
+            <BetaModal />
+            <Footer />
         </>
     );
 }
