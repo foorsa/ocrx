@@ -5,8 +5,11 @@ import {
     TextBlock,
 } from "iconsax-react";
 import React from "react";
+import { StepType } from "../Container";
 
-export default function Stepper() {
+export default function Stepper({ Step }: { Step: StepType }) {
+    // Step types are Enumerable: "Upload", "Translate", "Validate"
+
     return (
         <ol className="flex items-center justify-center w-full mb-4 sm:mb-5">
             <li className="flex w-full items-center text-violet-600 dark:text-violet-500 after:content-[''] after:w-full after:h-1 after:border-b after:border-violet-100 after:border-4 after:inline-block dark:after:border-violet-800 flex-grow-1">

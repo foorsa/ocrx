@@ -20,12 +20,40 @@ const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     );
 };
 
+// Enum properties for the Step
+enum Steps {
+    "Upload",
+    "Translate",
+    "Validate",
+}
+
+interface StepType {
+    Step: Steps;
+}
+
+// Export properties
+export type { StepType };
+
 export default function Container() {
+    // Declare Steps
+    const [Step, setStep] = React.useState<StepType>({ Step: Steps.Upload });
+    const [isLoading, setIsLoading] = React.useState(false);
+
+    const handleNext = () => {
+        if (Step.Step === Steps.Upload) {
+            setStep({ Step: Steps.Translate });
+        } else if (Step.Step === Steps.Translate) {
+            setStep({ Step: Steps.Validate });
+        } else if (Step.Step === Steps.Validate) {
+            setStep({ Step: Steps.Upload });
+        }
+    };
+
     return (
         <div className="relative flex-1 h-full w-full min-w-full flex text-center flex-col justify-center items-center p-5">
             <OCRX_ICON isLoading={false} />
             <div className="flex flex-col justify-center items-center max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-2xl dark:bg-gray-800 dark:border-gray-700">
-                <Stepper />
+                <Stepper Step={Step} />
                 <First_DocumentUpload />
             </div>
         </div>
