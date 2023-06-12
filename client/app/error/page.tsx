@@ -1,5 +1,6 @@
 import React from "react";
-import { BackSquare, Home, Link } from "iconsax-react";
+import { BackSquare, Home } from "iconsax-react";
+import Link from "next/link";
 
 export default function Page() {
     return (
@@ -15,20 +16,20 @@ export default function Page() {
                 </p>
                 <div className="mt-10 flex items-center justify-center gap-x-6">
                     <Link
-                        href="/"
-                        className="rounded-md bg-violet-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-violet-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+                        href="/translate"
+                        className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-violet-600 hover:bg-violet-800"
                     >
                         <span className="mr-2 text-md font-semibold">
                             Go back home
                         </span>
                         <Home variant="Bulk" color="currentColor" />
                     </Link>
-                    <a className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-violet-800 bg-violet-600/25 hover:bg-violet-600/50 dark:text-violet-600 dark:bg-violet-600/50 dark:hover:bg-violet-600/75">
+                    <div className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-violet-800 bg-violet-600/25 hover:bg-violet-600/50 dark:text-violet-600 dark:bg-violet-600/50 dark:hover:bg-violet-600/75">
                         <span className="mr-2 text-md font-semibold">
                             Retry
                         </span>
                         <BackSquare variant="Bulk" color="currentColor" />
-                    </a>
+                    </div>
                 </div>
             </div>
         </main>

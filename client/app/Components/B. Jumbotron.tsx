@@ -27,9 +27,8 @@ export default function Jumbotron() {
                     </span>
                     <Translate variant="Bulk" color="currentColor" />
                 </Link>
-                {/* See the Guideline */}
                 <Link
-                    href="/#Guideline"
+                    href="/error"
                     className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-violet-800 bg-violet-600/25 hover:bg-violet-600/50 dark:text-violet-600 dark:bg-violet-50/50 dark:hover:bg-violet-50/75"
                 >
                     <span className="mr-2 text-md font-semibold">

@@ -19,6 +19,7 @@
     "flowbite": "^1.6.5",
     "flowbite-react": "^0.4.7",
     "iconsax-react": "^0.0.8",
+    "loader-utils": "^3.2.1",
     "next": "13.4.4",
     "next-themes": "^0.2.1",
     "nextjs-toploader": "^1.4.2",
