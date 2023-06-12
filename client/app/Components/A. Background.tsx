@@ -16,12 +16,12 @@ export default function Background({ Variant }: Props) {
             {Variant == "Home" ? (
                 <>
                     <StarsBackground />
-                    {/* Bottom Center - Wide Violet Gradient */}
+                    {/* Bottom Center - Wide violet Gradient */}
                     {/* Division for Blurry Elements */}
                     <div className="absolute h-full w-full min-h-full top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100">
                         <div className="absolute w-3/5 h-3/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-violet-800 to-violet-400 -z-50 dark:from-transparent dark:via-violet-800 dark:to-violet-400"></div>
 
-                        {/* Bottom Center - Light Violet */}
+                        {/* Bottom Center - Light violet */}
                         <div className="absolute w-1/5 h-2/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-violet-500 to-violet-50 -z-50 dark:from-transparent dark:via-violet-500 dark:to-violet-50"></div>
 
                         {/* Bottom Center - Middle White */}

@@ -1,4 +1,4 @@
-import { Translate } from "iconsax-react";
+import { Translate, VideoSquare } from "iconsax-react";
 import Link from "next/link";
 import React from "react";
 
@@ -20,12 +20,22 @@ export default function Jumbotron() {
             <div className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
                 <Link
                     href="/translate"
-                    className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-violet-700 hover:bg-violet-800 focus:ring-4 focus:ring-violet-300 dark:focus:ring-violet-900"
+                    className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-violet-600 hover:bg-violet-800"
                 >
                     <span className="mr-2 text-md font-semibold">
                         Translate
                     </span>
                     <Translate variant="Bulk" color="currentColor" />
+                </Link>
+                {/* See the Guideline */}
+                <Link
+                    href="/#Guideline"
+                    className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-violet-800 bg-violet-600/25 hover:bg-violet-600/50 dark:text-violet-600 dark:bg-violet-50/50 dark:hover:bg-violet-50/75"
+                >
+                    <span className="mr-2 text-md font-semibold">
+                        Guideline
+                    </span>
+                    <VideoSquare variant="Bulk" color="currentColor" />
                 </Link>
             </div>
         </div>
