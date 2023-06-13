@@ -2,11 +2,18 @@
 
 import React, { useCallback, useState } from "react";
 import Link from "next/link";
-import { ArrowRight3, DocumentUpload, LinkSquare } from "iconsax-react";
+import {
+    ArrowRight3,
+    ChartSuccess,
+    Check,
+    DocumentUpload,
+    LinkSquare,
+} from "iconsax-react";
 import FileUploadService from "./Core/FileUploadService";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "flowbite-react";
+import toast from "react-hot-toast";
 const StepTitle = () => {
     return (
         <>
@@ -161,12 +168,10 @@ export default function First_DocumentUpload() {
             <button
                 onClick={() => {
                     // <pathname>?sort=asc
-                    Router.push(
-                        `${Pathname}?${createQueryString(
-                            "session",
-                            "document-upload"
-                        )}`
-                    );
+                    toast.success("This feature is under development.", {
+                        icon: <Check color="green" variant="Bulk" />,
+                        id: "Process",
+                    });
                 }}
                 className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-violet-700 rounded-lg hover:bg-violet-800 focus:ring-4 focus:outline-none focus:ring-violet-300 dark:bg-violet-600 dark:hover:bg-violet-700 dark:focus:ring-violet-800"
             >

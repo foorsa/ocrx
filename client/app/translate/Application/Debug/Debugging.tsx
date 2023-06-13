@@ -10,8 +10,10 @@ export default function Debugging() {
 
     const dispatch = useAppDispatch();
 
+    const DEBUG = false;
+
     // This component shows up only when the server is running in development mode
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === "development" && DEBUG) {
         return (
             <div className="relative w-full overflow-x-auto mt-10 sm:rounded-lg">
                 <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
