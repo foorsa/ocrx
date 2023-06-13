@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useCallback, useState } from "react";
 import Link from "next/link";
 import { ArrowRight3, DocumentUpload, LinkSquare } from "iconsax-react";
-
+import FileUploadService from "./Core/FileUploadService";
+import { useAppSelector, useAppDispatch } from "@/redux/hooks";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Button } from "flowbite-react";
 const StepTitle = () => {
     return (
         <>
@@ -32,7 +37,8 @@ const StepTitle = () => {
 
 // Selection for Document Type
 const SelectDocType = () => {
-    const [selectedType, setSelectedType] = useState<string>("");
+    const dispatch = useAppDispatch();
+    const DocType = useAppSelector((state) => state.DocType);
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const handleToggleDropdown = () => {
@@ -40,7 +46,10 @@ const SelectDocType = () => {
     };
 
     const handleSelectType = (type: string) => {
-        setSelectedType(type);
+        dispatch({
+            type: "SET_DOCTYPE",
+            payload: type,
+        });
         setDropdownOpen(false);
     };
 
@@ -59,9 +68,7 @@ const SelectDocType = () => {
                 type="button"
                 onClick={handleToggleDropdown}
             >
-                {selectedType && selectedType != ""
-                    ? selectedType
-                    : "Select Document Type"}
+                {DocType && DocType != "" ? DocType : "Select Document Type"}
                 <svg
                     aria-hidden="true"
                     className="w-4 h-4 ml-1"
@@ -124,39 +131,23 @@ const SelectDocType = () => {
     );
 };
 
-const FileUploadService = () => {
-    return (
-        <>
-            <div className="flex items-center justify-center w-full">
-                <label
-                    htmlFor="dropzone-file"
-                    className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-                >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <DocumentUpload
-                            color="currentColor"
-                            aria-hidden="true"
-                            className="w-10 h-10 mb-3 text-gray-400"
-                            variant="Bulk"
-                        />
-                        <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                            <span className="font-semibold">
-                                Click to upload
-                            </span>{" "}
-                            or drag and drop
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                            PNG, JPG or PDF (MAX. 10 MB)
-                        </p>
-                    </div>
-                    <input id="dropzone-file" type="file" className="hidden" />
-                </label>
-            </div>
-        </>
-    );
-};
-
 export default function First_DocumentUpload() {
+    const Router = useRouter();
+    const Pathname = usePathname();
+    const searchParams = useSearchParams()!;
+
+    // Get a new searchParams string by merging the current
+    // searchParams with a provided key/value pair
+    const createQueryString = useCallback(
+        (name: string, value: string) => {
+            const params = new URLSearchParams(searchParams as any);
+            params.set(name, value);
+
+            return params.toString();
+        },
+        [searchParams]
+    );
+
     return (
         <div className="relative w-full">
             {/* Step Title */}
@@ -167,13 +158,21 @@ export default function First_DocumentUpload() {
                 <FileUploadService />
             </div>
 
-            <Link
-                href="#"
+            <button
+                onClick={() => {
+                    // <pathname>?sort=asc
+                    Router.push(
+                        `${Pathname}?${createQueryString(
+                            "session",
+                            "document-upload"
+                        )}`
+                    );
+                }}
                 className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-violet-700 rounded-lg hover:bg-violet-800 focus:ring-4 focus:outline-none focus:ring-violet-300 dark:bg-violet-600 dark:hover:bg-violet-700 dark:focus:ring-violet-800"
             >
                 Process
                 <ArrowRight3 color="currentColor" variant="Bulk" />
-            </Link>
+            </button>
         </div>
     );
 }

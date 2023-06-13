@@ -1,19 +1,16 @@
 import React from "react";
-import { StepType, Steps } from "../Container";
 import { Check, DocumentCode2, DocumentDownload } from "iconsax-react";
+import { useAppSelector, useAppDispatch } from "@/redux/hooks";
+import { Steps } from "@/redux/store";
 
-export default function Stepper({
-    Progress,
-    setProgress,
-}: {
-    Progress: StepType;
-    setProgress: React.Dispatch<React.SetStateAction<StepType>>;
-}) {
+export default function Stepper() {
+    const dispatch = useAppDispatch();
+    const Step = useAppSelector((state) => state.Step);
     const getStepClass = (step: Steps) => {
         if (
-            Progress.Step === step ||
-            Progress.Step === Steps.Validate ||
-            Progress.Step === Steps.Translate
+            Step === step ||
+            Step === Steps.Validate ||
+            Step === Steps.Translate
         ) {
             return "text-violet-600 dark:text-violet-500";
         }
@@ -25,27 +22,27 @@ export default function Stepper({
 
         // Apply the class if the current step is the same as the step passed in or the next step
         if (step === Steps.Upload) {
-            if (Progress.Step == Steps.Upload) {
+            if (Step == Steps.Upload) {
                 Apply = false;
-            } else if (Progress.Step == Steps.Translate) {
+            } else if (Step == Steps.Translate) {
                 Apply = true;
-            } else if (Progress.Step == Steps.Validate) {
+            } else if (Step == Steps.Validate) {
                 Apply = true;
             }
         } else if (step === Steps.Translate) {
-            if (Progress.Step == Steps.Upload) {
+            if (Step == Steps.Upload) {
                 Apply = false;
-            } else if (Progress.Step == Steps.Translate) {
+            } else if (Step == Steps.Translate) {
                 Apply = false;
-            } else if (Progress.Step == Steps.Validate) {
+            } else if (Step == Steps.Validate) {
                 Apply = true;
             }
         } else if (step === Steps.Validate) {
-            if (Progress.Step == Steps.Upload) {
+            if (Step == Steps.Upload) {
                 Apply = false;
-            } else if (Progress.Step == Steps.Translate) {
+            } else if (Step == Steps.Translate) {
                 Apply = false;
-            } else if (Progress.Step == Steps.Validate) {
+            } else if (Step == Steps.Validate) {
                 Apply = true;
             }
         } else {
@@ -59,7 +56,22 @@ export default function Stepper({
     };
 
     const handleClick = (step: Steps) => {
-        setProgress({ Step: step });
+        if (step === Steps.Upload) {
+            dispatch({
+                type: "SET_STEP",
+                payload: Steps.Upload,
+            });
+        } else if (step === Steps.Translate) {
+            dispatch({
+                type: "SET_STEP",
+                payload: Steps.Translate,
+            });
+        } else if (step === Steps.Validate) {
+            dispatch({
+                type: "SET_STEP",
+                payload: Steps.Validate,
+            });
+        }
     };
 
     return (
@@ -72,9 +84,9 @@ export default function Stepper({
             >
                 <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${
-                        Progress.Step === Steps.Upload ||
-                        Progress.Step === Steps.Translate ||
-                        Progress.Step === Steps.Validate
+                        Step === Steps.Upload ||
+                        Step === Steps.Translate ||
+                        Step === Steps.Validate
                             ? "bg-violet-500 dark:bg-violet-800"
                             : "bg-gray-100 dark:bg-gray-700"
                     }`}
@@ -83,9 +95,9 @@ export default function Stepper({
                         color="currentColor"
                         variant="Bulk"
                         className={`w-5 h-5 text-${
-                            Progress.Step === Steps.Upload ||
-                            Progress.Step === Steps.Translate ||
-                            Progress.Step === Steps.Validate
+                            Step === Steps.Upload ||
+                            Step === Steps.Translate ||
+                            Step === Steps.Validate
                                 ? "white"
                                 : "violet-600"
                         } lg:w-6 lg:h-6 dark:text-violet-300`}
@@ -100,8 +112,7 @@ export default function Stepper({
             >
                 <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${
-                        Progress.Step === Steps.Translate ||
-                        Progress.Step === Steps.Validate
+                        Step === Steps.Translate || Step === Steps.Validate
                             ? "bg-violet-500 dark:bg-violet-800"
                             : "bg-gray-100 dark:bg-gray-700"
                     }`}
@@ -110,8 +121,7 @@ export default function Stepper({
                         color="currentColor"
                         variant="Bulk"
                         className={`w-5 h-5 text-${
-                            Progress.Step === Steps.Translate ||
-                            Progress.Step === Steps.Validate
+                            Step === Steps.Translate || Step === Steps.Validate
                                 ? "white"
                                 : "violet-600"
                         } lg:w-6 lg:h-6 dark:text-violet-300`}
@@ -121,7 +131,7 @@ export default function Stepper({
             <li className="flex items-center flex-grow-0 flex-shrink">
                 <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 ${
-                        Progress.Step === Steps.Validate
+                        Step === Steps.Validate
                             ? "bg-violet-500 dark:bg-violet-800"
                             : "bg-gray-100 dark:bg-gray-700"
                     }`}
@@ -131,9 +141,7 @@ export default function Stepper({
                         color="currentColor"
                         variant="Bulk"
                         className={`w-5 h-5 text-${
-                            Progress.Step === Steps.Validate
-                                ? "white"
-                                : "violet-600"
+                            Step === Steps.Validate ? "white" : "violet-600"
                         } lg:w-6 lg:h-6 dark:text-violet-300`}
                     />
                 </div>

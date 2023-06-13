@@ -1,0 +1,153 @@
+"use client";
+
+import React, { useState } from "react";
+import { DocumentUpload, CloseSquare as XCircle } from "iconsax-react";
+import { useAppSelector, useAppDispatch } from "@/redux/hooks";
+
+const FileUploadService = () => {
+    const dispatch = useAppDispatch();
+    const uploadedFile: any = useAppSelector((state) => state.File);
+
+    const handleFileUpload = (event: any) => {
+        const files = event.target.files;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (
+                (file.type === "image/png" ||
+                    file.type === "image/jpeg" ||
+                    file.type === "application/pdf") &&
+                file.size <= 10 * 1024 * 1024
+            ) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const uploadedFile = {
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        preview: reader.result,
+                    };
+                    dispatch({
+                        type: "SET_FILE",
+                        payload: uploadedFile,
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    };
+
+    const handleFileDrop = (event: any) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const files: any = event.dataTransfer.files;
+        const fileInput: any = document.getElementById("dropzone-file");
+        fileInput.files = files;
+        handleFileUpload({ target: fileInput });
+    };
+
+    const handleDeleteFile = () => {
+        const fileInput: any = document.getElementById("dropzone-file");
+        fileInput.value = "";
+        dispatch({
+            type: "SET_FILE",
+            payload: null,
+        });
+    };
+
+    return (
+        <>
+            <div
+                className="flex items-center justify-center w-full"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleFileDrop}
+            >
+                <label
+                    htmlFor="dropzone-file"
+                    className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <DocumentUpload
+                            color="currentColor"
+                            aria-hidden="true"
+                            className="w-10 h-10 mb-3 text-gray-400"
+                            variant="Bulk"
+                        />
+                        <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                            <span className="font-semibold">
+                                Click to upload
+                            </span>{" "}
+                            or drag and drop
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            PNG, JPG or PDF (MAX. 10 MB)
+                        </p>
+                    </div>
+                    <input
+                        id="dropzone-file"
+                        type="file"
+                        className="hidden"
+                        accept=".png, .jpg, .jpeg, .pdf"
+                        multiple
+                        onChange={handleFileUpload}
+                    />
+                </label>
+            </div>
+
+            {uploadedFile && (
+                <div className="w-full mt-0 flex flex-col gap-2">
+                    <div className="flex items-center w-full justify-between gap-2 px-2 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 overflow-hidden">
+                        <div className="flex text-left gap-2 flex-1 overflow-hidden">
+                            {uploadedFile.type.includes("image") ? (
+                                <img
+                                    src={uploadedFile.preview}
+                                    alt={uploadedFile.name}
+                                    className="w-10 h-10 object-cover rounded-md"
+                                />
+                            ) : (
+                                <div className="w-10 h-10 flex items-center justify-center rounded-md bg-gray-200 dark:bg-gray-600">
+                                    <DocumentUpload
+                                        color="currentColor"
+                                        aria-hidden="true"
+                                        className="w-5 h-5 text-gray-400"
+                                        variant="Bulk"
+                                    />
+                                </div>
+                            )}
+                            <div className="flex w-full truncate flex-col flex-nowrap items-center justify-start space-y-1">
+                                <p className="w-full truncate text-sm font-medium text-gray-800 dark:text-gray-200">
+                                    {uploadedFile.name}
+                                </p>
+                                <p className="w-full truncate text-xs text-gray-500 dark:text-gray-400">
+                                    {formatFileSize(uploadedFile.size)} -{" "}
+                                    {uploadedFile.type}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            className="p-2 text-gray-500 hover:text-red-500"
+                            onClick={() => handleDeleteFile()}
+                            type="button"
+                            title="Remove"
+                        >
+                            <XCircle
+                                color="currentColor"
+                                aria-hidden="true"
+                                className="w-5 h-5"
+                            />
+                        </button>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};
+
+const formatFileSize = (size: any) => {
+    if (size === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(size) / Math.log(k));
+    return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
+
+export default FileUploadService;

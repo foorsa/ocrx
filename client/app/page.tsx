@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import BetaModal from "./Components/Modals/Beta.modal";
 import Background from "./Components/A. Background";

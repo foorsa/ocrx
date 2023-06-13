@@ -3,6 +3,7 @@ import { Prompt } from "next/font/google";
 import Script from "next/script";
 import NextTopLoader from "nextjs-toploader";
 import Providers from "./providers";
+import { Providers as ReduxProvider } from "@/redux/provider";
 
 const prombt: any = Prompt({
     subsets: ["latin"],
@@ -33,7 +34,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning={true}>
             <head>
                 <Script id="avoic-FOUC" strategy="beforeInteractive">
                     {`
@@ -47,18 +48,20 @@ export default function RootLayout({
                 </Script>
             </head>
             <body className={prombt.className}>
-                <NextTopLoader
-                    color="#6d28d9"
-                    initialPosition={0.08}
-                    crawlSpeed={200}
-                    height={5}
-                    crawl={true}
-                    showSpinner={false}
-                    easing="ease"
-                    speed={200}
-                    shadow="0 0 10px #6d28d9,0 0 5px #6d28d9"
-                />
-                <Providers>{children}</Providers>
+                <ReduxProvider>
+                    <NextTopLoader
+                        color="#6d28d9"
+                        initialPosition={0.08}
+                        crawlSpeed={200}
+                        height={5}
+                        crawl={true}
+                        showSpinner={false}
+                        easing="ease"
+                        speed={200}
+                        shadow="0 0 10px #6d28d9,0 0 5px #6d28d9"
+                    />
+                    <Providers>{children}</Providers>
+                </ReduxProvider>
             </body>
         </html>
     );
