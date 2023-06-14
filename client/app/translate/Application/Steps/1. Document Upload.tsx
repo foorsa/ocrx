@@ -3,16 +3,21 @@
 import React, { useCallback, useState } from "react";
 import Link from "next/link";
 import {
+    ArrowDown2,
     ArrowRight3,
+    BoxTick,
     ChartSuccess,
     Check,
+    Code,
+    Document,
     DocumentUpload,
     LinkSquare,
+    Timer,
 } from "iconsax-react";
 import FileUploadService from "./Core/FileUploadService";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "flowbite-react";
+import { Button, Tooltip } from "flowbite-react";
 import toast from "react-hot-toast";
 const StepTitle = () => {
     return (
@@ -76,60 +81,117 @@ const SelectDocType = () => {
                 onClick={handleToggleDropdown}
             >
                 {DocType && DocType != "" ? DocType : "Select Document Type"}
-                <svg
-                    aria-hidden="true"
-                    className="w-4 h-4 ml-1"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                        fillRule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                    ></path>
-                </svg>
+                <ArrowDown2
+                    color="currentColor"
+                    variant="Bulk"
+                    className={"w-4 h-4 ml-1 transition-transform duration-200"
+                        .concat(dropdownOpen ? " transform rotate-180" : "")
+                        .concat(" dark:text-gray-400")}
+                />
             </button>
             {dropdownOpen && (
                 <div className="z-10 absolute top-full left-0 mt-2 w-full bg-white divide-y divide-gray-100 rounded-lg shadow-2xl dark:bg-gray-700">
                     <ul
-                        className="py-2 text-sm text-gray-700 dark:text-gray-200"
-                        aria-labelledby="states-button"
+                        className="p-2 text-sm text-gray-700 dark:text-gray-200 space-y-2"
+                        aria-labelledby="document-type"
                     >
                         <li>
-                            <button
-                                type="button"
-                                className="inline-flex w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
-                                onClick={() =>
-                                    handleSelectType("Baccaulaureate")
-                                }
+                            <label
+                                className="block tracking-wide text-gray-300 dark:text-gray-600 text-xs font-bold mb-2"
+                                htmlFor="Diplomas"
                             >
-                                <div className="inline-flex items-center">
-                                    Baccaulaureate
-                                </div>
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                data-tooltip-target="tooltip-animation"
-                                type="button"
-                                className="inline-flex w-full px-4 py-2 text-sm text-gray-400 cursor-not-allowed hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-white"
-                            >
-                                <div className="inline-flex items-center">
-                                    Master
-                                </div>
-                            </button>
-                            <div
-                                id="tooltip-animation"
-                                role="tooltip"
-                                className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
-                            >
-                                Coming soon...
-                                <div
-                                    className="tooltip-arrow"
-                                    data-popper-arrow
-                                ></div>
-                            </div>
+                                Diplomas
+                            </label>
+                            <ul id="Diplomas">
+                                <li>
+                                    <button
+                                        type="button"
+                                        className="inline-flex w-full px-4 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+                                        onClick={() =>
+                                            handleSelectType("Baccaulaureate")
+                                        }
+                                    >
+                                        <div className="inline-flex items-center">
+                                            <Document
+                                                color="currentColor"
+                                                className="text-gray-400 mr-2"
+                                                variant="Bulk"
+                                            />
+                                            Baccaulaureate Diploma
+                                        </div>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        data-tooltip-target="tooltip-animation"
+                                        type="button"
+                                        onClick={() => {
+                                            // <pathname>?sort=asc
+                                            toast.success(
+                                                "This feature is under development.",
+                                                {
+                                                    icon: (
+                                                        <Code
+                                                            color="currentColor"
+                                                            className="text-violet-600"
+                                                            variant="Bulk"
+                                                        />
+                                                    ),
+                                                    id: "Process",
+                                                }
+                                            );
+                                        }}
+                                        className="inline-flex w-full px-4 py-2 text-sm rounded-md text-gray-400 cursor-not-allowed hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-white"
+                                    >
+                                        <div className="inline-flex items-center">
+                                            <BoxTick
+                                                color="currentColor"
+                                                className="text-gray-400 mr-2"
+                                                variant="Bulk"
+                                            />
+                                            Language Diploma
+                                        </div>
+                                        <Tooltip
+                                            id="tooltip-animation"
+                                            className="tooltip tooltip-primary"
+                                            aria-hidden="true"
+                                            content="This feature is under development."
+                                        />
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        data-tooltip-target="tooltip-animation"
+                                        type="button"
+                                        onClick={() => {
+                                            // <pathname>?sort=asc
+                                            toast.success(
+                                                "This feature is under development.",
+                                                {
+                                                    icon: (
+                                                        <Code
+                                                            color="currentColor"
+                                                            className="text-violet-600"
+                                                            variant="Bulk"
+                                                        />
+                                                    ),
+                                                    id: "Process",
+                                                }
+                                            );
+                                        }}
+                                        className="inline-flex w-full px-4 py-2 text-sm rounded-md text-gray-400 cursor-not-allowed hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-white"
+                                    >
+                                        <div className="inline-flex items-center">
+                                            <BoxTick
+                                                color="currentColor"
+                                                className="text-gray-400 mr-2"
+                                                variant="Bulk"
+                                            />
+                                            Master Diploma
+                                        </div>
+                                    </button>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
@@ -169,7 +231,13 @@ export default function First_DocumentUpload() {
                 onClick={() => {
                     // <pathname>?sort=asc
                     toast.success("This feature is under development.", {
-                        icon: <Check color="green" variant="Bulk" />,
+                        icon: (
+                            <Code
+                                color="currentColor"
+                                className="text-violet-600"
+                                variant="Bulk"
+                            />
+                        ),
                         id: "Process",
                     });
                 }}

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { DocumentUpload, CloseSquare as XCircle } from "iconsax-react";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
+import { toast } from "react-hot-toast";
 
 const FileUploadService = () => {
     const dispatch = useAppDispatch();
@@ -48,6 +49,7 @@ const FileUploadService = () => {
     const handleDeleteFile = () => {
         const fileInput: any = document.getElementById("dropzone-file");
         fileInput.value = "";
+        toast.success("File deleted successfully");
         dispatch({
             type: "SET_FILE",
             payload: null,
@@ -55,11 +57,18 @@ const FileUploadService = () => {
     };
 
     return (
-        <>
+        <div className="flex flex-col gap-2 w-full">
+            <label
+                className="block tracking-wide text-left text-gray-500 dark:text-gray-300 text-xs font-bold"
+                htmlFor="dropzone"
+            >
+                Upload your document
+            </label>
             <div
                 className="flex items-center justify-center w-full"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleFileDrop}
+                id="dropzone"
             >
                 <label
                     htmlFor="dropzone-file"
@@ -138,7 +147,7 @@ const FileUploadService = () => {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 };
 

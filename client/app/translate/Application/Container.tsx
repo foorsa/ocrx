@@ -26,9 +26,7 @@ export default function Container() {
     const [isLoading, setIsLoading] = React.useState(false);
 
     return (
-        <div
-            className="relative flex-1 h-full w-full min-w-full flex text-center flex-col justify-center items-center p-5"
-        >
+        <div className="relative flex-1 h-full w-full min-w-full flex text-center flex-col justify-center items-center p-5">
             <OCRX_ICON isLoading={false} />
             <div className="flex flex-col justify-center items-center max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-2xl dark:bg-gray-800 dark:border-gray-700">
                 <Stepper />

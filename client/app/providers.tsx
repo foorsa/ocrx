@@ -15,38 +15,76 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <ThemeProvider attribute="class">
             <main className="relative flex min-h-screen flex-col items-center justify-between">
                 <Background Variant={BackgroundVariant} />
-                <Toaster>
+                <Toaster
+                    position="bottom-right"
+                    toastOptions={{
+                        className: "",
+                        style: {
+                            border: "none",
+                            padding: 0,
+                            color: "currentColor",
+                            background: "none",
+                            backgroundColor: "none",
+                        },
+                        // Default options for specific types
+                        success: {
+                            duration: 3000,
+                            iconTheme: {
+                                primary: "#10b981",
+                                secondary: "#064e3b",
+                            },
+                        } as any,
+                        error: {
+                            duration: 3000,
+                            iconTheme: {
+                                primary: "#ef4444",
+                                secondary: "#7f1d1d",
+                            },
+                        } as any,
+                    }}
+                >
                     {(t) => (
-                        <>
-                            <div
-                                id="toast-default"
-                                className="flex items-center space-x-2 justify-center max-w-sm p-3 bg-white border border-gray-200 rounded-lg shadow-2xl dark:bg-gray-800 dark:border-gray-700"
-                                role="alert"
-                            >
-                                <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg">
-                                    {t.icon}
-                                    <span className="sr-only">Toast Icon</span>
-                                </div>
-                                <div className="ml-3 text-sm font-normal">
-                                    {resolveValue(t.message, t)}
-                                </div>
-                                <button
-                                    type="button"
-                                    className="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
-                                    data-dismiss-target="#toast-default"
-                                    aria-label="Close"
-                                    onClick={() => toast.dismiss(t.id)}
+                        <ToastBar
+                            position="bottom-right" // Used to adapt the animation
+                            toast={t}
+                        >
+                            {({ icon, message }) => (
+                                <div
+                                    id="toast-default"
+                                    className="flex items-center space-x-2 justify-center max-w-sm p-3 bg-white border border-gray-200 rounded-lg shadow-2xl dark:bg-gray-800 dark:border-gray-700"
+                                    role="alert"
                                 >
-                                    <span className="sr-only">Close</span>
-                                    <CloseSquare
-                                        className="w-5 h-5 text-gray-400 dark:text-gray-300"
-                                        color="currentColor"
-                                        variant="Bulk"
-                                        aria-hidden="true"
-                                    />
-                                </button>
-                            </div>
-                        </>
+                                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg">
+                                        {icon}
+                                        <span className="sr-only">
+                                            Toast Icon
+                                        </span>
+                                    </div>
+                                    <div className="ml-3 text-sm font-normal text-gray-500 dark:text-gray-400">
+                                        {message}
+                                    </div>
+                                    {t.type !== "loading" && (
+                                        <button
+                                            type="button"
+                                            className="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+                                            data-dismiss-target="#toast-default"
+                                            aria-label="Close"
+                                            onClick={() => toast.dismiss(t.id)}
+                                        >
+                                            <span className="sr-only">
+                                                Close
+                                            </span>
+                                            <CloseSquare
+                                                className="w-5 h-5 text-gray-400 dark:text-gray-300"
+                                                color="currentColor"
+                                                variant="Bulk"
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </ToastBar>
                     )}
                 </Toaster>
                 {children}
