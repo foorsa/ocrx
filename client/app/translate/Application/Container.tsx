@@ -32,7 +32,7 @@ export default function Container() {
                 <Stepper />
                 <First_DocumentUpload />
             </div>
-            <Debugging />
+            {/* <Debugging /> */}
         </div>
     );
 }
