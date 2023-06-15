@@ -16,9 +16,9 @@ export default function Debugging() {
     const DEBUG = true;
 
     // This component shows up only when the server is running in development mode
-    // if (process.env.NODE_ENV !== "development") {
-    //     return null;
-    // }
+    if (process.env.NODE_ENV !== "development") {
+        return null;
+    }
 
     return (
         <div className="relative w-full overflow-x-auto mt-10 sm:rounded-lg">
@@ -66,7 +66,7 @@ export default function Debugging() {
                             <button
                                 className="px-4 py-2 font-semibold text-white bg-violet-500 rounded-lg shadow-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-opacity-75"
                                 onClick={() => {
-                                    dispatch(setStep(Steps.Translate));
+                                    dispatch(setStep(Steps.Correct));
                                 }}
                             >
                                 Translate
@@ -74,7 +74,7 @@ export default function Debugging() {
                             <button
                                 className="px-4 py-2 font-semibold text-white bg-violet-500 rounded-lg shadow-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-opacity-75"
                                 onClick={() => {
-                                    dispatch(setStep(Steps.Validate));
+                                    dispatch(setStep(Steps.Finish));
                                 }}
                             >
                                 Validate
@@ -144,7 +144,7 @@ export default function Debugging() {
                             <button
                                 className="px-4 py-2 font-semibold text-white bg-violet-500 rounded-lg shadow-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-opacity-75"
                                 onClick={() => {
-                                    dispatch(resetFile);
+                                    dispatch(resetFile());
                                 }}
                             >
                                 Remove File
