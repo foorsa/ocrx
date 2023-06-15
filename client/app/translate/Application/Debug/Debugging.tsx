@@ -4,6 +4,8 @@ import { Steps } from "@/redux/types/states/Step";
 import { setStep } from "@/redux/actions/stepActions";
 import { setDocumentTypes } from "@/redux/actions/documentTypeActions";
 import { resetFile, setFile } from "@/redux/actions/fileActions";
+import { BaccalaureateObject } from "@/redux/data/Documents";
+import { toast } from "react-hot-toast";
 
 export default function Debugging() {
     // The `state` arg is correctly typed as `RootState` already
@@ -87,14 +89,14 @@ export default function Debugging() {
                             Document Type
                         </td>
                         <td className="w-max px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-400">
-                            {DocType ? DocType : "No Document Type"}
+                            {DocType ? DocType.name : "No Document Type"}
                         </td>
                         <td className="w-max space-x-2 px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-400">
                             <button
                                 className="px-4 py-2 font-semibold text-white bg-violet-500 rounded-lg shadow-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-opacity-75"
                                 onClick={() => {
                                     dispatch(
-                                        setDocumentTypes("Baccaulaureate")
+                                        setDocumentTypes(BaccalaureateObject)
                                     );
                                 }}
                             >
@@ -103,7 +105,7 @@ export default function Debugging() {
                             <button
                                 className="px-4 py-2 font-semibold text-white bg-violet-500 rounded-lg shadow-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-opacity-75"
                                 onClick={() => {
-                                    dispatch(setDocumentTypes("Master"));
+                                    toast.error("Not implemented yet.");
                                 }}
                             >
                                 Master Diploma
@@ -111,7 +113,7 @@ export default function Debugging() {
                             <button
                                 className="px-4 py-2 font-semibold text-white bg-violet-500 rounded-lg shadow-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-opacity-75"
                                 onClick={() => {
-                                    dispatch(setDocumentTypes("Language"));
+                                    toast.error("Not implemented yet.");
                                 }}
                             >
                                 Language Diploma
