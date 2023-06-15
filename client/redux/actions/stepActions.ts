@@ -1,4 +1,6 @@
 import { Steps } from "@/redux/types/states/Step";
+import { Doctype } from "../types/states/Document Type";
+import { FileType } from "../types/states/File";
 
 // Step Actions
 export const SET_STEP = "Step/Set";

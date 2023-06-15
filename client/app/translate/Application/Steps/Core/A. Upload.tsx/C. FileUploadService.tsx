@@ -22,31 +22,41 @@ const FileUploadService = () => {
                     file.type === "application/pdf") &&
                 file.size <= 10 * 1024 * 1024
             ) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    if (file.type.includes("image")) {
-                        dispatch(
-                            setFile({
-                                ...file,
-                                name: file.name,
-                                type: file.type,
-                                size: file.size,
-                                preview: reader.result as FileType["preview"],
-                            } as FileType)
-                        );
-                    } else {
-                        dispatch(
-                            setFile({
-                                ...file,
-                                name: file.name,
-                                type: file.type,
-                                size: file.size,
-                                preview: null as FileType["preview"],
-                            } as FileType)
-                        );
-                    }
-                };
-                reader.readAsDataURL(file);
+                // Remove the Previous File if there is one
+                if (uploadedFile !== null) {
+                    dispatch(resetFile());
+                }
+
+                // Wait for 300ms to show the loading animation
+                setTimeout(() => {
+                    //
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        if (file.type.includes("image")) {
+                            dispatch(
+                                setFile({
+                                    ...file,
+                                    name: file.name,
+                                    type: file.type,
+                                    size: file.size,
+                                    preview:
+                                        reader.result as FileType["preview"],
+                                } as FileType)
+                            );
+                        } else {
+                            dispatch(
+                                setFile({
+                                    ...file,
+                                    name: file.name,
+                                    type: file.type,
+                                    size: file.size,
+                                    preview: null as FileType["preview"],
+                                } as FileType)
+                            );
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }, 200);
             } else {
                 // Check where the error is
                 if (

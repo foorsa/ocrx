@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "flowbite-react";
 import { Airplane, Flash, Moon, Sun1 } from "iconsax-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -14,6 +15,7 @@ export const ThemeToggle = () => {
         <button
             id="theme-toggle"
             type="button"
+            title="Toggle Theme"
             onClick={() =>
                 theme == "dark" ? setTheme("light") : setTheme("dark")
             }
@@ -49,7 +51,7 @@ export default function Header() {
                     <Link href="/translate" className="flex items-center">
                         <button
                             type="button"
-                            className="text-white ring-0 bg-violet-700 hover:bg-violet-800 focus:outline-none font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 dark:bg-violet-600 dark:hover:bg-violet-700 inline-flex items-center"
+                            className="text-white ring-0 bg-black hover:bg-violet-800 focus:outline-none font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 dark:bg-violet-600 dark:hover:bg-violet-700 inline-flex items-center"
                         >
                             <span className="mr-2 text-sm font-semibold hidden md:block">
                                 Launch App
