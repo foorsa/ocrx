@@ -46,10 +46,6 @@ export default function RootLayout({
                         }
                     `}
                 </Script>
-                <link
-                    href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.css"
-                    rel="stylesheet"
-                />
             </head>
             <body className={prombt.className}>
                 <ReduxProvider>
@@ -66,10 +62,6 @@ export default function RootLayout({
                     />
                     <Providers>{children}</Providers>
                 </ReduxProvider>
-                <Script
-                    src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.js"
-                    strategy="beforeInteractive"
-                ></Script>
             </body>
         </html>
     );

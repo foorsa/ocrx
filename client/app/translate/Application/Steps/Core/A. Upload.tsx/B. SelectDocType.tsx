@@ -76,13 +76,10 @@ const SelectDocType = () => {
                         aria-labelledby="document-type"
                     >
                         <li>
-                            <label
-                                className="block tracking-wide text-gray-300 dark:text-gray-600 text-xs font-bold mb-2"
-                                htmlFor="Diplomas"
-                            >
+                            <label className="block tracking-wide text-gray-300 dark:text-gray-600 text-xs font-bold mb-2">
                                 Diplomas
                             </label>
-                            <ul id="Diplomas">
+                            <ul>
                                 <li>
                                     <button
                                         type="button"
@@ -105,7 +102,6 @@ const SelectDocType = () => {
                                 </li>
                                 <li>
                                     <button
-                                        data-tooltip-target="tooltip-animation"
                                         type="button"
                                         onClick={() =>
                                             handleSelectType("Language Diploma")
@@ -120,12 +116,6 @@ const SelectDocType = () => {
                                             />
                                             Language Diploma
                                         </div>
-                                        <Tooltip
-                                            id="tooltip-animation"
-                                            className="tooltip tooltip-primary"
-                                            aria-hidden="true"
-                                            content="This feature is under development."
-                                        />
                                     </button>
                                 </li>
                                 <li>
@@ -144,96 +134,6 @@ const SelectDocType = () => {
                                                 variant="Bulk"
                                             />
                                             Master Diploma
-                                        </div>
-                                    </button>
-                                </li>
-                            </ul>
-                        </li>
-                        <li>
-                            <label
-                                className="block tracking-wide text-gray-300 dark:text-gray-600 text-xs font-bold mb-2"
-                                htmlFor="Diplomas"
-                            >
-                                Extra Docs
-                            </label>
-                            <ul id="Diplomas">
-                                <li>
-                                    <button
-                                        type="button"
-                                        className="inline-flex w-full px-4 py-2 text-sm rounded-md text-gray-400 cursor-not-allowed hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-white"
-                                        onClick={() =>
-                                            handleSelectType(
-                                                "School Certificate"
-                                            )
-                                        }
-                                    >
-                                        <div className="inline-flex items-center">
-                                            <BoxTick
-                                                color="currentColor"
-                                                className="text-gray-400 mr-2"
-                                                variant="Bulk"
-                                            />
-                                            School Certificate
-                                        </div>
-                                    </button>
-                                </li>
-                                <li>
-                                    <button
-                                        type="button"
-                                        className="inline-flex w-full px-4 py-2 text-sm rounded-md text-gray-400 cursor-not-allowed hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-white"
-                                        onClick={() =>
-                                            handleSelectType(
-                                                "Registration Certificate"
-                                            )
-                                        }
-                                    >
-                                        <div className="inline-flex items-center">
-                                            <BoxTick
-                                                color="currentColor"
-                                                className="text-gray-400 mr-2"
-                                                variant="Bulk"
-                                            />
-                                            Registration Certificate
-                                        </div>
-                                    </button>
-                                </li>
-                                <li>
-                                    <button
-                                        type="button"
-                                        className="inline-flex w-full px-4 py-2 text-sm rounded-md text-gray-400 cursor-not-allowed hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-white"
-                                        onClick={() =>
-                                            handleSelectType(
-                                                "Certificate Enrollement"
-                                            )
-                                        }
-                                    >
-                                        <div className="inline-flex items-center">
-                                            <BoxTick
-                                                color="currentColor"
-                                                className="text-gray-400 mr-2"
-                                                variant="Bulk"
-                                            />
-                                            Certificate Enrollement
-                                        </div>
-                                    </button>
-                                </li>
-                                <li>
-                                    <button
-                                        type="button"
-                                        className="inline-flex w-full px-4 py-2 text-sm rounded-md text-gray-400 cursor-not-allowed hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-white"
-                                        onClick={() =>
-                                            handleSelectType(
-                                                "Certificate of achievement"
-                                            )
-                                        }
-                                    >
-                                        <div className="inline-flex items-center">
-                                            <BoxTick
-                                                color="currentColor"
-                                                className="text-gray-400 mr-2"
-                                                variant="Bulk"
-                                            />
-                                            Certificate of achievement
                                         </div>
                                     </button>
                                 </li>

@@ -3,6 +3,8 @@
 import React, { useCallback, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { Link, LinkSquare } from "iconsax-react";
+import Heading from "./Core/B. Correct.tsx/A. Heading";
+import Fields from "./Core/B. Correct.tsx/B. Fields";
 
 // Selection for Document Type
 
@@ -11,14 +13,8 @@ export default function Second_CorrectData() {
 
     return (
         <div className="relative w-full">
-            <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                Correct the Outbound Data
-            </h5>
-
-            <p className="mb-6 text-xs font-normal text-gray-700 dark:text-gray-400">
-                Please correct the fields values that have been extracted with
-                OCR and AI from the document.
-            </p>
+            <Heading />
+            <Fields />
         </div>
     );
 }
