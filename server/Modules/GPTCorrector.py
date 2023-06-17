@@ -50,7 +50,7 @@ class GPTCorrector:
 def GeneratePrompt(Doctype):
     # Options available for each Document Type
 
-    BaccaulareateOptions = f"""
+    BaccalaureateOptions = f"""
         "Type": Baccalaureate Diploma
         "Serial Number": Baccalaureate Diploma Id Number (Mandatory 10 Characters Long), e.g. LXXXXXXXXX, L123456789, etc. 
         "Candidate": Candidate Name
@@ -61,8 +61,6 @@ def GeneratePrompt(Doctype):
         "Session": Year and Month, example: July 2020, etc.
         "Series": Speciality Name, example: Services Option Services et Restaurant, Science Physiques, Sciences de la vie et de la terre, etc.
         "Mention": Mention Name, example: "Passable, Assez Bien, Bien, Tres Bien, etc".
-        
-        Please do not forget to translate each option's value accurately as well (Obligatory: Series and Speciality from french to english).
     """
     LanguageOptions = """"""
 
@@ -93,7 +91,7 @@ def GeneratePrompt(Doctype):
         Please read the string and convert it to something that can be used by the application.
 
         I need the data to be shaped this way:
-        {Doctype == "Baccaulareate Diploma" and BaccaulareateOptions}
+        {Doctype == "Baccalaureate Diploma" and BaccalaureateOptions}
         {Doctype == "Language Diploma" and LanguageOptions}
         {Doctype == "Master Diploma" and MasterOptions}
         
@@ -115,10 +113,18 @@ def GeneratePrompt(Doctype):
         
         I need the data to be shaped to a JSON Object.
         
-        PS: No need to comment or explain, just translate it and then return it.
+        NOTICE: 
+            No need to comment or explain, just translate it and then return it.
             This means I need a valid JSON Object as an output from your response.
             Any additional text will be considered as an error.
+            Please do not forget to translate each option's value accurately as well (Obligatory: Series and Speciality from french to english).
+            Please keep the same format as the example above.
+            Do not change the name of the options.
+            The object keys should be the same as the example above.
+            Reply with the JSON object ONLY.
             So please do not add anything to the object, it is the JSON object that the application needs.
+            DO NOT ADD ANYTHING TO THE JSON OBJECT, JUST TRANSLATE IT AND RETURN IT.
+            NO COMMENTS, NO EXPLANATIONS, NO ADDITIONAL TEXT.
     """
 
     return Prompt

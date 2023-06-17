@@ -34,7 +34,7 @@ const Baccalaureate: Doctype = {
             value: "",
         },
         {
-            name: "Insitute",
+            name: "Institute",
             type: "text",
             description: "Insitute of the Candidate",
             required: true,

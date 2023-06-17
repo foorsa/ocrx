@@ -4,7 +4,7 @@ import { Steps } from "../types/states/Step";
 import { toast } from "react-hot-toast";
 
 
-export const stepReducer = (state = initialState.step, action: { type: string; payload: any; }) => {
+export const stepReducer = (state: Steps = initialState.step, action: { type: string; payload: any; }) => {
     switch (action.type) {
         case SET_STEP:
             return action.payload

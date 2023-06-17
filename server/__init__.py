@@ -75,8 +75,12 @@ def process_request():
     if Content == None:
         return "Error reading file. Please try again."
 
+    print("Content: ", Content)
+
     # Correct the OCR output using GPT-3.5-turbo
-    Corrected = GPT.Correct(Content, Doctype)
+    Corrected = GPT.Correct(Content, "Baccalaureate Diploma")
+
+    print("Corrected: ", Corrected)
 
     # Parsed = GPT.Parse(Content)
 

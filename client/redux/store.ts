@@ -4,6 +4,7 @@ import storage from 'redux-persist/lib/storage';
 import { fileReducer } from "./reducers/fileReducer";
 import { stepReducer } from "./reducers/stepReducer";
 import { documentTypeReducer } from "./reducers/documentTypeReducer";
+import { processReducer } from "./reducers/processReducer";
 
 // Configure Redux Persist
 const persistConfig = {
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
     file: fileReducer,
     step: stepReducer,
     documentType: documentTypeReducer,
+    process: processReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

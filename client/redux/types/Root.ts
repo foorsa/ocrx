@@ -9,4 +9,9 @@ export interface IState {
     file: File | null;
     step: Steps | null | string;
     documentType: string | null;
+    process: {
+        isLoading: boolean;
+        name?: string;
+        description?: string;
+    }
 }

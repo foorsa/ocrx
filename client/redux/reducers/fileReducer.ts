@@ -1,7 +1,8 @@
 import { initialState } from "../initialState";
 import { SET_FILE, RESET_FILE } from "../actions/fileActions";
+import { FileType } from "../types/states/File";
 
-export const fileReducer = (state = initialState.file, action: { type: any; payload: any; }) => {
+export const fileReducer = (state: FileType = initialState.file as FileType, action: { type: any; payload: any; }) => {
     switch (action.type) {
         case SET_FILE:
             console.log("fileReducer: SET_FILE: action.payload: ", action.payload);
