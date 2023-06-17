@@ -1,9 +1,11 @@
+import { FileType } from "../types/states/File";
+
 // Action Types
 export const SET_FILE = "File/Set";
 export const RESET_FILE = "File/Reset";
 
 // Action creators
-export const setFile = (file: File) => {
+export const setFile = (file: FileType) => {
     return {
         type: SET_FILE,
         payload: file,

@@ -35,22 +35,22 @@ const FileUploadService = () => {
                         if (file.type.includes("image")) {
                             dispatch(
                                 setFile({
-                                    ...file,
+                                    file: file,
                                     name: file.name,
                                     type: file.type,
                                     size: file.size,
                                     preview:
                                         reader.result as FileType["preview"],
-                                } as FileType)
+                                })
                             );
                         } else {
                             dispatch(
                                 setFile({
-                                    ...file,
+                                    file: file,
                                     name: file.name,
                                     type: file.type,
                                     size: file.size,
-                                    preview: null as FileType["preview"],
+                                    preview: "" as FileType["preview"],
                                 } as FileType)
                             );
                         }

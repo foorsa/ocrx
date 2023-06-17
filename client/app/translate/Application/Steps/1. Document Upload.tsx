@@ -24,6 +24,8 @@ import { BaccalaureateObject } from "@/redux/data/Documents";
 import SelectDocType from "./Core/A. Upload.tsx/B. SelectDocType";
 import Heading from "./Core/A. Upload.tsx/A. Heading";
 import { nextStep } from "@/redux/actions/stepActions";
+import axios from "axios";
+import { Doctype } from "@/redux/types/states/Document Type";
 
 // Selection for Document Type
 
@@ -33,28 +35,62 @@ export default function First_DocumentUpload() {
     const UploadedFile = useAppSelector((state) => state.file);
     const [isUploading, setIsUploading] = useState(false);
 
-    const handleNextStep = () => {
-        if (UploadedFile == null) {
+    const handleNextStep = async () => {
+        if (!UploadedFile) {
             return toast.error("Please upload a file");
-        } else if (
-            Doctype?.name == "" ||
-            Doctype == null ||
-            Doctype?.name == null
-        ) {
+        } else if (!Doctype?.name) {
             return toast.error("Please select a document type");
         }
 
         // Set fake loading
         setIsUploading(true);
 
-        // Delay for 5 seconds
-        setTimeout(() => {
-            setIsUploading(false);
-            // Trigger a Toast
-            toast.success("File uploaded successfully.");
+        const url = "http://localhost:5000/api/process"; // Replace with your server endpoint
 
+        const formData = new FormData();
+        formData.append("file", UploadedFile.file);
+        formData.append("document_type", Doctype.name);
+
+        console.log(UploadedFile);
+
+        try {
+            const response = await axios.post(url, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            // Change the Fields Values in the Redux Store
+            const ExtractedData = Doctype.fields.map((field) => {
+                const value = response.data[field.name];
+                return { ...field, value };
+            });
+
+            // Doctype without the fields
+            const DoctypeNoFields = {
+                id: Doctype.id,
+                name: Doctype.name,
+                description: Doctype.description,
+            };
+
+            // Set the extracted data in the redux store
+            dispatch(
+                setDocumentTypes({
+                    ...DoctypeNoFields,
+                    fields: ExtractedData,
+                })
+            );
+
+            // Go to next step
             dispatch(nextStep());
-        }, 5000);
+        } catch (error: any) {
+            // Handle errors
+            console.error("Error:", error.message);
+            toast.error("Error: " + error.message);
+        } finally {
+            // Set fake loading
+            setIsUploading(false);
+        }
     };
 
     return (

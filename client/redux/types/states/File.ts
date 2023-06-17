@@ -4,9 +4,10 @@
 
 // Typical File type but with the addition of the document type and preview
 
-export interface FileType extends File {
+export interface FileType {
+    file: File;
     name: string;
-    type: string;
     size: number;
-    preview: string | ArrayBuffer | null;
+    type: string;
+    preview: string;
 }

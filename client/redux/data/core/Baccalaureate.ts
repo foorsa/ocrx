@@ -6,6 +6,13 @@ const Baccalaureate: Doctype = {
     description: "Baccalaureate Certificate",
     fields: [
         {
+            name: "Serial Number",
+            type: "text",
+            description: "Serial Number of the Baccalaureate Certificate",
+            required: true,
+            value: "",
+        },
+        {
             name: "Candidate",
             type: "text",
             description: "Candidate Name",
@@ -34,16 +41,23 @@ const Baccalaureate: Doctype = {
             value: "",
         },
         {
-            name: "Cycle",
+            name: "Province",
             type: "text",
-            description: "Cycle of the Candidate",
+            description: "Name of the Provincial Leadership",
             required: true,
             value: "",
         },
         {
-            name: "Speciality",
+            name: "Session",
             type: "text",
-            description: "Speciality of the Candidate",
+            description: "Year and Month, e.g: July 2020, etc.",
+            required: true,
+            value: "",
+        },
+        {
+            name: "Series",
+            type: "text",
+            description: "Speciality Name",
             required: true,
             value: "",
         },
