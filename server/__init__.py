@@ -69,6 +69,7 @@ def ProcessRequest():
         Content = OCR.Read_PDF(SessionData["File Path"])
     elif FileExtension in {"png", "jpg", "jpeg"}:
         OCR.Fix_Orientation(SessionData["File Path"])
+        OCR.Fix_Orientation(SessionData["File Path"])
         Content = OCR.Read_Image(SessionData["File Path"])
 
     if Content is None:
@@ -104,6 +105,19 @@ def get_file(session_id, filename):
         return "File not found", 404
 
 
+@app.route("/Sessions/<session_id>/Results/<filename>", methods=["GET"])
+def get_pdf(session_id, filename):
+    # Construct the file path based on the session ID and filename
+    file_path = os.path.join(os.getcwd(), "Sessions", session_id, "Results", filename)
+
+    # Check if the file exists
+    if os.path.isfile(file_path):
+        # Use Flask's send_file function to send the file in the response
+        return send_file(file_path)
+    else:
+        return "File not found", 404
+
+
 @app.route("/api/generate", methods=["POST"])
 def GeneratePDF():
     # Validate the request JSON
@@ -124,17 +138,19 @@ def GeneratePDF():
     fields = data["Fields"]
 
     # Process the document data
-    pdf_data = PDF.Generate(document_type, session_id, fields)
+    PDF_Path = PDF.Generate(document_type, session_id, fields)
 
-    # Save PDF to Session Results
-    PDF.Save(session_id, pdf_data)
+    # Generate a public URL for the PDF
+    Public_PDF_Path = f"/Sessions/{session_id}/Results/Output.pdf"
 
     # Return a response
     response = {
-        "message": "Document processed successfully",
-        # "session_id": session_id,
-        # "document_type": document_type,
-        # "fields": fields,
+        "success": True,
+        "message": "Document processed successfully.",
+        "session_id": session_id,
+        "document_type": document_type,
+        "PDF_Path": PDF_Path,
+        "Public PDF Path": Public_PDF_Path,
     }
     return jsonify(response), 200
 

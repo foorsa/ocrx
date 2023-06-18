@@ -5,14 +5,14 @@
 import os
 import requests
 
-URL = "https://script.google.com/macros/s/AKfycbzCsNMH5vy7b254b4LV0eTXS4N2sjuPgHAS5e8w5T7yItk0BOivcoYzgPtxaqh2_7UkvQ/exec?SerialNumber={}&Candidate={}&DateOfBirth={}&Institute={}&City={}&Province={}&Session={}&Mention={}&Series={}"
+URL = "https://script.google.com/macros/s/AKfycbxLTDAyEzqC1l49RVLI6BosQMfcv3Eb7y6_Nu3z6aSkAmqGg0N38YyRLV2MB-pX6aQ9/exec?SerialNumber={}&Candidate={}&DateOfBirth={}&Institute={}&City={}&Province={}&Session={}&Mention={}&Series={}"
 
 
 class PDFGenerator:
     def Generate(self, document_type, session_id, fields):
         if document_type == "Baccalaureate Diploma":
-            pdf = self.BaccalaureateDiploma(session_id, fields)
-            return pdf.output(dest="S").encode("latin-1")
+            PDF_Path = self.BaccalaureateDiploma(session_id, fields)
+            return PDF_Path
         else:
             raise ValueError("Unsupported document type")
 
@@ -28,23 +28,27 @@ class PDFGenerator:
         Series = None
 
         for field in fields:
-            match field.name:
+            match field["name"]:
                 case "Serial Number":
-                    SerialNumber = field.value
+                    SerialNumber = field["value"]
                 case "Candidate":
-                    Candidate = field.value
+                    Candidate = field["value"]
                 case "Date of birth":
-                    DateOfBirth = field.value
+                    DateOfBirth = field["value"]
                 case "Institute":
-                    Institute = field.value
+                    Institute = field["value"]
                 case "City":
-                    City = field.value
+                    City = field["value"]
                 case "Province":
-                    Province = field.value
+                    Province = field["value"]
                 case "Session":
-                    Session = field.value
+                    Session = field["value"]
+                case "Series":
+                    Series = field["value"]
                 case "Mention":
-                    Mention = field.value
+                    Mention = field["value"]
+                case _:
+                    return False
 
         # Generate the PDF using the provided fields
         print("[Processing] ", "Baccalaureate Diploma - ", Candidate)
@@ -64,25 +68,21 @@ class PDFGenerator:
         print("[File Generated] ", "Baccalaureate Diploma - ", Candidate)
         response = requests.get(response.content)
         print("[File Downloaded] ", "Baccalaureate Diploma - ", Candidate)
-        with open("Baccalaureate Diploma - {}.pdf".format(Candidate), "wb") as f:
-            f.write(response.content)
+        # with open("Baccalaureate Diploma - {}.pdf".format(Candidate), "wb") as f:
+        #     f.write(response.content)
 
         # Return the PDF data
-        return response.content
-
-    def Save(self, session_id, pdfData):
         # Based on the session ID, save the PDF data to the Session Results folder
         # "/Sessions/{session_id}/Results/Output.pdf".
 
         # Create the folder if it doesn't exist
-        folder_path = os.path.join(os.getcwd(), "Sessions", session_id, "Results")
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
+        Folder_Path = os.path.join(os.getcwd(), "Sessions", session_id, "Results")
+        if not os.path.exists(Folder_Path):
+            os.makedirs(Folder_Path)
 
         # Save the PDF file
-        file_path = os.path.join(folder_path, "Output.pdf")
-        with open(file_path, "wb") as file:
-            file.write(pdfData)
+        PDF_Path = os.path.join(Folder_Path, "Output.pdf")
+        with open(PDF_Path, "wb") as file:
+            file.write(response.content)
 
-        # Return
-        return True
+        return PDF_Path

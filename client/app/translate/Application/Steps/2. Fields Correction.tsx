@@ -6,8 +6,8 @@ import { ArrowRight3, CloseSquare, Link, LinkSquare } from "iconsax-react";
 import Heading from "./Core/B. Correct.tsx/A. Heading";
 import Fields from "./Core/B. Correct.tsx/C. Fields";
 import Preview from "./Core/B. Correct.tsx/B. Preview";
-import { setProcess } from "@/redux/actions/processActions";
-import { resetStep } from "@/redux/actions/stepActions";
+import { resetProcess, setProcess } from "@/redux/actions/processActions";
+import { nextStep, resetStep, setStep } from "@/redux/actions/stepActions";
 import {
     resetDocumentType,
     setDocumentType,
@@ -17,6 +17,9 @@ import { BaccalaureateObject } from "@/redux/data/Documents";
 import { toast } from "react-hot-toast";
 import { Field } from "@/redux/types/states/Document Type";
 import Processing from "./Core/B. Correct.tsx/D. Processing";
+import axios from "axios";
+import { clearSession, setSession } from "@/redux/actions/sessionActions";
+import { resetFile } from "@/redux/actions/fileActions";
 
 // Selection for Document Type
 
@@ -46,6 +49,13 @@ export default function Second_CorrectData() {
                 description: "Cancelling the operation...",
             })
         );
+
+        // Reset the entire states
+        dispatch(clearSession());
+        dispatch(resetStep());
+        // dispatch(resetFile());
+        // dispatch(resetDocumentType());
+        dispatch(resetProcess());
     };
 
     const handleNextStep = async () => {
@@ -95,7 +105,64 @@ export default function Second_CorrectData() {
                 Fields: Doctype.fields,
             };
 
-            console.table(RequestData);
+            try {
+                const Response = await axios.post(
+                    "http://localhost:5000/api/generate",
+                    RequestData
+                );
+
+                if (Response.data.success === true) {
+                    console.log("Generated PDF successfully: ", Response.data);
+                    // Reset the process
+                    dispatch(
+                        setProcess({
+                            isLoading: false,
+                            name: "Success",
+                            description: "Your PDF has been generated.",
+                        })
+                    );
+
+                    dispatch(
+                        setSession({
+                            ...Session,
+                            PDFPath: Response.data["PDF_Path"],
+                            publicPDFPath: Response.data["Public PDF Path"],
+                        })
+                    );
+
+                    dispatch(nextStep());
+
+                    toast.success(Response.data.message);
+                } else {
+                    console.log("Error while generating PDF: ", Response.data);
+
+                    // Reset the process
+
+                    dispatch(
+                        setProcess({
+                            isLoading: false,
+                            name: "Error",
+                            description: "An error has occured.",
+                        })
+                    );
+
+                    toast.error(
+                        "An error has occured while generating the PDF."
+                    );
+                }
+            } catch (err) {
+                console.log("Error while sending request: ", err);
+                // Reset the process
+                dispatch(
+                    setProcess({
+                        isLoading: false,
+                        name: "Error",
+                        description: "An error has occured.",
+                    })
+                );
+
+                toast.error("An error has occured.");
+            }
         }
     };
 

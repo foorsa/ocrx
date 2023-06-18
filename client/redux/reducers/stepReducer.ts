@@ -20,8 +20,11 @@ export const stepReducer = (state: Steps = initialState.step, action: { type: st
             switch (state) {
                 case Steps.Upload:
                     return Steps.Correct;
+                case Steps.Correct:
+                    return Steps.Finish;
+                default:
+                    return state;
             }
-
 
         default:
             return state;

@@ -21,13 +21,13 @@ export default function NotFound() {
                         >
                             Go back home
                         </Link>
-                        <Link
+                        <a
                             href="mailto:yassinechettouch@gmail.com"
                             className="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:underline"
                         >
                             Contact developer{" "}
                             <span aria-hidden="true">&rarr;</span>
-                        </Link>
+                        </a>
                     </div>
                 </div>
             </main>

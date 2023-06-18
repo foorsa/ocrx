@@ -11,6 +11,8 @@ interface Session {
     RAW?: string;
     Description?: string;
     Corrected?: string;
+    PDFPath?: string;
+    publicPDFPath?: string;
 }
 
 export type { Session };

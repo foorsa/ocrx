@@ -13,7 +13,7 @@ class GPTCorrector:
 
     def Correct(self, text, doctype):
         Response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-16k-0613",
             messages=[
                 {
                     "role": "user",
