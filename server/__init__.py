@@ -1,33 +1,42 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+
+# Libraries
+import datetime
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS, cross_origin
+from werkzeug.utils import secure_filename
+import json
+
+
+# Modules
+from Modules.SessionGenerator import SessionGenerator
 from Modules.OCRProcessor import OCRProcessor
 from Modules.GPTCorrector import GPTCorrector
-from werkzeug.utils import secure_filename
+from Modules.PDFGenerator import PDFGenerator
+
 
 app = Flask(__name__)
 CORS(app, resources={r"*": {"origins": "*"}})
+app.debug = True
 
 # Create instances of OCRProcessor and GPTCorrector
 OCR = OCRProcessor()
 GPT = GPTCorrector("gpt-3.5-turbo")
+PDF = PDFGenerator()
 
+UploadFolder = "Uploads"
+ResultsFolder = "Results"
+SessionsFolder = "Sessions"
 
-UPLOAD_FOLDER = "uploads"
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-# Remove temporary files
-if os.path.exists(UPLOAD_FOLDER):
-    for file in os.listdir(UPLOAD_FOLDER):
-        os.remove(os.path.join(UPLOAD_FOLDER, file))
-
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["UPLOAD_FOLDER"] = UploadFolder
+app.config["RESULTS_FOLDER"] = ResultsFolder
+app.config["SESSIONS_FOLDER"] = SessionsFolder
 
 
 @app.route("/api/process", methods=["POST"])
 @cross_origin()
-def process_request():
+def ProcessRequest():
     # Check if file and document_type fields are present in the request
     if "file" not in request.files or "document_type" not in request.form:
         if "file" not in request.files:
@@ -49,43 +58,85 @@ def process_request():
     if FileExtension not in AllowedExtensions:
         return jsonify({"error": "Invalid file extension."}), 400
 
-    # Save the file to the UPLOAD_FOLDER
-    filename = secure_filename(File.filename)
-    File.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+    # Generate a session for the user request
+    Session = SessionGenerator(File, Doctype)
 
-    # Return the file and document type in the response
-    response = {"file": filename, "document_type": Doctype}
+    SessionData = Session.Generate()
 
-    # The File could be a PDF, or an Image.
-    # The Document Type could be: Baccalaureate Diploma, Language Diploma, or a Master Diploma.
-
+    # Perform OCR and correction operations on the file
     Content = None
-    if File.filename.endswith(".pdf"):
-        Content = OCR.Read_PDF(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+    if FileExtension == "pdf":
+        Content = OCR.Read_PDF(SessionData["File Path"])
+    elif FileExtension in {"png", "jpg", "jpeg"}:
+        OCR.Fix_Orientation(SessionData["File Path"])
+        Content = OCR.Read_Image(SessionData["File Path"])
 
-    elif (
-        File.filename.endswith(".png")
-        or File.filename.endswith(".jpg")
-        or File.filename.endswith(".jpeg")
-    ):
-        Content = OCR.Read_Image(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-    else:
-        return "Invalid file type. Please upload a PDF or an Image file."
-
-    if Content == None:
+    if Content is None:
         return "Error reading file. Please try again."
 
-    print("Content: ", Content)
+    import json
 
-    # Correct the OCR output using GPT-3.5-turbo
-    Corrected = GPT.Correct(Content, "Baccalaureate Diploma")
+    Corrected = GPT.Correct(Content, Doctype)
+    CorrectedObject = json.loads(Corrected)
+    Description = GPT.Describe(Content, Doctype)
+    # Prepare the response data
+    ResponseData = {
+        "Session": SessionData,
+        "Description": Description,
+        "Corrected": CorrectedObject,
+        "RAW": Content,
+    }
 
-    print("Corrected: ", Corrected)
+    # Return the response with session data and corrected content
+    return jsonify(ResponseData), 200, {"Content-Type": "application/json"}
 
-    # Parsed = GPT.Parse(Content)
 
-    # Return the corrected JSON text as the response
-    return Corrected, 200, {"Content-Type": "application/json"}
+@app.route("/Sessions/<session_id>/Uploads/<filename>", methods=["GET"])
+def get_file(session_id, filename):
+    # Construct the file path based on the session ID and filename
+    file_path = os.path.join(os.getcwd(), "Sessions", session_id, "Uploads", filename)
+
+    # Check if the file exists
+    if os.path.isfile(file_path):
+        # Use Flask's send_file function to send the file in the response
+        return send_file(file_path)
+    else:
+        return "File not found", 404
+
+
+@app.route("/api/generate", methods=["POST"])
+def GeneratePDF():
+    # Validate the request JSON
+    data = request.get_json()
+    if not data:
+        return jsonify(error="Invalid request JSON"), 400
+
+    required_fields = ["SessionID", "DocumentType", "Fields"]
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        return jsonify(error=f'Missing fields: {", ".join(missing_fields)}'), 400
+
+    # Perform additional validations as needed
+
+    # Access the values from the request JSON
+    session_id = data["SessionID"]
+    document_type = data["DocumentType"]
+    fields = data["Fields"]
+
+    # Process the document data
+    pdf_data = PDF.Generate(document_type, session_id, fields)
+
+    # Save PDF to Session Results
+    PDF.Save(session_id, pdf_data)
+
+    # Return a response
+    response = {
+        "message": "Document processed successfully",
+        # "session_id": session_id,
+        # "document_type": document_type,
+        # "fields": fields,
+    }
+    return jsonify(response), 200
 
 
 if __name__ == "__main__":

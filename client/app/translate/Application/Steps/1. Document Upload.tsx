@@ -22,7 +22,7 @@ import { Button, Tooltip } from "flowbite-react";
 import toast from "react-hot-toast";
 import {
     resetDocumentType,
-    setDocumentTypes,
+    setDocumentType,
 } from "@/redux/actions/documentTypeActions";
 import { BaccalaureateObject } from "@/redux/data/Documents";
 import SelectDocType from "./Core/A. Upload.tsx/B. SelectDocType";
@@ -33,6 +33,8 @@ import { Doctype } from "@/redux/types/states/Document Type";
 import Processing from "./Core/A. Upload.tsx/D. Processing";
 import { setProcess } from "@/redux/actions/processActions";
 import { resetFile } from "@/redux/actions/fileActions";
+import { clearSession, setSession } from "@/redux/actions/sessionActions";
+import { Session } from "@/redux/types/states/Session";
 
 // Selection for Document Type
 
@@ -71,9 +73,11 @@ export default function First_DocumentUpload() {
                 },
             });
 
+            console.log(response.data);
+
             // Change the Fields Values in the Redux Store
             const ExtractedData = Doctype.fields.map((field: any) => {
-                const value = response.data[field.name];
+                const value = response.data["Corrected"][field.name];
 
                 // Remove value from field
                 delete field.value;
@@ -94,22 +98,47 @@ export default function First_DocumentUpload() {
 
             // Set the extracted data in the redux store
             dispatch(
-                setDocumentTypes({
+                setDocumentType({
                     ...DoctypeNoFields,
                     fields: ExtractedData,
                 })
             );
+
+            const SessionData: Session = {
+                sessionId: response.data["Session"]["Session ID"],
+                documentType: response.data["Session"]["Document Type"],
+                fileName: response.data["Session"]["File Name"],
+                filePath: response.data["Session"]["File Path"],
+                publicFilePath: response.data["Session"]["Public File Path"],
+                status: response.data["Session"]["Status"],
+                error: response.data["Session"]["Error"],
+                RAW: response.data["RAW"],
+                Description: response.data["Description"],
+                Corrected: response.data["Corrected"],
+            };
+
+            dispatch(setSession(SessionData));
+
+            dispatch(
+                setProcess({
+                    isLoading: false,
+                    name: "Success",
+                    description: "Your file has been processed successfully.",
+                })
+            );
+
+            dispatch(nextStep());
         } catch (error: any) {
             // Handle errors
             console.error("Error:", error.message);
             toast.error("Error: " + error.message);
-        } finally {
+
             // Simulate delay before setting isLoading to false
             dispatch(
                 setProcess({
-                    isLoading: true,
-                    name: "Hang on!",
-                    description: "We are finishing the operation...",
+                    isLoading: false,
+                    name: "Error",
+                    description: "An error occured while processing the file.",
                 })
             );
         }
@@ -120,18 +149,14 @@ export default function First_DocumentUpload() {
         dispatch(
             setProcess({
                 isLoading: false,
-                name: "",
-                description: "",
+                name: "Cancelling",
+                description: "Cancelling the operation...",
             })
         );
 
-        // // Reset the document type
-        // dispatch(resetDocumentType());
+        // Reset the session
+        dispatch(clearSession());
 
-        // // Reset the file
-        // dispatch(resetFile());
-
-        // Reset the step
         dispatch(resetStep());
     };
 

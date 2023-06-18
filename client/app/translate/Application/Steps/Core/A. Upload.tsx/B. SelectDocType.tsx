@@ -7,7 +7,7 @@ import { ArrowDown2, BoxTick, Code, TableDocument } from "iconsax-react";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { Tooltip } from "flowbite-react";
 import toast from "react-hot-toast";
-import { setDocumentTypes } from "@/redux/actions/documentTypeActions";
+import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import { BaccalaureateObject } from "@/redux/data/Documents";
 
 const SelectDocType = () => {
@@ -22,7 +22,7 @@ const SelectDocType = () => {
     const handleSelectType = (type: string) => {
         switch (type) {
             case "Baccaulaureate Diploma":
-                dispatch(setDocumentTypes(BaccalaureateObject));
+                dispatch(setDocumentType(BaccalaureateObject));
                 break;
             default:
                 // Coming Soon

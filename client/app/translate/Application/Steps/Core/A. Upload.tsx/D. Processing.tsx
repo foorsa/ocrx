@@ -1,7 +1,7 @@
 import { setProcess } from "@/redux/actions/processActions";
 import { nextStep } from "@/redux/actions/stepActions";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 const ProcessSteps = [
     {
@@ -48,63 +48,35 @@ const ProcessSteps = [
     },
     {
         isLoading: true,
-        name: "Done!",
-        description: "Your file has been processed successfully.",
+        name: "Hang on!",
+        description: "We are finishing the operation...",
         duration: 3000,
     },
 ];
 
 export default function Processing() {
     const dispatch = useAppDispatch();
-    const processing = useAppSelector((state) => state.process);
+    const Processing = useAppSelector((state) => state.process);
+    const [FakeProcess, setFakeProcess] = useState(0);
 
     useEffect(() => {
-        if (processing?.name !== "Hang on!") {
-            const currentStepIndex = ProcessSteps.findIndex(
-                (step) => step.name === processing?.name
-            );
-            if (
-                currentStepIndex !== -1 &&
-                currentStepIndex < ProcessSteps.length - 1
-            ) {
-                const currentStep = ProcessSteps[currentStepIndex];
-                const nextStep = ProcessSteps[currentStepIndex + 1];
-
+        if (Processing.isLoading) {
+            if (FakeProcess !== ProcessSteps.length - 1) {
                 setTimeout(() => {
-                    dispatch(setProcess(nextStep));
-                }, currentStep.duration);
+                    setFakeProcess((prev) => prev + 1);
+                }, ProcessSteps[FakeProcess].duration);
             }
-        } else {
-            setTimeout(() => {
-                dispatch(
-                    setProcess({
-                        isLoading: true,
-                        name: "Hang on!",
-                        description: "We are finishing the operation...",
-                    })
-                );
-                setTimeout(() => {
-                    dispatch(
-                        setProcess({
-                            isLoading: false,
-                            name: "Hang on!",
-                            description: "We are finishing the operation...",
-                        })
-                    );
-                    dispatch(nextStep());
-                }, 1000);
-            }, 500);
         }
-    }, [processing]);
+    }, [Processing.isLoading, FakeProcess]);
 
     return (
         <div className="relative w-full">
             <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                {processing?.name}
+                {ProcessSteps[FakeProcess]?.name}
             </h5>
 
             <p className="mb-6 text-xs font-normal text-gray-700 dark:text-gray-400">
-                {processing?.description}
+                {ProcessSteps[FakeProcess]?.description}
             </p>
         </div>
     );

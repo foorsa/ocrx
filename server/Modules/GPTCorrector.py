@@ -1,6 +1,7 @@
 import json
 import os
 import openai
+from typing import Dict
 
 # Load your API key from an environment variable or secret management service
 openai.api_key = "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"
@@ -11,7 +12,7 @@ class GPTCorrector:
         self.gpt_model = gpt_model
 
     def Correct(self, text, doctype):
-        Reponse = openai.ChatCompletion.create(
+        Response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {
@@ -28,6 +29,8 @@ class GPTCorrector:
                     I will also translate the OCR output into English.
                     
                     Including any keyword in french, it will be translated into English with Accuracy.
+                    
+                    I will also provide you with the OCR output in a JSON format that is valid to use directly from my response.
                     """,
                 },
                 {
@@ -37,20 +40,93 @@ class GPTCorrector:
             ],
         )
 
-        Corrected = Reponse.choices[0].message.content.strip()
+        Corrected = Response.choices[0].message.content.strip()
         return Corrected
 
-    def Parse(self, Corrected):
-        def Convert_To_Json(Corrected):
-            return json.loads(Corrected)
+    def Describe(self, text, doctype):
+        # TODO:
+        # Return a paragraph containing the correct information about the document.
+        # Options available for each Document Type
 
-        return Convert_To_Json(Corrected)
+        BaccalaureateOptions = """
+            "Type": Baccalaureate Diploma
+            "Serial Number": Baccalaureate Diploma Id Number (Mandatory 10 Characters Long), e.g. LXXXXXXXXX, L123456789, etc. 
+            "Candidate": Candidate Name
+            "Date of birth": Date of Birth
+            "City": City Name
+            "Insitute": Institute Name
+            "Province": Name of the Provincial Leadership
+            "Session": Year and Month, example: July 2020, etc.
+            "Series": Speciality Name, example: Services Option Services et Restaurant, Science Physiques, Sciences de la vie et de la terre, etc.
+            "Mention": Mention Name, example: "Passable, Assez Bien, Bien, Tres Bien, etc".
+        """
+        LanguageOptions = """"""
+
+        MasterOptions = """"""
+
+        # Start
+
+        Response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"""
+                        I need help in getting precise output from the OCR processor.
+                        This python app gets a request with a File and a Document type.
+                        
+                        The File could be a PDF or an Image.
+                        The Document Type could be: Baccalaureate Diploma, Language Diploma, or a Master Diploma.
+                        
+                        I already have created the precise JSON representation of the Document.
+                        
+                        I need help in getting a paragraph containing the correct information about the document.
+                        
+                        Please provide a description as you are the Web App itself.
+                        
+                        You got the file and document type and you generated information.
+                        
+                        The Web app is called OCRX.
+                        
+                        
+                        More information:
+                        
+                        The OCRX is a web app that extracts information from a diploma.
+                        
+                        The current document type is {doctype}.
+                        
+                        The OCRX has already processed the file and the Document with OCR.
+                        
+                        These are the options that are mandatory for the {doctype}:
+                        
+                        {doctype == "Baccalaureate Diploma" and BaccalaureateOptions}
+                        {doctype == "Language Diploma" and LanguageOptions}
+                        {doctype == "Master Diploma" and MasterOptions}
+                    """,
+                },
+                {
+                    "role": "assistant",
+                    "content": """
+                    Sure, What is the OCR output?
+                    
+                    I will provide you with the information extracted from the OCR as a text.
+                    """,
+                },
+                {
+                    "role": "user",
+                    "content": text,
+                },
+            ],
+        )
+
+        Described = Response.choices[0].message.content.strip()
+        return Described
 
 
 def GeneratePrompt(Doctype):
     # Options available for each Document Type
 
-    BaccalaureateOptions = f"""
+    BaccalaureateOptions = """
         "Type": Baccalaureate Diploma
         "Serial Number": Baccalaureate Diploma Id Number (Mandatory 10 Characters Long), e.g. LXXXXXXXXX, L123456789, etc. 
         "Candidate": Candidate Name
@@ -91,6 +167,7 @@ def GeneratePrompt(Doctype):
         Please read the string and convert it to something that can be used by the application.
 
         I need the data to be shaped this way:
+    
         {Doctype == "Baccalaureate Diploma" and BaccalaureateOptions}
         {Doctype == "Language Diploma" and LanguageOptions}
         {Doctype == "Master Diploma" and MasterOptions}
@@ -106,6 +183,26 @@ def GeneratePrompt(Doctype):
         
         It should be translated to English to:
         "Institute": "Hassan II High School"
+        
+        As well as the Specialization, it should be translated to English as well.
+        
+        In short, any french word should be translated to English.
+        
+        [Keyword: Original (No Translation)]: [Value: Translated]
+        
+        Example: 
+            "Candidate": "Youness Amzil",
+            "City": "Taouanza",
+            "Date of birth": "28-07-2001",
+            "Institute": "Bir Anzarane High School",
+            "Mention": "Passable",
+            "Province": "El Haouz",
+            "Serial Number": "L138158643",
+            "Series": "Services Option Restauration Services",
+            "Session": "July 2020",
+            "Type": "Baccalaureate Diploma"
+            
+        Use some intelligent logic to determine whether the values are valid  or not.
         
         So on for any other value that is present in the OCR Output. 
         

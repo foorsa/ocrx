@@ -5,6 +5,7 @@ import { fileReducer } from "./reducers/fileReducer";
 import { stepReducer } from "./reducers/stepReducer";
 import { documentTypeReducer } from "./reducers/documentTypeReducer";
 import { processReducer } from "./reducers/processReducer";
+import sessionReducer from "./reducers/sessionReducer";
 
 // Configure Redux Persist
 const persistConfig = {
@@ -16,7 +17,8 @@ const rootReducer = combineReducers({
     file: fileReducer,
     step: stepReducer,
     documentType: documentTypeReducer,
-    process: processReducer
+    process: processReducer,
+    session: sessionReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -6,25 +6,135 @@ import { ArrowRight3, CloseSquare, Link, LinkSquare } from "iconsax-react";
 import Heading from "./Core/B. Correct.tsx/A. Heading";
 import Fields from "./Core/B. Correct.tsx/C. Fields";
 import Preview from "./Core/B. Correct.tsx/B. Preview";
+import { setProcess } from "@/redux/actions/processActions";
+import { resetStep } from "@/redux/actions/stepActions";
+import {
+    resetDocumentType,
+    setDocumentType,
+} from "@/redux/actions/documentTypeActions";
+import Baccalaureate from "@/redux/data/core/Baccalaureate";
+import { BaccalaureateObject } from "@/redux/data/Documents";
+import { toast } from "react-hot-toast";
+import { Field } from "@/redux/types/states/Document Type";
+import Processing from "./Core/B. Correct.tsx/D. Processing";
 
 // Selection for Document Type
 
 export default function Second_CorrectData() {
     const dispatch = useAppDispatch();
     const Process = useAppSelector((state) => state.process);
+    const Doctype = useAppSelector((state) => state.documentType);
+    const Session = useAppSelector((state) => state.session);
+
+    const handleCancelOperation = () => {
+        // Reset the process
+        dispatch(
+            setProcess({
+                isLoading: false,
+                name: "Cancelling",
+                description: "Cancelling the operation...",
+            })
+        );
+    };
+
+    const handleResetOperation = () => {
+        // Reset the process
+        dispatch(
+            setProcess({
+                isLoading: false,
+                name: "Cancelling",
+                description: "Cancelling the operation...",
+            })
+        );
+    };
+
+    const handleNextStep = async () => {
+        // Verify the presence of all the fields in the document type
+        var isValid = true;
+
+        if (!Doctype?.fields) {
+            isValid = false;
+            return toast.error("Please select a document type.");
+        }
+
+        // Verify the presence of all the fields in the document type
+        const StateFields = Doctype?.fields;
+
+        const RequiredFields: Field[] = [];
+
+        StateFields?.forEach((StateField) => {
+            if (StateField.required === true) {
+                RequiredFields.push(StateField);
+            }
+        });
+
+        RequiredFields?.forEach((StateField) => {
+            if (
+                !StateField.value ||
+                StateField.value === "" ||
+                StateField.value === null
+            ) {
+                isValid = false;
+                toast.error(`Please fill in the field ${StateField.name}`);
+            }
+        });
+
+        if (isValid) {
+            // Reset the process
+            dispatch(
+                setProcess({
+                    isLoading: true,
+                    name: "Generating PDF",
+                    description: "Generating your PDF...",
+                })
+            );
+
+            const RequestData = {
+                SessionID: Session.sessionId,
+                DocumentType: Doctype.name,
+                Fields: Doctype.fields,
+            };
+
+            console.table(RequestData);
+        }
+    };
 
     return (
         <div className="relative w-full">
-            <Heading />
-            <Preview />
-            <Fields />
+            {!Process.isLoading && (
+                <>
+                    <Heading />
+                    <Preview />
+                    <Fields />
+                </>
+            )}
+            {Process.isLoading && <Processing />}
             {/* Next Step */}
 
             {!Process.isLoading && (
-                <button className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-violet-700 rounded-lg hover:bg-violet-800 focus:outline-none dark:bg-violet-600 dark:hover:bg-violet-700 focus:bg-violet-500 active:bg-violet-900 transition duration-150 ease-in-out">
-                    Generate PDF
-                    <ArrowRight3 color="currentColor" variant="Bulk" />
-                </button>
+                <>
+                    <button
+                        type="button"
+                        onClick={handleNextStep}
+                        className="inline-flex text-center w-full mb-2 items-center justify-center px-3 py-2 text-sm font-medium text-white bg-violet-700 rounded-lg hover:bg-violet-800 focus:outline-none dark:bg-violet-600 dark:hover:bg-violet-700 focus:bg-violet-500 active:bg-violet-900 transition duration-150 ease-in-out"
+                    >
+                        Generate PDF
+                        <ArrowRight3 color="currentColor" variant="Bulk" />
+                    </button>
+                    <button
+                        type="button"
+                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-900 hover:text-violet-700 focus:z-10 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        onClick={handleResetOperation}
+                    >
+                        <CloseSquare
+                            color="currentColor"
+                            variant="Bulk"
+                            className="inline w-4 h-4 mr-3"
+                        />
+                        {/* Retry */}
+                        Cancel
+                    </button>
+                </>
             )}
 
             {Process.isLoading && (
@@ -55,6 +165,7 @@ export default function Second_CorrectData() {
                     </button>
                     <button
                         type="button"
+                        onClick={handleCancelOperation}
                         className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-900 hover:text-violet-700 focus:z-10 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                     >
                         <CloseSquare
