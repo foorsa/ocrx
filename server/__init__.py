@@ -68,8 +68,8 @@ def ProcessRequest():
     if FileExtension == "pdf":
         Content = OCR.Read_PDF(SessionData["File Path"])
     elif FileExtension in {"png", "jpg", "jpeg"}:
-        OCR.Fix_Orientation(SessionData["File Path"])
-        OCR.Fix_Orientation(SessionData["File Path"])
+        # OCR.Fix_Orientation(SessionData["File Path"])
+        # OCR.Fix_Orientation(SessionData["File Path"])
         Content = OCR.Read_Image(SessionData["File Path"])
 
     if Content is None:
@@ -156,4 +156,6 @@ def GeneratePDF():
 
 
 if __name__ == "__main__":
-    app.run()
+    from waitress import serve
+
+    serve(app, host="0.0.0.0", port=8080)

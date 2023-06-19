@@ -20,6 +20,7 @@ import Processing from "./Core/B. Correct.tsx/D. Processing";
 import axios from "axios";
 import { clearSession, setSession } from "@/redux/actions/sessionActions";
 import { resetFile } from "@/redux/actions/fileActions";
+import { getApiServerUrl } from "@/utils/getApiServerUrl";
 
 // Selection for Document Type
 
@@ -105,11 +106,12 @@ export default function Second_CorrectData() {
                 Fields: Doctype.fields,
             };
 
+            const API_URL = getApiServerUrl();
+
+            const url = API_URL + "/api/generate";
+
             try {
-                const Response = await axios.post(
-                    "http://localhost:5000/api/generate",
-                    RequestData
-                );
+                const Response = await axios.post(url, RequestData);
 
                 if (Response.data.success === true) {
                     console.log("Generated PDF successfully: ", Response.data);

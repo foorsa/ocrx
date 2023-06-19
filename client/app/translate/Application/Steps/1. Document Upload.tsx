@@ -35,6 +35,7 @@ import { setProcess } from "@/redux/actions/processActions";
 import { resetFile } from "@/redux/actions/fileActions";
 import { clearSession, setSession } from "@/redux/actions/sessionActions";
 import { Session } from "@/redux/types/states/Session";
+import { getApiServerUrl } from "@/utils/getApiServerUrl";
 
 // Selection for Document Type
 
@@ -60,7 +61,9 @@ export default function First_DocumentUpload() {
             })
         );
 
-        const url = "http://localhost:5000/api/process"; // Replace with your server endpoint
+        const API_URL = getApiServerUrl();
+
+        const url = API_URL + "/api/process";
 
         const formData = new FormData();
         formData.append("file", UploadedFile.file);

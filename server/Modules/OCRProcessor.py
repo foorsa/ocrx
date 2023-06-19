@@ -6,7 +6,7 @@ from pytesseract import Output
 from PIL import Image
 import argparse
 import imutils
-import cv2
+# import cv2
 
 
 class OCRProcessor:
@@ -14,29 +14,29 @@ class OCRProcessor:
         self.file_path = None
         self.file_content = None
 
-    def Fix_Orientation(self, image_path):
-        # TODO: Fix image orientation
+    # def Fix_Orientation(self, image_path):
+    #     # TODO: Fix image orientation
 
-        # Load the input image, convert it from BGR to RGB channel ordering,
-        # and use Tesseract to determine the text orientation
-        image = cv2.imread(image_path)
-        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        results = pytesseract.image_to_osd(rgb, output_type=Output.DICT, lang="fra")
-        # Display the orientation information
-        print("[INFO] detected orientation: {}".format(results["orientation"]))
-        print("[INFO] rotate by {} degrees to correct".format(results["rotate"]))
-        print("[INFO] detected script: {}".format(results["script"]))
+    #     # Load the input image, convert it from BGR to RGB channel ordering,
+    #     # and use Tesseract to determine the text orientation
+    #     image = cv2.imread(image_path)
+    #     rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    #     results = pytesseract.image_to_osd(rgb, output_type=Output.DICT, lang="fra")
+    #     # Display the orientation information
+    #     print("[INFO] detected orientation: {}".format(results["orientation"]))
+    #     print("[INFO] rotate by {} degrees to correct".format(results["rotate"]))
+    #     print("[INFO] detected script: {}".format(results["script"]))
 
-        # Rotate the image to correct the orientation
-        rotated = imutils.rotate_bound(image, angle=results["rotate"])
+    #     # Rotate the image to correct the orientation
+    #     rotated = imutils.rotate_bound(image, angle=results["rotate"])
 
-        # Save the rotated image
-        image_dir, image_name = os.path.split(image_path)
-        rotated_image_path = os.path.join(image_dir, image_name)
-        cv2.imwrite(rotated_image_path, rotated)
+    #     # Save the rotated image
+    #     image_dir, image_name = os.path.split(image_path)
+    #     rotated_image_path = os.path.join(image_dir, image_name)
+    #     cv2.imwrite(rotated_image_path, rotated)
 
-        # Return the rotated image path
-        return rotated_image_path
+    #     # Return the rotated image path
+    #     return rotated_image_path
 
     def Read_PDF(self, file_path):
         self.file_path = file_path
