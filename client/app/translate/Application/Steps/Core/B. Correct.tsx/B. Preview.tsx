@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { FileType } from "@/redux/types/states/File";
+import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Maximize1, Maximize2 } from "iconsax-react";
 import React, {
     ElementType,
@@ -21,9 +22,7 @@ export default function Preview() {
     );
     const [Preview, setPreview] = React.useState<string>("");
 
-    const PYTHON_PUBLIC_URL = process.env.PYTHON_PUBLIC_URL
-        ? process.env.PYTHON_PUBLIC_URL
-        : "http://localhost:5000";
+    const PYTHON_PUBLIC_URL = getApiServerUrl();
 
     React.useEffect(() => {
         if (SessionFile && SessionFile.length > 0) {
