@@ -10,6 +10,7 @@ import { resetStep } from "@/redux/actions/stepActions";
 import { resetFile } from "@/redux/actions/fileActions";
 import { resetDocumentType } from "@/redux/actions/documentTypeActions";
 import { resetProcess } from "@/redux/actions/processActions";
+import { getApiServerUrl } from "@/utils/getApiServerUrl";
 
 export default function Third_FinishOperation() {
     // Routing
@@ -18,9 +19,7 @@ export default function Third_FinishOperation() {
     const dispatch = useAppDispatch();
     const Session = useAppSelector((state) => state.session);
 
-    const PYTHON_PUBLIC_URL = process.env.PYTHON_PUBLIC_URL
-        ? process.env.PYTHON_PUBLIC_URL
-        : "http://localhost:5000";
+    const PYTHON_PUBLIC_URL = getApiServerUrl();
 
     const handleDownloadPDF = () => {
         // Open the PDF in a new tab
