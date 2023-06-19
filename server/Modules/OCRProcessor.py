@@ -6,6 +6,7 @@ from pytesseract import Output
 from PIL import Image
 import argparse
 import imutils
+
 # import cv2
 
 
@@ -40,6 +41,14 @@ class OCRProcessor:
 
     def Read_PDF(self, file_path):
         self.file_path = file_path
+
+        # Check if running on the production server
+        if os.getenv("ENV_MODE") == "production":
+            # Set the TESSDATA_PREFIX environment variable for production
+            os.environ[
+                "TESSDATA_PREFIX"
+            ] = "./.apt/usr/share/tesseract-ocr/4.00/tessdata/"
+
         try:
             pages = convert_from_path(file_path, 500)
             text_content = ""
@@ -52,6 +61,7 @@ class OCRProcessor:
 
     def Read_Image(self, file_path):
         self.file_path = file_path
+
         try:
             image = Image.open(file_path)
             text_content = pytesseract.image_to_string(

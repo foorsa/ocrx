@@ -33,6 +33,9 @@ app.config["UPLOAD_FOLDER"] = UploadFolder
 app.config["RESULTS_FOLDER"] = ResultsFolder
 app.config["SESSIONS_FOLDER"] = SessionsFolder
 
+# Set TESSDATA_PREFIX to the path of the traineddata file
+os.environ["TESSDATA_PREFIX"] = os.path.join(os.path.dirname(__file__), "tessdata")
+
 
 @app.route("/api/process", methods=["POST"])
 @cross_origin()
