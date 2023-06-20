@@ -150,7 +150,7 @@ export default function BetaModal() {
                                 <div className="bg-violet-100 dark:bg-violet-950 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                                     <button
                                         type="button"
-                                        className={`mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm text-violet-600 dark:text-white font-semibold bg-violet-100 hover:bg-violet-200 dark:bg-violet-600 dark:hover:bg-violet-700 sm:mt-0 sm:w-auto ring-0`}
+                                        className={`mt-3 inline-flex w-full justify-center outline-none border-none rounded-md px-3 py-2 text-sm text-violet-600 dark:text-white font-semibold bg-violet-100 hover:bg-violet-200 dark:bg-violet-600 dark:hover:bg-violet-700 sm:mt-0 sm:w-auto ring-0`}
                                         onClick={() => closeModal()}
                                         ref={cancelButtonRef}
                                     >

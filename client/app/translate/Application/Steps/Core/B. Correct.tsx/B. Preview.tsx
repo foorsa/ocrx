@@ -1,7 +1,7 @@
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { FileType } from "@/redux/types/states/File";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
-import { Maximize1, Maximize2 } from "iconsax-react";
+import { Maximize1, Maximize2, TableDocument } from "iconsax-react";
 import React, {
     ElementType,
     ImgHTMLAttributes,
@@ -39,7 +39,13 @@ export default function Preview() {
             {
                 // If the file is not uploaded, show a placeholder.
                 !UploadedFile.preview && (
-                    <div className="flex flex-col w-full h-48 min-h-none max-h-none justify-center items-center overflow-hidden blocksm p-6 bg-white border border-gray-200 shadow-2xl hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 rounded-lg"></div>
+                    <div className="flex flex-col w-full h-48 min-h-none max-h-none justify-center items-center overflow-hidden blocksm p-6 bg-gray-100 text-gray-400 dark:text-gray-400 border border-gray-300 hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 rounded-lg mb-5">
+                        <TableDocument
+                            size="64"
+                            variant="Bulk"
+                            color="currentColor"
+                        />
+                    </div>
                 )
             }
             {

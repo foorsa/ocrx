@@ -16,7 +16,7 @@ export const metadata = {
     title: "OCRX - Foorsa Translations",
     description:
         "Foorsa Consulting's OCRX Translations: Effortlessly translate documents for our clients with precision and speed. Our private web app, powered by OCR technologies and OpenAI GPT-3 API, ensures accurate translations, breaking language barriers with ease.",
-    metadataBase: new URL("http://localhost:3000"),
+    metadataBase: new URL("https://ocrx.foorsa.co/"),
     alternates: {
         canonical: "/",
         languages: {
