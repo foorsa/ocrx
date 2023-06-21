@@ -11,7 +11,7 @@ export default function AppHeader() {
                 <Link href="/" className="flex items-center">
                     <button
                         type="button"
-                        className="text-gray-500 ring-0 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none rounded-lg text-sm p-2.5"
+                        className="text-zinc-500 ring-0 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:outline-none rounded-lg text-sm p-2.5"
                     >
                         <ArrowSquareLeft variant="Bulk" />
                     </button>

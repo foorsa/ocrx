@@ -3,13 +3,14 @@ import { Check, DocumentCode2, DocumentDownload } from "iconsax-react";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { Steps } from "@/redux/types/states/Step";
 import { setStep } from "@/redux/actions/stepActions";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function Stepper() {
     const dispatch = useAppDispatch();
     const Step = useAppSelector((state) => state.step);
     const getStepClass = (step: Steps) => {
         if (Step === step || Step === Steps.Finish || Step === Steps.Correct) {
-            return "text-violet-600 dark:text-violet-500";
+            return "text-emerald-600 dark:text-emerald-500";
         }
         return "";
     };
@@ -46,10 +47,7 @@ export default function Stepper() {
             Apply = false;
         }
 
-        if (Apply === true) {
-            return `after:border-violet-300 after:border-4 after:inline-block dark:after:border-violet-800`;
-        }
-        return `after:border-gray-100 after:border-4 after:inline-block dark:after:border-gray-700`;
+        return Apply;
     };
 
     const handleClick = (step: Steps) => {
@@ -62,12 +60,24 @@ export default function Stepper() {
         }
     };
 
+    const AfterVariant = {
+        inactive: {
+            width: "0%",
+            // visibility: "hidden",
+        },
+        active: {
+            width: "100%",
+            // visibility: "visible",
+        },
+    };
+
     return (
         <ol className="flex items-center justify-center w-full mb-4 sm:mb-5">
             <li
-                className={`flex w-full items-center after:content-[''] after:w-full after:h-1 after:border-b after:border-4 after:inline-block flex-grow-1 ${getStepClass(
+                className={`flex w-full items-center flex-grow-1 ${getStepClass(
                     Steps.Upload
-                )} ${getAfterClass(Steps.Upload)}`}
+                )}          
+                `}
                 onClick={() => handleClick(Steps.Upload)}
             >
                 <div
@@ -75,8 +85,8 @@ export default function Stepper() {
                         Step === Steps.Upload ||
                         Step === Steps.Correct ||
                         Step === Steps.Finish
-                            ? "bg-violet-500 dark:bg-violet-800"
-                            : "bg-gray-100 dark:bg-gray-700"
+                            ? "bg-emerald-500 dark:bg-emerald-800"
+                            : "bg-zinc-100 dark:bg-zinc-900"
                     }`}
                 >
                     <DocumentCode2
@@ -87,22 +97,52 @@ export default function Stepper() {
                             Step === Steps.Correct ||
                             Step === Steps.Finish
                                 ? "white"
-                                : "violet-600"
-                        } lg:w-6 lg:h-6 dark:text-violet-300`}
+                                : "emerald-600"
+                        } lg:w-6 lg:h-6 dark:text-emerald-300`}
                     />
                 </div>
+                <AnimatePresence initial={false} mode="sync" custom={Step}>
+                    {!getAfterClass(Steps.Upload) && (
+                        <motion.div
+                            variants={AfterVariant}
+                            initial={
+                                Step === Steps.Upload ? "visible" : "hidden"
+                            }
+                            animate={
+                                Step === Steps.Upload ? "hidden" : "visible"
+                            }
+                            exit={Step === Steps.Upload ? "visible" : "hidden"}
+                            transition={{ duration: 0.5 }}
+                            className="relative h-1 border-b border-4 inline-block border-zinc-100 dark:border-zinc-900"
+                        />
+                    )}
+                    {getAfterClass(Steps.Upload) && (
+                        <motion.div
+                            variants={AfterVariant}
+                            initial={
+                                Step === Steps.Upload ? "hidden" : "visible"
+                            }
+                            animate={
+                                Step === Steps.Upload ? "hidden" : "visible"
+                            }
+                            exit={Step === Steps.Upload ? "hidden" : "visible"}
+                            transition={{ duration: 0.5 }}
+                            className="relative h-1 border-b border-4 inline-block border-emerald-300 dark:border-emerald-800"
+                        />
+                    )}
+                </AnimatePresence>
             </li>
             <li
-                className={`flex w-full items-center after:content-[''] after:w-full after:h-1 flex-grow-1 after:border-b ${getStepClass(
+                className={`flex w-full items-center flex-grow-1 ${getStepClass(
                     Steps.Correct
-                )} ${getAfterClass(Steps.Correct)}`}
+                )}`}
                 onClick={() => handleClick(Steps.Correct)}
             >
                 <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${
                         Step === Steps.Correct || Step === Steps.Finish
-                            ? "bg-violet-500 dark:bg-violet-800"
-                            : "bg-gray-100 dark:bg-gray-700"
+                            ? "bg-emerald-500 dark:bg-emerald-800"
+                            : "bg-zinc-100 dark:bg-zinc-900"
                     }`}
                 >
                     <Check
@@ -111,17 +151,17 @@ export default function Stepper() {
                         className={`w-5 h-5 text-${
                             Step === Steps.Correct || Step === Steps.Finish
                                 ? "white"
-                                : "violet-600"
-                        } lg:w-6 lg:h-6 dark:text-violet-300`}
+                                : "emerald-600"
+                        } lg:w-6 lg:h-6 dark:text-emerald-300`}
                     />
                 </div>
             </li>
-            <li className="flex items-center flex-grow-0 flex-shrink">
+            <motion.li className="flex items-center flex-grow-0 flex-shrink">
                 <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 ${
                         Step === Steps.Finish
-                            ? "bg-violet-500 dark:bg-violet-800"
-                            : "bg-gray-100 dark:bg-gray-700"
+                            ? "bg-emerald-500 dark:bg-emerald-800"
+                            : "bg-zinc-100 dark:bg-zinc-900"
                     }`}
                     onClick={() => handleClick(Steps.Finish)}
                 >
@@ -129,11 +169,11 @@ export default function Stepper() {
                         color="currentColor"
                         variant="Bulk"
                         className={`w-5 h-5 text-${
-                            Step === Steps.Finish ? "white" : "violet-600"
-                        } lg:w-6 lg:h-6 dark:text-violet-300`}
+                            Step === Steps.Finish ? "white" : "emerald-600"
+                        } lg:w-6 lg:h-6 dark:text-emerald-300`}
                     />
                 </div>
-            </li>
+            </motion.li>
         </ol>
     );
 }

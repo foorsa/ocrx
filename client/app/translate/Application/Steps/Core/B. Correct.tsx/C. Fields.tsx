@@ -42,7 +42,7 @@ export default function Fields() {
                           <div className="mb-6" key={field.name}>
                               <label
                                   htmlFor={field.name}
-                                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                  className="block mb-2 text-sm font-medium text-zinc-900 dark:text-white"
                               >
                                   {field.name}
                               </label>
@@ -53,7 +53,7 @@ export default function Fields() {
                                   id={field.name}
                                   name={field.name}
                                   required={field.required}
-                                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-violet-500 dark:focus:border-violet-500"
+                                  className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-emerald-500 dark:focus:border-emerald-500"
                                   onChange={handleFieldChange}
                               />
                           </div>

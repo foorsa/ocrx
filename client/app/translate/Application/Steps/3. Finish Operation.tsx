@@ -41,11 +41,11 @@ export default function Third_FinishOperation() {
 
     return (
         <div className="relative w-full">
-            <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+            <h5 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
                 Finish the Operation
             </h5>
 
-            <p className="mb-6 text-xs font-normal text-gray-700 dark:text-gray-400">
+            <p className="mb-6 text-xs font-normal text-zinc-700 dark:text-zinc-400">
                 Please review the document and make sure that all the fields are
                 correct, and then click on the button below to finish the
                 operation and get your translated document.
@@ -54,7 +54,7 @@ export default function Third_FinishOperation() {
             <div className="flex flex-col items-center justify-center w-full">
                 <button
                     type="button"
-                    className="inline-flex text-center w-full mb-2 items-center justify-center px-3 py-2 text-sm font-medium text-white bg-violet-700 rounded-lg hover:bg-violet-800 focus:outline-none dark:bg-violet-600 dark:hover:bg-violet-700 focus:bg-violet-500 active:bg-violet-900 transition duration-150 ease-in-out"
+                    className="inline-flex text-center w-full mb-2 items-center justify-center px-3 py-2 text-sm font-medium text-white bg-emerald-700 rounded-lg hover:bg-emerald-800 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700 focus:bg-emerald-500 active:bg-emerald-900 transition duration-150 ease-in-out"
                     onClick={handleDownloadPDF}
                 >
                     Download PDF
@@ -62,7 +62,7 @@ export default function Third_FinishOperation() {
                 </button>
                 <button
                     type="button"
-                    className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-900 hover:text-violet-700 focus:z-10 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-emerald-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
                     onClick={handleFinishOperation}
                 >
                     <CloseSquare

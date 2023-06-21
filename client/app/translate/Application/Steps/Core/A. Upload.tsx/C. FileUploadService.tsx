@@ -93,7 +93,7 @@ const FileUploadService = () => {
     return (
         <div className="flex flex-col gap-2 w-full">
             <label
-                className="block tracking-wide text-left text-gray-500 dark:text-gray-300 text-xs font-bold"
+                className="block tracking-wide text-left text-zinc-500 dark:text-zinc-300 text-xs font-bold"
                 htmlFor="dropzone"
             >
                 Upload your document
@@ -106,22 +106,22 @@ const FileUploadService = () => {
             >
                 <label
                     htmlFor="dropzone-file"
-                    className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                    className="flex flex-col items-center justify-center w-full h-64 border border-zinc-300 border-dashed rounded-lg cursor-pointer bg-zinc-50 dark:hover:bg-bray-800 dark:bg-zinc-900 hover:bg-zinc-100 dark:border-zinc-600 dark:hover:border-zinc-500 dark:hover:bg-zinc-800"
                 >
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         <DocumentUpload
                             color="currentColor"
                             aria-hidden="true"
-                            className="w-10 h-10 mb-3 text-gray-400"
+                            className="w-10 h-10 mb-3 text-zinc-400"
                             variant="Bulk"
                         />
-                        <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                        <p className="mb-2 text-sm text-zinc-500 dark:text-zinc-400">
                             <span className="font-semibold">
                                 Click to upload
                             </span>{" "}
                             or drag and drop
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
                             PNG, JPG or PDF (MAX. 10 MB)
                         </p>
                     </div>
@@ -156,7 +156,7 @@ const FileUploadService = () => {
                             }}
                             className="w-full mt-0 flex flex-col gap-2 z-10"
                         >
-                            <div className="flex items-center w-full justify-between gap-2 px-2 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 overflow-hidden">
+                            <div className="flex items-center w-full justify-between gap-2 px-2 py-2 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-700 overflow-hidden">
                                 <div className="flex text-left gap-2 flex-1 overflow-hidden">
                                     {uploadedFile.type.includes("image") ? (
                                         <img
@@ -165,27 +165,27 @@ const FileUploadService = () => {
                                             className="w-10 h-10 object-cover rounded-md"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 flex items-center justify-center rounded-md bg-gray-200 dark:bg-gray-600">
+                                        <div className="w-10 h-10 flex items-center justify-center rounded-md bg-zinc-200 dark:bg-zinc-600">
                                             <DocumentUpload
                                                 color="currentColor"
                                                 aria-hidden="true"
-                                                className="w-5 h-5 text-gray-400"
+                                                className="w-5 h-5 text-zinc-400"
                                                 variant="Bulk"
                                             />
                                         </div>
                                     )}
                                     <div className="flex w-full truncate flex-col flex-nowrap items-center justify-start space-y-1">
-                                        <p className="w-full truncate text-sm font-medium text-gray-800 dark:text-gray-200">
+                                        <p className="w-full truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">
                                             {uploadedFile.name}
                                         </p>
-                                        <p className="w-full truncate text-xs text-gray-500 dark:text-gray-400">
+                                        <p className="w-full truncate text-xs text-zinc-500 dark:text-zinc-400">
                                             {formatFileSize(uploadedFile.size)}{" "}
                                             - {uploadedFile.type}
                                         </p>
                                     </div>
                                 </div>
                                 <button
-                                    className="p-2 text-gray-500 hover:text-red-500"
+                                    className="p-2 text-zinc-500 hover:text-red-500"
                                     onClick={() => handleDeleteFile()}
                                     type="button"
                                     title="Remove"

@@ -12,15 +12,15 @@ export default function BetaBanner() {
         <>
             <div
                 id="sticky-banner"
-                className={`sticky top-0 left-0 z-50 flex justify-between w-full p-4 border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 ${
+                className={`sticky top-0 left-0 z-50 flex justify-between w-full p-4 border-b border-zinc-200 bg-zinc-50 dark:bg-black dark:border-zinc-700 ${
                     isBannerVisible ? "opacity-100 visible" : "opacity-0 hidden"
                 } transition-opacity duration-500`}
             >
                 <div className="flex items-center mx-auto">
-                    <p className="flex items-center text-sm font-normal text-gray-500 dark:text-gray-400">
-                        <span className="inline-flex p-1 mr-3 bg-gray-200 rounded-full dark:bg-gray-600">
+                    <p className="flex items-center text-sm font-normal text-zinc-500 dark:text-zinc-600">
+                        <span className="inline-flex p-1 mr-3 bg-zinc-200 rounded-full dark:bg-zinc-800">
                             <svg
-                                className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                                className="w-4 h-4"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -40,7 +40,7 @@ export default function BetaBanner() {
                     <button
                         data-dismiss-target="#sticky-banner"
                         type="button"
-                        className="flex-shrink-0 inline-flex justify-center items-center text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 dark:hover:bg-gray-600 dark:hover:text-white"
+                        className="flex-shrink-0 inline-flex justify-center items-center text-zinc-400 hover:bg-zinc-200 hover:text-zinc-900 rounded-lg text-sm p-1.5 dark:hover:bg-zinc-600 dark:hover:text-white"
                         onClick={closeBanner}
                     >
                         <svg

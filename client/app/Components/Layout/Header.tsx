@@ -19,7 +19,7 @@ export const ThemeToggle = () => {
             onClick={() =>
                 theme == "dark" ? setTheme("light") : setTheme("dark")
             }
-            className="text-gray-500 ring-0 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none rounded-lg text-sm p-2.5"
+            className="text-zinc-500 ring-0 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:outline-none rounded-lg text-sm p-2.5"
         >
             <Sun1
                 id="theme-toggle-dark-icon"
@@ -51,7 +51,7 @@ export default function Header() {
                     <Link href="/translate" className="flex items-center">
                         <button
                             type="button"
-                            className="text-white ring-0 bg-black hover:bg-violet-800 focus:outline-none font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 dark:bg-violet-600 dark:hover:bg-violet-700 inline-flex items-center"
+                            className="text-white ring-0 bg-black hover:bg-emerald-800 focus:outline-none font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 dark:bg-emerald-600 dark:hover:bg-emerald-700 inline-flex items-center"
                         >
                             <span className="mr-2 text-sm font-semibold hidden md:block">
                                 Launch App

@@ -26,32 +26,62 @@ body {
 
 @layer base {
     body {
-        @apply dark:bg-gray-800 bg-white;
+        @apply dark:bg-black bg-white;
     }
 }
 
-@keyframes fade-in-top {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
+/* Animate Gradient using CSS Variables */
+
+@property --pc {
+    /* purple/coral */
+    syntax: "<percentage>";
+    inherits: false;
+    initial-value: 30%;
+}
+@property --co {
+    /* coral/orange */
+    syntax: "<percentage>";
+    inherits: false;
+    initial-value: 100%;
+}
+
+.Container {
+    @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 mx-auto rounded-2xl flex items-center justify-center overflow-hidden bg-white dark:bg-gray-800;
+    z-index: 0;
+}
+
+.Container::before {
+    content: "";
+    position: absolute;
+    z-index: -2;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 200%;
+    height: 200%;
+    background-color: black;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-position: center center;
+    background-image: conic-gradient(black, darkgray, white);
+    animation: backgroundRotate2 4s linear infinite;
+    @apply rounded-2xl;
+}
+
+.Container::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 1px;
+    top: 1px;
+    width: calc(100% - 2px);
+    height: calc(100% - 2px);
+    border-radius: 5px;
+    @apply rounded-2xl bg-white dark:bg-black;
+}
+
+@keyframes backgroundRotate2 {
     100% {
-        opacity: 1;
-        transform: translateY(0);
+        transform: translate(-50%, -50%) rotate(1turn);
     }
-}
-
-.fade-in-top-delay-500 {
-    @apply opacity-0;
-    animation: fade-in-top 0.4s ease 0.25s forwards;
-}
-
-.fade-in-top-delay-1000 {
-    @apply opacity-0;
-    animation: fade-in-top 0.4s ease 0.35s forwards;
-}
-
-.fade-in-top-delay-1500 {
-    @apply opacity-0;
-    animation: fade-in-top 0.4s ease 0.45s forwards;
 }

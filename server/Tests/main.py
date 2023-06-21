@@ -4,7 +4,7 @@ import pytesseract
 from pytesseract import Output
 
 
-def Read_Image(image_path):
+def process_image_with_ocr(image_path, template_path):
     # Read the image using OpenCV
     image = cv2.imread(image_path)
 
@@ -42,44 +42,40 @@ def Read_Image(image_path):
     # Example: Denoise the image using a bilateral filter
     denoised_image = cv2.bilateralFilter(sharpened_image, 9, 75, 75)
 
-    # Save the preprocessed image for testing
-    cv2.imwrite("./Output.png", denoised_image)
+    preprocessed_image = cv2.threshold(
+        denoised_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )[1]
 
-    # Configure Tesseract
-    custom_config = r"--oem 3 -l ara+fra --psm 6"
+    template = cv2.imread(template_path, 0)
+    w, h = template.shape[::-1]
 
-    # Perform OCR
-    ocr_result = pytesseract.image_to_string(image, config=custom_config)
+    res = cv2.matchTemplate(preprocessed_image, template, cv2.TM_CCOEFF_NORMED)
+    threshold = 0.45
+    loc = np.where(res >= threshold)
 
-    # Words list
-    word_list = ["example", "words", "highlight"]
-
-    # Perform OCR using Tesseract to get the bounding boxes of words
-    data = pytesseract.image_to_data(
-        image, config=custom_config, output_type=Output.DICT
-    )
-
-    # Iterate over the detected words
-    for i in range(len(data["text"])):
-        # Get the word and its bounding box coordinates
-        word = data["text"][i]
-        x, y, w, h = (
-            data["left"][i],
-            data["top"][i],
-            data["width"][i],
-            data["height"][i],
+    for pt in zip(*loc[::-1]):
+        cv2.rectangle(preprocessed_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+        roi = preprocessed_image[pt[1] : pt[1] + h, pt[0] : pt[0] + w]
+        config = "--oem 3 -l eng --psm 6"
+        text = pytesseract.image_to_string(roi, config=config).strip()
+        print(text)
+        cv2.putText(
+            preprocessed_image,
+            text,
+            (pt[0] + w, pt[1] + h),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.2,
+            (0, 0, 255),
+            3,
         )
 
-        # Check if the word is in the list of words to highlight
-        if word in words:
-            # Draw a red bounding box around the word
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
-    # Save the image with highlighted words
-    cv2.imwrite("highlighted_image.png", image)
-
-    return ocr_result
+    cv2.imwrite("results.png", preprocessed_image)
 
 
-text = Read_Image("./Input.jpeg")
-print(text)
+# Specify the paths to the image and template
+image_path = "./Images/Input.jpeg"
+template_path = "./Images/Template.png"
+output_path = "./Images/Output.png"
+
+# Process the image with OCR
+process_image_with_ocr(image_path, template_path, output_path)

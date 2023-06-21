@@ -2,13 +2,15 @@
 
 import React from "react";
 import { ThemeProvider } from "next-themes";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Background from "./Components/A. Background";
 import toast, { ToastBar, Toaster, resolveValue } from "react-hot-toast";
 import { CloseSquare } from "iconsax-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const Pathname = usePathname();
+    const Router = useRouter();
     const BackgroundVariant = Pathname === "/" ? "Home" : "App";
 
     return (
@@ -51,7 +53,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                             {({ icon, message }) => (
                                 <div
                                     id="toast-default"
-                                    className="flex items-center space-x-2 justify-center max-w-sm p-3 bg-white border border-gray-200 rounded-lg shadow-2xl dark:bg-gray-800 dark:border-gray-700"
+                                    className="flex items-center space-x-2 justify-center max-w-sm p-3 bg-white border border-zinc-200 rounded-lg shadow-2xl dark:bg-zinc-800 dark:border-zinc-700"
                                     role="alert"
                                 >
                                     <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg">
@@ -60,13 +62,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                                             Toast Icon
                                         </span>
                                     </div>
-                                    <div className="ml-3 text-sm font-normal text-gray-500 dark:text-gray-400">
+                                    <div className="ml-3 text-sm font-normal text-zinc-500 dark:text-zinc-400">
                                         {message}
                                     </div>
                                     {t.type !== "loading" && (
                                         <button
                                             type="button"
-                                            className="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+                                            className="ml-auto -mx-1.5 -my-1.5 bg-white text-zinc-400 hover:text-zinc-900 rounded-lg p-1.5 hover:bg-zinc-100 inline-flex h-8 w-8 dark:text-zinc-500 dark:hover:text-white dark:bg-zinc-800 dark:hover:bg-zinc-700"
                                             data-dismiss-target="#toast-default"
                                             aria-label="Close"
                                             onClick={() => toast.dismiss(t.id)}
@@ -75,7 +77,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                                                 Close
                                             </span>
                                             <CloseSquare
-                                                className="w-5 h-5 text-gray-400 dark:text-gray-300"
+                                                className="w-5 h-5 text-zinc-400 dark:text-zinc-300"
                                                 color="currentColor"
                                                 variant="Bulk"
                                                 aria-hidden="true"

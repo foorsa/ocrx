@@ -26,11 +26,11 @@ export default function BetaModal() {
     }, []);
 
     const getDialogClasses = () => {
-        return theme === "dark" ? "bg-violet-900" : "bg-white";
+        return theme === "dark" ? "bg-emerald-900" : "bg-white";
     };
 
     const getTextClasses = () => {
-        return theme === "dark" ? "text-white" : "text-gray-800";
+        return theme === "dark" ? "text-white" : "text-zinc-800";
     };
 
     // const isBannerClosed = sessionStorage.getItem("ModalClosed");
@@ -73,7 +73,7 @@ export default function BetaModal() {
                                     className={`px-4 pb-4 pt-5 sm:p-6 sm:pb-4 ${getTextClasses()}`}
                                 >
                                     <div className="sm:flex sm:items-start">
-                                        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-violet-300 dark:bg-violet-600 text-violet-900 dark:text-violet-100 sm:mx-0 sm:h-10 sm:w-10">
+                                        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-300 dark:bg-emerald-600 text-emerald-900 dark:text-emerald-100 sm:mx-0 sm:h-10 sm:w-10">
                                             <ExclamationTriangleIcon
                                                 className="h-6 w-6"
                                                 aria-hidden="true"
@@ -147,10 +147,10 @@ export default function BetaModal() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-violet-100 dark:bg-violet-950 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                                <div className="bg-emerald-100 dark:bg-emerald-950 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                                     <button
                                         type="button"
-                                        className={`mt-3 inline-flex w-full justify-center outline-none border-none rounded-md px-3 py-2 text-sm text-violet-600 dark:text-white font-semibold bg-violet-100 hover:bg-violet-200 dark:bg-violet-600 dark:hover:bg-violet-700 sm:mt-0 sm:w-auto ring-0`}
+                                        className={`mt-3 inline-flex w-full justify-center outline-none border-none rounded-md px-3 py-2 text-sm text-emerald-600 dark:text-white font-semibold bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-600 dark:hover:bg-emerald-700 sm:mt-0 sm:w-auto ring-0`}
                                         onClick={() => closeModal()}
                                         ref={cancelButtonRef}
                                     >

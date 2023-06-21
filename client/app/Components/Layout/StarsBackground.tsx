@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { useCallback } from "react";
 import Particles from "react-particles";
 import { loadFull } from "tsparticles";
+import Colors from "tailwindcss/colors";
 
 const StarsBackground = () => {
     const particlesInit = useCallback(async (engine: any) => {
@@ -33,31 +34,38 @@ const StarsBackground = () => {
                     events: {
                         onHover: {
                             enable: true,
-                            mode: "repulse",
-                        },
-                        onDiv: {
                             mode: "grab",
-                            enable: true,
-                            elementId: "Background",
                         },
                         resize: true,
                     },
                     modes: {
-                        repulse: {
-                            distance: 10,
-                            duration: 1,
+                        grab: {
+                            distance: 200,
+                            line_linked: {
+                                opacity: 0.5,
+                                // colors
+                                color: {
+                                    value:
+                                        theme !== "dark"
+                                            ? Colors.emerald[500]
+                                            : Colors.emerald[500],
+                                },
+                            },
                         },
                     },
                 },
                 particles: {
                     color: {
-                        value: theme === "dark" ? "#ffffff" : "#000000",
+                        value:
+                            theme !== "dark"
+                                ? Colors.emerald[500]
+                                : Colors.emerald[500],
                     },
                     links: {
                         enable: false,
                     },
                     collisions: {
-                        enable: false,
+                        enable: true,
                     },
                     move: {
                         direction: "outside",
@@ -77,7 +85,7 @@ const StarsBackground = () => {
                         value: 40,
                     },
                     opacity: {
-                        value: 0.25,
+                        value: 0.5,
                     },
                     shape: {
                         type: "circle",

@@ -3,6 +3,8 @@
 import React from "react";
 import StarsBackground from "./Layout/StarsBackground";
 
+import Colors from "tailwindcss/colors";
+
 interface Props {
     Variant?: "Home" | "App";
 }
@@ -10,28 +12,28 @@ interface Props {
 export default function Background({ Variant }: Props) {
     return (
         <div
-            className="absolute h-full w-screen min-h-screen top-0 left-0 right-0 bottom-0 bg-violet-950 dark:bg-gray-900 bg-opacity-0 dark:bg-opacity-60 -z-50  overflow-hidden"
+            className="absolute h-full w-screen min-h-screen top-0 left-0 right-0 bottom-0 bg-white dark:bg-black bg-opacity-0 dark:bg-opacity-60 -z-50  overflow-hidden"
             id="Background"
         >
             {Variant == "Home" ? (
                 <>
                     <StarsBackground />
-                    {/* Bottom Center - Wide violet Gradient */}
+                    {/* Bottom Center - Wide emerald Gradient */}
                     {/* Division for Blurry Elements */}
                     <div className="absolute h-full w-full min-h-full top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100">
-                        <div className="absolute w-3/5 h-3/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-violet-800 to-violet-400 -z-50 dark:from-transparent dark:via-violet-800 dark:to-violet-400"></div>
+                        <div className="absolute w-3/5 h-3/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-emerald-800 to-emerald-400 -z-50 dark:from-transparent dark:via-emerald-800 dark:to-emerald-400"></div>
 
-                        {/* Bottom Center - Light violet */}
-                        <div className="absolute w-1/5 h-2/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-violet-500 to-violet-50 -z-50 dark:from-transparent dark:via-violet-500 dark:to-violet-50"></div>
+                        {/* Bottom Center - Light emerald */}
+                        <div className="absolute w-1/5 h-2/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-emerald-500 to-emerald-50 -z-50 dark:from-transparent dark:via-emerald-500 dark:to-emerald-50"></div>
 
                         {/* Bottom Center - Middle White */}
-                        <div className="absolute w-1/5 h-2/5 -bottom-1/2 -translate-y-full left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-gray-200 to-gray-50 -z-50 dark:from-transparent dark:via-gray-200 dark:to-gray-50"></div>
+                        <div className="absolute w-1/5 h-2/5 -bottom-1/2 -translate-y-full left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-zinc-200 to-zinc-50 -z-50 dark:from-transparent dark:via-zinc-200 dark:to-zinc-50"></div>
 
                         {/* Top Middle Left */}
-                        <div className="absolute w-1/2 h-1/5 top-1/4 left-2/4 -translate-x-1/2 rotate-45 blur-3xl bg-blue-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-blue-500"></div>
+                        <div className="absolute w-1/2 h-1/5 top-1/4 left-2/4 -translate-x-1/2 rotate-45 blur-3xl bg-sky-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-sky-500"></div>
 
                         {/* Bottom Right */}
-                        <div className="absolute w-1/2 h-1/5 -bottom-0 right-0 blur-3xl bg-violet-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-violet-500"></div>
+                        <div className="absolute w-1/2 h-1/5 -bottom-0 right-0 blur-3xl bg-emerald-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-emerald-500"></div>
                     </div>
                 </>
             ) : (
@@ -51,10 +53,13 @@ export default function Background({ Variant }: Props) {
                                     y1="14.544%"
                                     y2="100%"
                                 >
-                                    <stop offset="0%" stop-color="#6366F1" />
+                                    <stop
+                                        offset="0%"
+                                        stop-color={Colors.sky[500]}
+                                    />
                                     <stop
                                         offset="100%"
-                                        stop-color="#6366F1"
+                                        stop-color={Colors.sky[500]}
                                         stop-opacity="0"
                                     />
                                 </linearGradient>
@@ -65,10 +70,13 @@ export default function Background({ Variant }: Props) {
                                     y1="100%"
                                     y2="14.544%"
                                 >
-                                    <stop offset="0%" stop-color="#A855F7" />
+                                    <stop
+                                        offset="0%"
+                                        stop-color={Colors.emerald[500]}
+                                    />
                                     <stop
                                         offset="100%"
-                                        stop-color="#6366F1"
+                                        stop-color={Colors.sky[500]}
                                         stop-opacity="0"
                                     />
                                 </linearGradient>
