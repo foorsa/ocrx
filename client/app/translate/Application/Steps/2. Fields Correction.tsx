@@ -29,6 +29,7 @@ export default function Second_CorrectData() {
     const Process = useAppSelector((state) => state.process);
     const Doctype = useAppSelector((state) => state.documentType);
     const Session = useAppSelector((state) => state.session);
+    const File = useAppSelector((state) => state.file);
 
     const handleCancelOperation = () => {
         // Reset the process
@@ -173,7 +174,10 @@ export default function Second_CorrectData() {
             {!Process.isLoading && (
                 <>
                     <Heading />
-                    <Preview />
+                    {
+                        // If the file exists
+                        File?.file && <Preview />
+                    }
                     <Fields />
                 </>
             )}

@@ -25,21 +25,11 @@ export default function BetaModal() {
         }
     }, []);
 
-    const getDialogClasses = () => {
-        return theme === "dark" ? "bg-emerald-900" : "bg-white";
-    };
-
-    const getTextClasses = () => {
-        return theme === "dark" ? "text-white" : "text-zinc-800";
-    };
-
-    // const isBannerClosed = sessionStorage.getItem("ModalClosed");
-
     return (
         <Transition.Root show={open && !isBannerClosed} as={Fragment}>
             <Dialog
                 as="div"
-                className="relative z-10"
+                className="relative z-50"
                 initialFocus={cancelButtonRef}
                 onClose={setOpen}
             >
@@ -52,7 +42,7 @@ export default function BetaModal() {
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" />
+                    <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity backdrop-blur-sm" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -67,13 +57,13 @@ export default function BetaModal() {
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
                             <Dialog.Panel
-                                className={`relative transform overflow-hidden rounded-lg transition-all sm:my-8 sm:w-full sm:max-w-lg ${getDialogClasses()}`}
+                                className={`relative transform overflow-hidden rounded-lg transition-all sm:my-8 sm:w-full sm:max-w-lg bg-white dark:bg-zinc-950`}
                             >
                                 <div
-                                    className={`px-4 pb-4 pt-5 sm:p-6 sm:pb-4 ${getTextClasses()}`}
+                                    className={`px-4 pb-4 pt-5 sm:p-6 sm:pb-4 bg-white dark:bg-zinc-950`}
                                 >
                                     <div className="sm:flex sm:items-start">
-                                        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-300 dark:bg-emerald-600 text-emerald-900 dark:text-emerald-100 sm:mx-0 sm:h-10 sm:w-10">
+                                        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-zinc-300 dark:bg-zinc-600 text-zinc-900 dark:text-zinc-100 sm:mx-0 sm:h-10 sm:w-10">
                                             <ExclamationTriangleIcon
                                                 className="h-6 w-6"
                                                 aria-hidden="true"
@@ -82,14 +72,14 @@ export default function BetaModal() {
                                         <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                                             <Dialog.Title
                                                 as="h3"
-                                                className={`text-base font-semibold leading-6 ${getTextClasses()}`}
+                                                className={`text-base font-semibold leading-6 text-zinc-800 dark:text-zinc-300`}
                                             >
                                                 Welcome to OCRX - Foorsa
                                                 Translations (Beta)
                                             </Dialog.Title>
                                             <div className="mt-2">
                                                 <p
-                                                    className={`text-sm font-light ${getTextClasses()}`}
+                                                    className={`text-sm font-light text-zinc-800 dark:text-zinc-300`}
                                                 >
                                                     Thank you for choosing OCRX
                                                     - Foorsa Translations! Our
@@ -102,7 +92,7 @@ export default function BetaModal() {
                                                 </p>
 
                                                 <p
-                                                    className={`text-sm mt-2 font-light ${getTextClasses()}`}
+                                                    className={`text-sm mt-2 font-light text-zinc-800 dark:text-zinc-300`}
                                                 >
                                                     Your feedback is invaluable
                                                     to us as we enhance the app.
@@ -112,7 +102,7 @@ export default function BetaModal() {
                                                 </p>
 
                                                 <p
-                                                    className={`text-sm mt-2 font-light ${getTextClasses()}`}
+                                                    className={`text-sm mt-2 font-light text-zinc-800 dark:text-zinc-300`}
                                                 >
                                                     Please note that
                                                     translations may not be
@@ -123,7 +113,7 @@ export default function BetaModal() {
                                                 </p>
 
                                                 <p
-                                                    className={`text-sm mt-2 font-light ${getTextClasses()}`}
+                                                    className={`text-sm mt-2 font-light text-zinc-800 dark:text-zinc-300`}
                                                 >
                                                     Thank you for joining our
                                                     beta testing phase. We hope
@@ -133,12 +123,12 @@ export default function BetaModal() {
                                                 </p>
 
                                                 <p
-                                                    className={`text-sm mt-4 font-light ${getTextClasses()}`}
+                                                    className={`text-sm mt-4 font-light text-zinc-800 dark:text-zinc-300`}
                                                 >
                                                     Best regards,
                                                 </p>
                                                 <p
-                                                    className={`text-sm mt-1 font-light ${getTextClasses()}`}
+                                                    className={`text-sm mt-1 font-light text-zinc-800 dark:text-zinc-300`}
                                                 >
                                                     The OCRX - Foorsa
                                                     Translations Team
@@ -147,10 +137,10 @@ export default function BetaModal() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-emerald-100 dark:bg-emerald-950 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                                <div className="bg-zinc-100 dark:bg-black px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                                     <button
                                         type="button"
-                                        className={`mt-3 inline-flex w-full justify-center outline-none border-none rounded-md px-3 py-2 text-sm text-emerald-600 dark:text-white font-semibold bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-600 dark:hover:bg-emerald-700 sm:mt-0 sm:w-auto ring-0`}
+                                        className={`mt-3 inline-flex w-full justify-center outline-none border-none rounded-md px-3 py-2 text-sm text-zinc-600 dark:text-white font-semibold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-600 dark:hover:bg-zinc-700 sm:mt-0 sm:w-auto ring-0`}
                                         onClick={() => closeModal()}
                                         ref={cancelButtonRef}
                                     >
