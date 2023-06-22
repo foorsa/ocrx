@@ -27,6 +27,9 @@ export default function LoadingPage() {
                             width={100}
                             height={100}
                             className="object-contain h-full w-full z-20"
+                            priority={true}
+                            blurDataURL={Logo}
+                            placeholder="blur"
                         />
                     </div>
                 </motion.div>
