@@ -9,12 +9,12 @@ export default function Page({ children }: { children: React.ReactNode }) {
     const Pathname = usePathname();
 
     return (
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
             <motion.div
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                key={Pathname}
+                // key={Pathname}
                 variants={{
                     initial: {
                         opacity: 0,
