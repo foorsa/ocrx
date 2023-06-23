@@ -49,27 +49,25 @@ export default function RootLayout({
                     `}
                 </Script>
             </head>
-            <PageWrapper>
-                <body className={prombt.className}>
-                    <ReduxProvider>
-                        <NextTopLoader
-                            color={Colors.red[500]}
-                            initialPosition={0.08}
-                            crawlSpeed={200}
-                            height={5}
-                            crawl={true}
-                            showSpinner={false}
-                            easing="ease"
-                            speed={200}
-                            shadow={`0 0 10px ${Colors.red["500"]},0 0 5px ${Colors.orange["500"]}`}
-                        />
-                        <Providers>
-                            {/* Page content */}
-                            {children}
-                        </Providers>
-                    </ReduxProvider>
-                </body>
-            </PageWrapper>
+            <body className={prombt.className}>
+                <ReduxProvider>
+                    <NextTopLoader
+                        color={Colors.red[500]}
+                        initialPosition={0.08}
+                        crawlSpeed={200}
+                        height={5}
+                        crawl={true}
+                        showSpinner={false}
+                        easing="ease"
+                        speed={200}
+                        shadow={`0 0 10px ${Colors.red["500"]},0 0 5px ${Colors.orange["500"]}`}
+                    />
+                    <Providers>
+                        {/* Page content */}
+                        <PageWrapper>{children}</PageWrapper>
+                    </Providers>
+                </ReduxProvider>
+            </body>
         </html>
     );
 }
