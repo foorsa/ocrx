@@ -17,8 +17,8 @@ const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
             } relative flex justify-center items-center h-16 w-16 aspect-square mb-10 p-1 bg-white border border-zinc-200 rounded-lg shadow-2xl dark:bg-zinc-950 dark:border-zinc-700 select-none`}
         >
             <img
-                src="/Logo/Gradient.png"
-                className="h-2/3 w-2/3 object-fill"
+                src="/Logo/Black.png"
+                className="h-2/3 w-2/3 object-contain"
                 alt="Foorsa Logo"
             />
         </div>

@@ -29,7 +29,6 @@ export default function Jumbotron() {
         <div className="p-10 mx-auto max-w-screen-xl text-center lg:py-16 flex flex-col justify-center items-center">
             <AnimatePresence mode="wait">
                 <motion.h1
-                    key={Pathname}
                     initial="Initial"
                     animate="Enter"
                     exit="Exit"
@@ -38,7 +37,7 @@ export default function Jumbotron() {
                     className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-zinc-900 sm:text-6xl md:text-6xl lg:text-6xl dark:text-white"
                 >
                     The AI-powered successor to <br />
-                    <span className="relative inline-block px-2 py-px text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-sky-500 dark:from-emerald-400 dark:to-sky-400">
+                    <span className="relative inline-block px-2 py-px text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 dark:from-red-400 dark:to-orange-400">
                         Document{" "}
                     </span>
                     <TypeAnimation
@@ -46,17 +45,16 @@ export default function Jumbotron() {
                         wrapper="span"
                         cursor={true}
                         repeat={Infinity}
-                        // className="relative inline-block px-2 py-px text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-sky-500 dark:from-emerald-400 dark:to-sky-400"
+                        // className="relative inline-block px-2 py-px text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 dark:from-red-400 dark:to-orange-400"
                     />
                 </motion.h1>
                 <motion.p
-                    key={Pathname}
                     initial="Initial"
                     animate="Enter"
                     exit="Exit"
                     variants={Variants}
                     transition={{ delay: 0.25, type: "spring", bounce: 0 }}
-                    className="mb-8 font-normal text-emerald-950 lg:text-lg sm:text-xs max-w-4xl dark:text-emerald-100 text-opacity-75 dark:text-opacity-75"
+                    className="mb-8 font-normal text-red-950 lg:text-lg sm:text-xs max-w-4xl dark:text-red-100 text-opacity-75 dark:text-opacity-75"
                 >
                     Streamline your document generation process with OCRX - an
                     innovative solution designed to automate the creation of
@@ -66,17 +64,16 @@ export default function Jumbotron() {
                     and hello to increased productivity and cost savings.
                 </motion.p>
                 <motion.div
-                    key={Pathname}
                     initial="Initial"
                     animate="Enter"
                     exit="Exit"
                     variants={Variants}
                     transition={{ delay: 0.5, type: "spring", bounce: 0 }}
-                    className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4"
+                    className="mt-10 flex flex-wrap items-center justify-center gap-x-6"
                 >
                     <Link
                         href="/translate"
-                        className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-emerald-600 hover:bg-emerald-800"
+                        className="w-full md:w-auto inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-red-600 hover:bg-red-800"
                     >
                         <span className="mr-2 text-md font-semibold">
                             Translate
@@ -85,7 +82,7 @@ export default function Jumbotron() {
                     </Link>
                     <Link
                         href="/#Guideline"
-                        className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-emerald-800 bg-emerald-600/25 hover:bg-emerald-600/50 dark:text-emerald-600 dark:bg-emerald-50/50 dark:hover:bg-emerald-50/75"
+                        className="w-full md:w-auto mt-4 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-red-800 bg-red-600/25 hover:bg-red-600/50 dark:text-red-800 dark:bg-red-300/50 dark:hover:bg-red-300/75"
                     >
                         <span className="mr-2 text-md font-semibold">
                             Guideline

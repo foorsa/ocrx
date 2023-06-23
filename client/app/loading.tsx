@@ -15,7 +15,7 @@ export default function LoadingPage() {
                 transition={{ duration: 0.5, delay: 0 }}
                 className="w-full h-screen fixed top-0 left-0 min-h-screen min-w-full bg-zinc-50 dark:bg-black flex items-center justify-center select-none pointer-events-none"
             >
-                {/* Bottom Center - Wide emerald Gradient */}
+                {/* Bottom Center - Wide red Gradient */}
                 {/* Division for Blurry Elements */}
 
                 <motion.div className="relative w-auto h-16 p-4 flex flex-col items-center justify-center aspect-square">

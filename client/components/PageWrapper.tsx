@@ -1,19 +1,20 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter, usePathname } from "next/navigation";
 import React from "react";
 
-export default function PageWrapper({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export default function Page({ children }: { children: React.ReactNode }) {
+    const Router = useRouter();
+    const Pathname = usePathname();
+
     return (
         <AnimatePresence mode="wait">
             <motion.div
                 initial="initial"
                 animate="animate"
                 exit="exit"
+                key={Pathname}
                 variants={{
                     initial: {
                         opacity: 0,

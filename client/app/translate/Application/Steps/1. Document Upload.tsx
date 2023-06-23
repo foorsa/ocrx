@@ -182,7 +182,7 @@ export default function First_DocumentUpload() {
             {!Process.isLoading && (
                 <button
                     onClick={handleNextStep}
-                    className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-emerald-700 rounded-lg hover:bg-emerald-800 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700 focus:bg-emerald-500 active:bg-emerald-900 transition duration-150 ease-in-out"
+                    className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 focus:outline-none dark:bg-red-600 dark:hover:bg-red-700 focus:bg-red-500 active:bg-red-900 transition duration-150 ease-in-out"
                 >
                     Process
                     <ArrowRight3 color="currentColor" variant="Bulk" />
@@ -194,7 +194,7 @@ export default function First_DocumentUpload() {
                     <button
                         disabled
                         type="button"
-                        className="text-white w-full bg-black hover:bg-emerald-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-emerald-600 dark:hover:bg-emerald-700 inline-flex items-center justify-center"
+                        className="text-white w-full bg-black hover:bg-red-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-red-600 dark:hover:bg-red-700 inline-flex items-center justify-center"
                     >
                         <svg
                             aria-hidden="true"
@@ -217,7 +217,7 @@ export default function First_DocumentUpload() {
                     </button>
                     <button
                         type="button"
-                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-emerald-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
+                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-red-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
                         onClick={handleCancelOperation}
                     >
                         <CloseSquare

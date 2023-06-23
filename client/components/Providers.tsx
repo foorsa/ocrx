@@ -3,7 +3,7 @@
 import React from "react";
 import { ThemeProvider } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
-import Background from "./Components/A. Background";
+import Background from "../app/Components/A. Background";
 import toast, { ToastBar, Toaster, resolveValue } from "react-hot-toast";
 import { CloseSquare } from "iconsax-react";
 import { AnimatePresence, motion } from "framer-motion";

@@ -2,7 +2,13 @@
 
 import React, { useCallback, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
-import { ArrowRight3, CloseSquare, Link, LinkSquare } from "iconsax-react";
+import {
+    ArrowLeft3,
+    ArrowRight3,
+    CloseSquare,
+    Link,
+    LinkSquare,
+} from "iconsax-react";
 import Heading from "./Core/B. Correct.tsx/A. Heading";
 import Fields from "./Core/B. Correct.tsx/C. Fields";
 import Preview from "./Core/B. Correct.tsx/B. Preview";
@@ -189,23 +195,18 @@ export default function Second_CorrectData() {
                     <button
                         type="button"
                         onClick={handleNextStep}
-                        className="inline-flex text-center w-full mb-2 items-center justify-center px-3 py-2 text-sm font-medium text-white bg-emerald-700 rounded-lg hover:bg-emerald-800 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700 focus:bg-emerald-500 active:bg-emerald-900 transition duration-150 ease-in-out"
+                        className="inline-flex text-center w-full mb-2 gap-1 items-center justify-center px-3 py-2 text-sm font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 focus:outline-none dark:bg-red-600 dark:hover:bg-red-700 focus:bg-red-500 active:bg-red-900 transition duration-150 ease-in-out"
                     >
                         Generate PDF
                         <ArrowRight3 color="currentColor" variant="Bulk" />
                     </button>
                     <button
                         type="button"
-                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-emerald-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
+                        className="inline-flex w-full justify-center gap-1 items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-red-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
                         onClick={handleResetOperation}
                     >
-                        <CloseSquare
-                            color="currentColor"
-                            variant="Bulk"
-                            className="inline w-4 h-4 mr-3"
-                        />
-                        {/* Retry */}
-                        Cancel
+                        <ArrowLeft3 color="currentColor" variant="Bulk" />
+                        Back to Upload
                     </button>
                 </>
             )}
@@ -215,7 +216,7 @@ export default function Second_CorrectData() {
                     <button
                         disabled
                         type="button"
-                        className="text-white w-full bg-black hover:bg-emerald-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-emerald-600 dark:hover:bg-emerald-700 inline-flex items-center justify-center"
+                        className="text-white w-full bg-black hover:bg-red-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-red-600 dark:hover:bg-red-700 inline-flex items-center justify-center"
                     >
                         <svg
                             aria-hidden="true"
@@ -239,7 +240,7 @@ export default function Second_CorrectData() {
                     <button
                         type="button"
                         onClick={handleCancelOperation}
-                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-emerald-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
+                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-red-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
                     >
                         <CloseSquare
                             color="currentColor"

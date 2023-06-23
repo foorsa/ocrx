@@ -30,7 +30,7 @@ const SelectDocType = () => {
                     icon: (
                         <Code
                             color="currentColor"
-                            className="text-emerald-600"
+                            className="text-red-600"
                             variant="Bulk"
                         />
                     ),

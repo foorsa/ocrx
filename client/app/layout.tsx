@@ -2,9 +2,10 @@ import "./globals.css";
 import { Prompt } from "next/font/google";
 import Script from "next/script";
 import NextTopLoader from "nextjs-toploader";
-import Providers from "./providers";
+import Providers from "@/components/Providers";
 import { Providers as ReduxProvider } from "@/redux/provider";
 import Colors from "tailwindcss/colors";
+import PageWrapper from "../components/PageWrapper";
 
 const prombt: any = Prompt({
     subsets: ["latin"],
@@ -48,22 +49,27 @@ export default function RootLayout({
                     `}
                 </Script>
             </head>
-            <body className={prombt.className}>
-                <ReduxProvider>
-                    <NextTopLoader
-                        color={Colors.emerald[500]}
-                        initialPosition={0.08}
-                        crawlSpeed={200}
-                        height={5}
-                        crawl={true}
-                        showSpinner={false}
-                        easing="ease"
-                        speed={200}
-                        shadow={`0 0 10px ${Colors.emerald["500"]},0 0 5px ${Colors.sky["500"]}`}
-                    />
-                    <Providers>{children}</Providers>
-                </ReduxProvider>
-            </body>
+            <PageWrapper>
+                <body className={prombt.className}>
+                    <ReduxProvider>
+                        <NextTopLoader
+                            color={Colors.red[500]}
+                            initialPosition={0.08}
+                            crawlSpeed={200}
+                            height={5}
+                            crawl={true}
+                            showSpinner={false}
+                            easing="ease"
+                            speed={200}
+                            shadow={`0 0 10px ${Colors.red["500"]},0 0 5px ${Colors.orange["500"]}`}
+                        />
+                        <Providers>
+                            {/* Page content */}
+                            {children}
+                        </Providers>
+                    </ReduxProvider>
+                </body>
+            </PageWrapper>
         </html>
     );
 }

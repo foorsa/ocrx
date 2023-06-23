@@ -2,15 +2,23 @@
 
 import React, { useCallback, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
-import { ArrowRight3, CloseSquare, Link, LinkSquare } from "iconsax-react";
+import {
+    ArrowRight3,
+    Check,
+    CloseSquare,
+    DocumentDownload,
+    Link,
+    LinkSquare,
+} from "iconsax-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { clearSession } from "@/redux/actions/sessionActions";
-import { resetStep } from "@/redux/actions/stepActions";
+import { resetStep, setStep } from "@/redux/actions/stepActions";
 import { resetFile } from "@/redux/actions/fileActions";
 import { resetDocumentType } from "@/redux/actions/documentTypeActions";
 import { resetProcess } from "@/redux/actions/processActions";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
+import { Steps } from "@/redux/types/states/Step";
 
 export default function Third_FinishOperation() {
     // Routing
@@ -28,6 +36,10 @@ export default function Third_FinishOperation() {
         } else {
             toast.error("The PDF is not ready yet.");
         }
+    };
+
+    const handleCorrectDocument = () => {
+        dispatch(setStep(Steps.Correct));
     };
 
     const handleFinishOperation = () => {
@@ -54,24 +66,39 @@ export default function Third_FinishOperation() {
             <div className="flex flex-col items-center justify-center w-full">
                 <button
                     type="button"
-                    className="inline-flex text-center w-full mb-2 items-center justify-center px-3 py-2 text-sm font-medium text-white bg-emerald-700 rounded-lg hover:bg-emerald-800 focus:outline-none dark:bg-emerald-600 dark:hover:bg-emerald-700 focus:bg-emerald-500 active:bg-emerald-900 transition duration-150 ease-in-out"
+                    className="inline-flex text-center gap-3 w-full mb-2 items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 focus:outline-none dark:bg-red-600 dark:hover:bg-red-700 focus:bg-red-500 active:bg-red-900 transition duration-150 ease-in-out"
                     onClick={handleDownloadPDF}
                 >
                     Download PDF
-                    <ArrowRight3 color="currentColor" variant="Bulk" />
+                    <DocumentDownload
+                        color="currentColor"
+                        variant="Bulk"
+                        className="inline w-5 h-5"
+                    />
                 </button>
                 <button
                     type="button"
-                    className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-emerald-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
+                    className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-red-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
+                    onClick={handleCorrectDocument}
+                >
+                    Correct Document
+                    <Check
+                        color="currentColor"
+                        variant="Bulk"
+                        className="inline w-5 h-5"
+                    />
+                </button>
+                <button
+                    type="button"
+                    className="inline-flex w-full gap-3 justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-red-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
                     onClick={handleFinishOperation}
                 >
+                    Finish Operation
                     <CloseSquare
                         color="currentColor"
                         variant="Bulk"
-                        className="inline w-4 h-4 mr-3"
+                        className="inline w-5 h-5"
                     />
-                    {/* Retry */}
-                    Finish Operation
                 </button>
             </div>
         </div>

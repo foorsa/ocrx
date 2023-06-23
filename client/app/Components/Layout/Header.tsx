@@ -51,7 +51,7 @@ export default function Header() {
                     <Link href="/translate" className="flex items-center">
                         <button
                             type="button"
-                            className="text-white ring-0 bg-black hover:bg-emerald-800 focus:outline-none font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 dark:bg-emerald-600 dark:hover:bg-emerald-700 inline-flex items-center"
+                            className="text-white ring-0 bg-black hover:bg-red-800 focus:outline-none font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 dark:bg-red-600 dark:hover:bg-red-700 inline-flex items-center"
                         >
                             <span className="mr-2 text-sm font-semibold hidden md:block">
                                 Launch App

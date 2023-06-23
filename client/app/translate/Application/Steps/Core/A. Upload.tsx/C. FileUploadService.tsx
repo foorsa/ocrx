@@ -156,7 +156,7 @@ const FileUploadService = () => {
                             }}
                             className="w-full mt-0 flex flex-col gap-2 z-10"
                         >
-                            <div className="flex items-center w-full justify-between gap-2 px-2 py-2 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-700 overflow-hidden">
+                            <div className="flex items-center w-full justify-between gap-2 px-2 py-2 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-100 dark:bg-zinc-900 dark:border-zinc-800 dark:hover:bg-zinc-700 overflow-hidden">
                                 <div className="flex text-left gap-2 flex-1 overflow-hidden">
                                     {uploadedFile.type.includes("image") ? (
                                         <img
