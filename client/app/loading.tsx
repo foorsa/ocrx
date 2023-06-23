@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import Logo from "@/public/Logo/Black.svg";
+import Logo from "@/public/Logo/Black.png";
 
 export default function LoadingPage() {
     return (
@@ -15,7 +15,7 @@ export default function LoadingPage() {
                 transition={{ duration: 0.5, delay: 0 }}
                 className="w-full h-screen fixed top-0 left-0 min-h-screen min-w-full bg-zinc-50 dark:bg-black flex items-center justify-center select-none pointer-events-none"
             >
-                {/* Bottom Center - Wide red Gradient */}
+                {/* Bottom Center - Wide purple Gradient */}
                 {/* Division for Blurry Elements */}
 
                 <motion.div className="relative w-auto h-16 p-4 flex flex-col items-center justify-center aspect-square">
@@ -28,8 +28,8 @@ export default function LoadingPage() {
                             height={100}
                             className="object-contain h-full w-full z-20"
                             priority={true}
-                            blurDataURL={Logo}
                             placeholder="blur"
+                            quality={100}
                         />
                     </div>
                 </motion.div>

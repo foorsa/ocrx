@@ -14,7 +14,7 @@ export default function Page({ children }: { children: React.ReactNode }) {
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                // key={Pathname}
+                key={Pathname}
                 variants={{
                     initial: {
                         opacity: 0,

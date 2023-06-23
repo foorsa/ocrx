@@ -18,22 +18,22 @@ export default function Background({ Variant }: Props) {
             {Variant == "Home" ? (
                 <>
                     <StarsBackground />
-                    {/* Bottom Center - Wide red Gradient */}
+                    {/* Bottom Center - Wide purple Gradient */}
                     {/* Division for Blurry Elements */}
                     <div className="absolute h-full w-full min-h-full top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100">
-                        <div className="absolute w-3/5 h-3/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-red-800 to-red-400 -z-50 dark:from-transparent dark:via-red-800 dark:to-red-400"></div>
+                        <div className="absolute w-3/5 h-3/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-purple-800 to-purple-400 -z-50 dark:from-transparent dark:via-purple-800 dark:to-purple-400"></div>
 
-                        {/* Bottom Center - Light red */}
-                        <div className="absolute w-1/5 h-2/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-red-500 to-red-50 -z-50 dark:from-transparent dark:via-red-500 dark:to-red-50"></div>
+                        {/* Bottom Center - Light purple */}
+                        <div className="absolute w-1/5 h-2/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-purple-500 to-purple-50 -z-50 dark:from-transparent dark:via-purple-500 dark:to-purple-50"></div>
 
                         {/* Bottom Center - Middle White */}
                         <div className="absolute w-1/5 h-2/5 -bottom-1/2 -translate-y-full left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-zinc-200 to-zinc-50 -z-50 dark:from-transparent dark:via-zinc-200 dark:to-zinc-50"></div>
 
                         {/* Top Middle Left */}
-                        <div className="absolute w-1/2 h-1/5 top-1/4 left-2/4 -translate-x-1/2 rotate-45 blur-3xl bg-orange-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-orange-500"></div>
+                        <div className="absolute w-1/2 h-1/5 top-1/4 left-2/4 -translate-x-1/2 rotate-45 blur-3xl bg-rose-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-rose-500"></div>
 
                         {/* Bottom Right */}
-                        <div className="absolute w-1/2 h-1/5 -bottom-0 right-0 blur-3xl bg-red-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-red-500"></div>
+                        <div className="absolute w-1/2 h-1/5 -bottom-0 right-0 blur-3xl bg-purple-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-purple-500"></div>
                     </div>
                 </>
             ) : (
@@ -55,11 +55,11 @@ export default function Background({ Variant }: Props) {
                                 >
                                     <stop
                                         offset="0%"
-                                        stop-color={Colors.orange[500]}
+                                        stop-color={Colors.rose[500]}
                                     />
                                     <stop
                                         offset="100%"
-                                        stop-color={Colors.orange[500]}
+                                        stop-color={Colors.rose[500]}
                                         stop-opacity="0"
                                     />
                                 </linearGradient>
@@ -72,11 +72,11 @@ export default function Background({ Variant }: Props) {
                                 >
                                     <stop
                                         offset="0%"
-                                        stop-color={Colors.red[500]}
+                                        stop-color={Colors.purple[500]}
                                     />
                                     <stop
                                         offset="100%"
-                                        stop-color={Colors.orange[500]}
+                                        stop-color={Colors.rose[500]}
                                         stop-opacity="0"
                                     />
                                 </linearGradient>

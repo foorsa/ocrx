@@ -26,7 +26,7 @@ export default function Error({
     }, [error]);
     const dispatch = useAppDispatch();
 
-    const handleClearRedux = () => {
+    const handleClearredux = () => {
         // Reset the entire states
         dispatch(clearSession());
         dispatch(resetStep());
@@ -42,7 +42,9 @@ export default function Error({
         <PageWrapper>
             <main className="grid min-h-full place-items-center w-full px-6 py-24 sm:py-32 lg:px-8">
                 <div className="text-center max-w-xl">
-                    <p className="text-base font-semibold text-red-600">500</p>
+                    <p className="text-base font-semibold text-purple-600">
+                        500
+                    </p>
                     <h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-5xl">
                         Something went wrong!
                     </h1>
@@ -51,9 +53,11 @@ export default function Error({
                         Please try again later. If the problem persists, please
                         contact us.
                     </p>
-                    <div className="mt-6 bg-zinc-200 dark:bg-zinc-950 rounded-md p-4 w-full border border-zinc-500 dark:border-zinc-700">
+                    <div className="mt-6 bg-zinc-100 dark:bg-zinc-950 rounded-md p-4 w-full border border-zinc-500 dark:border-zinc-700">
                         <code className="text-sm leading-7 font-mono text-zinc-900 dark:text-zinc-100">
-                            <span className="text-red-500">{error.name}:</span>{" "}
+                            <span className="text-purple-500">
+                                {error.name}:
+                            </span>{" "}
                             {error.message}
                             {"."}
                         </code>
@@ -61,7 +65,7 @@ export default function Error({
                     <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
                         <Link
                             href="/"
-                            className="flex-1 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-red-600 hover:bg-red-800"
+                            className="flex-1 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-purple-600 hover:bg-purple-800"
                         >
                             <span className="mr-2 text-md font-semibold whitespace-nowrap">
                                 Go back home
@@ -76,7 +80,7 @@ export default function Error({
                                 // Reset the error successfully
                                 toast("Retrying...");
                             }}
-                            className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-red-800 bg-red-600/25 hover:bg-red-600/50 dark:text-red-300 dark:bg-red-600/50 dark:hover:bg-red-600/75"
+                            className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-purple-800 bg-purple-600/25 hover:bg-purple-600/50 dark:text-purple-300 dark:bg-purple-600/50 dark:hover:bg-purple-600/75"
                         >
                             <span className="mr-2 text-md font-semibold">
                                 Retry
@@ -84,8 +88,8 @@ export default function Error({
                             <BackSquare variant="Bulk" color="currentColor" />
                         </div>
                         <div
-                            onClick={() => handleClearRedux()}
-                            className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-red-800 bg-red-600/25 hover:bg-red-600/50 dark:text-red-300 dark:bg-red-600/50 dark:hover:bg-red-600/75"
+                            onClick={() => handleClearredux()}
+                            className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-purple-800 bg-purple-600/25 hover:bg-purple-600/50 dark:text-purple-300 dark:bg-purple-600/50 dark:hover:bg-purple-600/75"
                         >
                             <span className="mr-2 text-md font-semibold">
                                 Clear Data

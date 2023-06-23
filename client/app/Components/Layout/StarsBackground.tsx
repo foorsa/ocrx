@@ -47,8 +47,8 @@ const StarsBackground = () => {
                                 color: {
                                     value:
                                         theme !== "dark"
-                                            ? Colors.red[500]
-                                            : Colors.red[500],
+                                            ? Colors.purple[500]
+                                            : Colors.purple[500],
                                 },
                             },
                         },
@@ -58,8 +58,8 @@ const StarsBackground = () => {
                     color: {
                         value:
                             theme !== "dark"
-                                ? Colors.red[500]
-                                : Colors.red[500],
+                                ? Colors.purple[500]
+                                : Colors.purple[500],
                     },
                     links: {
                         enable: false,

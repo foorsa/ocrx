@@ -151,12 +151,12 @@ export default function Second_CorrectData() {
                         setProcess({
                             isLoading: false,
                             name: "Error",
-                            description: "An error has occured.",
+                            description: "An error has occupurple.",
                         })
                     );
 
                     toast.error(
-                        "An error has occured while generating the PDF."
+                        "An error has occupurple while generating the PDF."
                     );
                 }
             } catch (err) {
@@ -166,11 +166,11 @@ export default function Second_CorrectData() {
                     setProcess({
                         isLoading: false,
                         name: "Error",
-                        description: "An error has occured.",
+                        description: "An error has occupurple.",
                     })
                 );
 
-                toast.error("An error has occured.");
+                toast.error("An error has occupurple.");
             }
         }
     };
@@ -195,14 +195,14 @@ export default function Second_CorrectData() {
                     <button
                         type="button"
                         onClick={handleNextStep}
-                        className="inline-flex text-center w-full mb-2 gap-1 items-center justify-center px-3 py-2 text-sm font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 focus:outline-none dark:bg-red-600 dark:hover:bg-red-700 focus:bg-red-500 active:bg-red-900 transition duration-150 ease-in-out"
+                        className="inline-flex text-center w-full mb-2 gap-1 items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-700 rounded-lg hover:bg-purple-800 focus:outline-none dark:bg-purple-600 dark:hover:bg-purple-700 focus:bg-purple-500 active:bg-purple-900 transition duration-150 ease-in-out"
                     >
                         Generate PDF
                         <ArrowRight3 color="currentColor" variant="Bulk" />
                     </button>
                     <button
                         type="button"
-                        className="inline-flex w-full justify-center gap-1 items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-red-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
+                        className="inline-flex w-full justify-center gap-1 items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-purple-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
                         onClick={handleResetOperation}
                     >
                         <ArrowLeft3 color="currentColor" variant="Bulk" />
@@ -216,7 +216,7 @@ export default function Second_CorrectData() {
                     <button
                         disabled
                         type="button"
-                        className="text-white w-full bg-black hover:bg-red-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-red-600 dark:hover:bg-red-700 inline-flex items-center justify-center"
+                        className="text-white w-full bg-black hover:bg-purple-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 inline-flex items-center justify-center"
                     >
                         <svg
                             aria-hidden="true"
@@ -240,7 +240,7 @@ export default function Second_CorrectData() {
                     <button
                         type="button"
                         onClick={handleCancelOperation}
-                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-red-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
+                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-purple-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
                     >
                         <CloseSquare
                             color="currentColor"

@@ -15,7 +15,7 @@ const Heading = () => {
                 <br />
                 <Link
                     href="#"
-                    className="inline-flex items-center text-red-600 hover:underline p-2"
+                    className="inline-flex items-center text-purple-600 hover:underline p-2"
                 >
                     See our guideline
                     <LinkSquare

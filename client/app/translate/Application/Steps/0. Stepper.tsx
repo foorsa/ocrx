@@ -18,7 +18,7 @@ export default function Stepper() {
             <li
                 className={`flex w-full items-center flex-grow-1 ${
                     step === Steps.Upload
-                        ? "text-red-600 dark:text-red-500"
+                        ? "text-purple-600 dark:text-purple-500"
                         : ""
                 }`}
                 onClick={() => handleClick(Steps.Upload)}
@@ -28,7 +28,7 @@ export default function Stepper() {
                         step === Steps.Upload ||
                         step === Steps.Correct ||
                         step === Steps.Finish
-                            ? "bg-red-500 dark:bg-red-800"
+                            ? "bg-purple-500 dark:bg-purple-800"
                             : "bg-zinc-100 dark:bg-zinc-900"
                     }`}
                 >
@@ -40,8 +40,8 @@ export default function Stepper() {
                             step === Steps.Correct ||
                             step === Steps.Finish
                                 ? "white"
-                                : "red-600"
-                        } lg:w-6 lg:h-6 dark:text-red-300`}
+                                : "purple-600"
+                        } lg:w-6 lg:h-6 dark:text-purple-300`}
                     />
                 </div>
                 <div className="relative h-[10px] w-full inline-block bg-zinc-100 dark:bg-zinc-900">
@@ -58,7 +58,7 @@ export default function Stepper() {
                                     },
                                 }}
                                 transition={{ duration: 0.5, delay: 0 }}
-                                className="absolute top-0 left-0 h-full bg-red-500 dark:bg-red-800"
+                                className="absolute top-0 left-0 h-full bg-purple-500 dark:bg-purple-800"
                             />
                         )}
                     </AnimatePresence>
@@ -67,7 +67,7 @@ export default function Stepper() {
             <li
                 className={`flex w-full items-center flex-grow-1 ${
                     step === Steps.Correct
-                        ? "text-red-600 dark:text-red-500"
+                        ? "text-purple-600 dark:text-purple-500"
                         : ""
                 }`}
                 onClick={() => handleClick(Steps.Correct)}
@@ -75,7 +75,7 @@ export default function Stepper() {
                 <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${
                         step === Steps.Correct || step === Steps.Finish
-                            ? "bg-red-500 dark:bg-red-800"
+                            ? "bg-purple-500 dark:bg-purple-800"
                             : "bg-zinc-100 dark:bg-zinc-900"
                     }`}
                 >
@@ -85,8 +85,8 @@ export default function Stepper() {
                         className={`w-5 h-5 text-${
                             step === Steps.Correct || step === Steps.Finish
                                 ? "white"
-                                : "red-600"
-                        } lg:w-6 lg:h-6 dark:text-red-300`}
+                                : "purple-600"
+                        } lg:w-6 lg:h-6 dark:text-purple-300`}
                     />
                 </div>
                 <div className="relative h-[10px] w-full inline-block bg-zinc-100 dark:bg-zinc-900">
@@ -103,7 +103,7 @@ export default function Stepper() {
                                     },
                                 }}
                                 transition={{ duration: 0.5, delay: 0.5 }}
-                                className="absolute top-0 left-0 h-full bg-red-500 dark:bg-red-800"
+                                className="absolute top-0 left-0 h-full bg-purple-500 dark:bg-purple-800"
                             />
                         )}
                     </AnimatePresence>
@@ -113,7 +113,7 @@ export default function Stepper() {
                 <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 ${
                         step === Steps.Finish
-                            ? "bg-red-500 dark:bg-red-800"
+                            ? "bg-purple-500 dark:bg-purple-800"
                             : "bg-zinc-100 dark:bg-zinc-900"
                     }`}
                     onClick={() => handleClick(Steps.Finish)}
@@ -122,8 +122,8 @@ export default function Stepper() {
                         color="currentColor"
                         variant="Bulk"
                         className={`w-5 h-5 text-${
-                            step === Steps.Finish ? "white" : "red-600"
-                        } lg:w-6 lg:h-6 dark:text-red-300`}
+                            step === Steps.Finish ? "white" : "purple-600"
+                        } lg:w-6 lg:h-6 dark:text-purple-300`}
                     />
                 </div>
             </motion.li>

@@ -1,17 +1,21 @@
 "use client";
 
 import React from "react";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider, useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
 import Background from "../app/Components/A. Background";
 import toast, { ToastBar, Toaster, resolveValue } from "react-hot-toast";
 import { CloseSquare } from "iconsax-react";
 import { AnimatePresence, motion } from "framer-motion";
+import AnimatedCursor from "react-animated-cursor";
+import colors from "tailwindcss/colors";
+import { hexToRgb } from "@/lib/Color.utilities";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const Pathname = usePathname();
     const Router = useRouter();
     const BackgroundVariant = Pathname === "/" ? "Home" : "App";
+    const { theme } = useTheme();
 
     return (
         <ThemeProvider attribute="class">
@@ -89,6 +93,28 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         </ToastBar>
                     )}
                 </Toaster>
+                <AnimatedCursor
+                    // Cursor Configuration
+                    innerSize={8}
+                    outerSize={8}
+                    color={hexToRgb(colors.rose[500])}
+                    outerAlpha={0.2}
+                    innerScale={0.7}
+                    outerScale={5}
+                    clickables={[
+                        "a",
+                        'input[type="text"]',
+                        'input[type="email"]',
+                        'input[type="number"]',
+                        'input[type="submit"]',
+                        'input[type="image"]',
+                        "label[for]",
+                        "select",
+                        "textarea",
+                        "button",
+                        ".link",
+                    ]}
+                />
                 {children}
             </main>
         </ThemeProvider>
