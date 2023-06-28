@@ -16,6 +16,10 @@
     }
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     color: rgb(var(--foreground-rgb));
     transition: background 0.5s ease;
@@ -26,7 +30,7 @@ body {
 
 @layer base {
     body {
-        @apply dark:bg-black bg-white;
+        @apply dark:bg-black bg-white scroll-smooth;
     }
 }
 

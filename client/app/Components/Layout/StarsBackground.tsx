@@ -61,6 +61,21 @@ const StarsBackground = () => {
                                 ? Colors.purple[500]
                                 : Colors.purple[500],
                     },
+                    // Shadows
+                    shadow: {
+                        blur: 100,
+                        enable: true,
+                        offset: {
+                            x: 0,
+                            y: 0,
+                        },
+                        color: {
+                            value:
+                                theme !== "dark"
+                                    ? Colors.purple[50]
+                                    : Colors.purple[500],
+                        },
+                    },
                     links: {
                         enable: false,
                     },
@@ -85,7 +100,7 @@ const StarsBackground = () => {
                         value: 40,
                     },
                     opacity: {
-                        value: 0.5,
+                        value: 1,
                     },
                     shape: {
                         type: "circle",

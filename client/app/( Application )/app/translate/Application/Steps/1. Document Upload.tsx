@@ -24,7 +24,7 @@ import {
     resetDocumentType,
     setDocumentType,
 } from "@/redux/actions/documentTypeActions";
-import { BaccalaureateObject } from "@/redux/data/Documents";
+import { Documents } from "@/redux/data/Documents";
 import SelectDocType from "./Core/A. Upload.tsx/B. SelectDocType";
 import Heading from "./Core/A. Upload.tsx/A. Heading";
 import { nextStep, resetStep } from "@/redux/actions/stepActions";
@@ -46,11 +46,8 @@ export default function First_DocumentUpload() {
     const Process = useAppSelector((state) => state.process);
 
     const handleNextStep = async () => {
-        if (!UploadedFile) {
-            return toast.error("Please upload a file");
-        } else if (!Doctype?.name) {
-            return toast.error("Please select a document type");
-        }
+        if (!UploadedFile) return toast.error("Please upload a file");
+        if (!Doctype?.name) return toast.error("Please select a document type");
 
         // Set fake loading
         dispatch(

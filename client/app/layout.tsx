@@ -6,6 +6,7 @@ import Providers from "@/components/Providers";
 import { Providers as ReduxProvider } from "@/redux/provider";
 import Colors from "tailwindcss/colors";
 import PageWrapper from "../components/PageWrapper";
+import { Analytics } from "@vercel/analytics/react";
 
 const prombt: any = Prompt({
     subsets: ["latin"],
@@ -68,6 +69,7 @@ export default function RootLayout({
                         <PageWrapper>{children}</PageWrapper>
                     </Providers>
                 </ReduxProvider>
+                <Analytics />
             </body>
         </html>
     );

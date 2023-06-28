@@ -7,7 +7,7 @@ import { ArrowSquareLeft, DirectLeft } from "iconsax-react";
 export default function AppHeader() {
     return (
         <nav className="relative w-full">
-            <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-10">
+            <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-5">
                 <Link href="/" className="flex items-center">
                     <button
                         type="button"

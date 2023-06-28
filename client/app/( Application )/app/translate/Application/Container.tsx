@@ -3,11 +3,14 @@
 import React from "react";
 import First_DocumentUpload from "./Steps/1. Document Upload";
 import Stepper from "./Steps/0. Stepper";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { Steps } from "@/redux/types/states/Step";
 import Second_CorrectData from "./Steps/2. Fields Correction";
 import Third_FinishOperation from "./Steps/3. Finish Operation";
 import { AnimatePresence, motion } from "framer-motion";
+import { Documents } from "@/redux/data/Documents";
+import { setDocumentType } from "@/redux/actions/documentTypeActions";
+import BaccalaureateDegree from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Degree";
 
 const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     return (
@@ -25,9 +28,31 @@ const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     );
 };
 
-export default function Container() {
+export default function Container({
+    DocId,
+}: {
+    DocId: string | string[] | undefined;
+}) {
     const Step = useAppSelector((state) => state.step);
     const Process = useAppSelector((state) => state.process);
+    const Dispatch = useAppDispatch();
+
+    if (DocId !== undefined && DocId != "" && typeof DocId === "string") {
+        const Docs = Documents;
+        let isFound = false;
+        const Doc = Docs.map((Doc) => {
+            Doc.documents.map((Doc) => {
+                if (Doc.id === DocId && !isFound) {
+                    isFound = true;
+                    return Dispatch(setDocumentType(Doc));
+                }
+            });
+        });
+
+        if (!isFound) {
+            Dispatch(setDocumentType(BaccalaureateDegree));
+        }
+    }
 
     const SlideToLeft =
         Step === Steps.Upload ? true : Step === Steps.Correct ? true : false;
@@ -42,7 +67,7 @@ export default function Container() {
     return (
         <div className="relative flex-1 h-full w-full min-h-screen min-w-full flex text-center flex-col justify-start items-center p-5">
             <OCRX_ICON isLoading={Process.isLoading} />
-            <div className="flex flex-col justify-center items-center w-full max-w-lg p-6 bg-white border border-zinc-200 rounded-lg shadow-2xl dark:bg-zinc-950 dark:border-zinc-800 overflow-hidden">
+            <div className="flex flex-col justify-center items-center w-full max-w-lg p-5 bg-white border border-zinc-200 rounded-lg shadow-2xl dark:bg-zinc-950 dark:border-zinc-800">
                 <Stepper />
                 <AnimatePresence initial={false} mode="wait">
                     {Step === Steps.Upload && (

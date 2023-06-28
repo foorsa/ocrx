@@ -3,6 +3,7 @@ import { Doctype } from "./types/states/Document Type";
 import { FileType } from "./types/states/File";
 import { ProcessType } from "./types/states/Process";
 import { Session } from "./types/states/Session";
+import BaccalaureateDegree from "./data/core/Baccalaureate/Docs/Baccalaureate Degree";
 
 
 export const initialState: {
@@ -13,7 +14,7 @@ export const initialState: {
     session: Session
 } = {
     file: null,
-    documentType: null,
+    documentType: BaccalaureateDegree,
     step: Steps.Upload,
     process: {
         isLoading: false,
