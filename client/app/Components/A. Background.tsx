@@ -38,7 +38,7 @@ export default function Background({ Variant }: Props) {
                 </>
             ) : (
                 <>
-                    <div className="absolute h-full w-full min-h-full top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100">
+                    <div className="absolute h-full w-full min-h-full top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100 max-h-screen">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="1440"

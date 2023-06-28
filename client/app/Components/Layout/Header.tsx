@@ -48,7 +48,7 @@ export default function Header() {
                 </Link>
                 <div className="flex md:order-2 gap-2">
                     <ThemeToggle />
-                    <Link href="/translate" className="flex items-center">
+                    <Link href="/app" className="flex items-center">
                         <button
                             type="button"
                             className="text-white ring-0 bg-black hover:bg-purple-800 focus:outline-none font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 dark:bg-purple-600 dark:hover:bg-purple-700 inline-flex items-center"

@@ -1,14 +1,12 @@
-import { Doctype } from "@/redux/types/states/Document Type";
-
-const Baccalaureate: Doctype = {
-    name: "Baccalaureate Diploma",
-    id: "baccalaureate",
-    description: "Baccalaureate Certificate",
+export const MasterDegree = {
+    name: "Master Certificate",
+    id: "Master-Certificate",
+    description: "Master Certificate",
     fields: [
         {
             name: "Serial Number",
             type: "text",
-            description: "Serial Number of the Baccalaureate Certificate",
+            description: "Serial Number of the Master Certificate",
             required: true,
             value: "",
         },
@@ -71,4 +69,4 @@ const Baccalaureate: Doctype = {
     ],
 }
 
-export default Baccalaureate;
+export default MasterDegree;

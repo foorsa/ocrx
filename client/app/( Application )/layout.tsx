@@ -1,6 +1,6 @@
 import React from "react";
 import PageWrapper from "@/components/PageWrapper";
-import AppHeader from "./Layout/A. App Header";
+import AppHeader from "@/app/( Application )/app/translate/Layout/A. App Header";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     return (

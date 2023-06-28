@@ -8,7 +8,7 @@ import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { Tooltip } from "flowbite-react";
 import toast from "react-hot-toast";
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
-import { BaccalaureateObject } from "@/redux/data/Documents";
+import { Documents } from "@/redux/data/Documents";
 
 const SelectDocType = () => {
     const dispatch = useAppDispatch();
@@ -22,7 +22,17 @@ const SelectDocType = () => {
     const handleSelectType = (type: string) => {
         switch (type) {
             case "Baccaulaureate Diploma":
-                dispatch(setDocumentType(BaccalaureateObject));
+                // Coming Soon
+                toast.success(`${type} translations are under maintainance.`, {
+                    icon: (
+                        <Code
+                            color="currentColor"
+                            className="text-purple-600"
+                            variant="Bulk"
+                        />
+                    ),
+                    id: type,
+                });
                 break;
             default:
                 // Coming Soon

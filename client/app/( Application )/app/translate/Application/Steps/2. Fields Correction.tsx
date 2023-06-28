@@ -18,7 +18,7 @@ import {
     resetDocumentType,
     setDocumentType,
 } from "@/redux/actions/documentTypeActions";
-import Baccalaureate from "@/redux/data/core/Baccalaureate";
+import Baccalaureate from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Degree";
 import { BaccalaureateObject } from "@/redux/data/Documents";
 import { toast } from "react-hot-toast";
 import { Field } from "@/redux/types/states/Document Type";
