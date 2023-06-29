@@ -6,6 +6,7 @@ import { stepReducer } from "./reducers/stepReducer";
 import { documentTypeReducer } from "./reducers/documentTypeReducer";
 import { processReducer } from "./reducers/processReducer";
 import sessionReducer from "./reducers/sessionReducer";
+import searchReducer from "./slices/searchSlice";
 
 // Configure Redux Persist
 const persistConfig = {
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
     documentType: documentTypeReducer,
     process: processReducer,
     session: sessionReducer,
+    search: searchReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

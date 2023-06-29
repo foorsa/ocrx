@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { ThemeProvider, useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
 import Background from "../app/Components/A. Background";
@@ -10,12 +10,35 @@ import { AnimatePresence, motion } from "framer-motion";
 import AnimatedCursor from "react-animated-cursor";
 import colors from "tailwindcss/colors";
 import { hexToRgb } from "@/lib/Color.utilities";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { setModal } from "@/redux/slices/searchSlice";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const Pathname = usePathname();
     const Router = useRouter();
     const BackgroundVariant = Pathname === "/" ? "Home" : "App";
     const { theme } = useTheme();
+    const Dispatch = useAppDispatch();
+    const isOpen = useAppSelector((state) => state.search.modal.isOpen);
+
+    const keyDownHandler = (event: KeyboardEvent) => {
+        if (event.ctrlKey && event.code === "KeyK") {
+            event.preventDefault();
+            Dispatch(
+                setModal({
+                    isOpen: true,
+                    Document: null,
+                })
+            );
+        }
+    };
+
+    useEffect(() => {
+        window.addEventListener("keydown", keyDownHandler);
+        return () => {
+            window.removeEventListener("keydown", keyDownHandler);
+        };
+    }, []);
 
     return (
         <ThemeProvider attribute="class">
@@ -57,10 +80,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                             {({ icon, message }) => (
                                 <div
                                     id="toast-default"
-                                    className="flex items-center space-x-2 justify-center max-w-sm p-3 bg-white border border-zinc-200 rounded-lg shadow-2xl dark:bg-zinc-800 dark:border-zinc-700"
+                                    className="flex max-w-sm items-center justify-center space-x-2 rounded-lg border border-zinc-200 bg-white p-3 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
                                     role="alert"
                                 >
-                                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg">
+                                    <div className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg">
                                         {icon}
                                         <span className="sr-only">
                                             Toast Icon
@@ -72,7 +95,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                                     {t.type !== "loading" && (
                                         <button
                                             type="button"
-                                            className="ml-auto -mx-1.5 -my-1.5 bg-white text-zinc-400 hover:text-zinc-900 rounded-lg p-1.5 hover:bg-zinc-100 inline-flex h-8 w-8 dark:text-zinc-500 dark:hover:text-white dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                                            className="-mx-1.5 -my-1.5 ml-auto inline-flex h-8 w-8 rounded-lg bg-white p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 dark:bg-zinc-950 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-white"
                                             data-dismiss-target="#toast-default"
                                             aria-label="Close"
                                             onClick={() => toast.dismiss(t.id)}
@@ -81,7 +104,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                                                 Close
                                             </span>
                                             <CloseSquare
-                                                className="w-5 h-5 text-zinc-400 dark:text-zinc-300"
+                                                className="h-5 w-5 text-zinc-400 dark:text-zinc-300"
                                                 color="currentColor"
                                                 variant="Bulk"
                                                 aria-hidden="true"

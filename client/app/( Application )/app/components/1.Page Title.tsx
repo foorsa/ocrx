@@ -8,6 +8,9 @@ import {
     DocumentsGroupType,
 } from "@/redux/data/Documents";
 import Fuse from "fuse.js";
+import SearchModal from "@/app/Components/Modals/Search.modal";
+import { setSearch, setModal } from "@/redux/slices/searchSlice";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
 const Title = () => {
     return (
@@ -26,98 +29,74 @@ const Title = () => {
     );
 };
 
-export default function PageTitle({
-    Documents,
-    setFilteredDocuments,
-}: {
-    Documents: DocumentsGroupType[];
-    setFilteredDocuments: React.Dispatch<
-        React.SetStateAction<DocumentsGroupType[]>
-    >;
-}) {
-    const BackupDocuments: DocumentsGroupType[] = Documents;
-    const [searchTerm, setSearchTerm] = React.useState<string>("");
+export default function PageTitle() {
+    const Dispatch = useAppDispatch();
+    const Search = useAppSelector((state) => state.search);
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.preventDefault();
         const searchValue = event.target.value;
-        setSearchTerm(searchValue);
+        Dispatch(setSearch(searchValue));
+    };
 
-        if (searchValue !== "") {
-            const fuse = new Fuse(Documents, {
-                keys: [
-                    "name",
-                    "description",
-                    "documents",
-                    "documents.name",
-                    "documents.id",
-                    "documents.description",
-                ],
-                includeScore: true,
-                threshold: 0.3,
-            });
-
-            const result = fuse.search(searchValue);
-            const newFilteredDocuments = result.map(({ item }) => {
-                const fuse = new Fuse(item.documents, {
-                    keys: ["name", "description", "id"],
-                    includeScore: true,
-                    threshold: 0.3,
-                });
-
-                const result = fuse.search(searchValue);
-
-                return {
-                    ...item,
-                    documents: result.map(({ item }) => item),
-                };
-            });
-
-            setFilteredDocuments(newFilteredDocuments);
-        } else {
-            setFilteredDocuments(BackupDocuments);
-        }
+    const handleClick = () => {
+        Dispatch(
+            setModal({
+                isOpen: true,
+                Document: null,
+            })
+        );
     };
 
     return (
-        <div className="flex flex-col w-full h-auto text-left justify-start items-start gap-2">
-            {/* Title for the App Selection Page */}
-            <Title />
-
+        <div className="flex h-auto w-full flex-col items-start justify-start gap-2 text-left">
             {/* Search Bar */}
-            <form className="flex items-center w-full mt-3">
+            <div
+                className="mb-3 flex w-full items-center"
+                onClick={handleClick}
+            >
                 <label htmlFor="simple-search" className="sr-only">
                     Search
                 </label>
                 <div className="relative w-full">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center p-5">
                         <SearchNormal
-                            className="w-5 h-5"
+                            className="h-5 w-5"
                             color="currentColor"
                             variant="TwoTone"
                         />
                     </div>
                     <input
                         type="text"
-                        id="simple-search"
-                        className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full pl-10 p-2.5  dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
-                        placeholder="Search"
-                        value={searchTerm}
+                        className="block w-full rounded-lg border border-zinc-300 bg-zinc-50 px-5 py-2.5 pl-14 text-sm text-zinc-900 focus:border-purple-500 focus:ring-purple-500  dark:border-zinc-600 dark:bg-zinc-950 dark:text-white dark:placeholder-zinc-400 dark:focus:border-purple-500 dark:focus:ring-purple-500"
+                        placeholder="Quick search..."
+                        value={Search.term}
                         onChange={handleSearch}
+                        onClick={handleClick}
                         required
                     />
+                    <kbd
+                        className="absolute right-2 top-1/2 -translate-y-1/2 transform rounded-lg border border-gray-200 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:border-gray-500 dark:bg-gray-600 dark:text-gray-100"
+                        onClick={handleClick}
+                    >
+                        ⌘ K
+                    </kbd>
                 </div>
                 <button
-                    type="submit"
-                    className="p-2.5 ml-2 text-sm font-medium text-white bg-purple-700 rounded-lg border border-purple-700 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800"
+                    onClick={handleClick}
+                    className="ml-2 rounded-lg border border-purple-700 bg-purple-700 p-2.5 text-sm font-medium text-white hover:bg-purple-800 focus:outline-none dark:bg-purple-600 dark:hover:bg-purple-700"
                 >
                     <SearchNormal
-                        className="w-5 h-5"
+                        className="h-5 w-5"
                         color="currentColor"
                         variant="TwoTone"
                     />
                     <span className="sr-only">Search</span>
                 </button>
-            </form>
+            </div>
+
+            {/* Title for the App Selection Page */}
+            <Title />
         </div>
     );
 }

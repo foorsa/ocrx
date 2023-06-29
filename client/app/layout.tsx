@@ -7,6 +7,7 @@ import { Providers as ReduxProvider } from "@/redux/provider";
 import Colors from "tailwindcss/colors";
 import PageWrapper from "../components/PageWrapper";
 import { Analytics } from "@vercel/analytics/react";
+import SearchModal from "./Components/Modals/Search.modal";
 
 const prombt: any = Prompt({
     subsets: ["latin"],
@@ -63,10 +64,12 @@ export default function RootLayout({
                         speed={200}
                         shadow={`0 0 10px ${Colors.purple["500"]},0 0 5px ${Colors.rose["500"]}`}
                     />
-
                     <Providers>
                         {/* Page content */}
-                        <PageWrapper>{children}</PageWrapper>
+                        <PageWrapper>
+                            <SearchModal />
+                            {children}
+                        </PageWrapper>
                     </Providers>
                 </ReduxProvider>
                 <Analytics />
