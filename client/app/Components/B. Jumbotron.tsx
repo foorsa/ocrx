@@ -137,7 +137,7 @@ export default function Jumbotron() {
                             <input
                                 type="text"
                                 disabled={true}
-                                className="text-md block w-full rounded-lg border border-zinc-300 bg-zinc-50/75 px-5 py-3 pl-14 text-zinc-900 hover:bg-zinc-50 focus:border-purple-500  focus:ring-purple-500 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-white dark:placeholder-zinc-400 dark:hover:bg-zinc-950
+                                className="text-md block w-full rounded-lg border border-zinc-300 bg-zinc-50/75 px-5 py-3 pl-14 text-zinc-900 hover:bg-zinc-50 focus:border-purple-500  focus:ring-purple-500 dark:border-zinc-600 dark:bg-zinc-950/75 dark:text-white dark:placeholder-zinc-400 dark:hover:bg-zinc-950
                                     dark:focus:border-purple-500 dark:focus:ring-purple-500
                                 "
                                 placeholder="Quick search..."
