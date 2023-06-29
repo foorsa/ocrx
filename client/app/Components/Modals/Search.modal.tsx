@@ -6,7 +6,8 @@ import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useTheme } from "next-themes";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setModal, setSearch } from "@/redux/slices/searchSlice";
-import { SearchNormal } from "iconsax-react";
+import { Hashtag, SearchNormal, TableDocument } from "iconsax-react";
+import Link from "next/link";
 
 const SearchBar = () => {
     const Dispatch = useAppDispatch();
@@ -46,7 +47,9 @@ const SearchBar = () => {
                 </div>
                 <input
                     // type="text"
-                    className="block w-full rounded-lg border-none bg-zinc-50 p-5 pl-14 text-sm text-zinc-900 shadow-none outline-none focus:border-none focus:shadow-none focus:outline-0 dark:bg-zinc-950 dark:text-white dark:placeholder-zinc-400"
+                    className={`
+                        ${Search.term.length > 0 ? "rounded-0" : "rounded-lg"}
+                    block w-full border-none bg-zinc-50 p-5 pl-14 text-sm text-zinc-900 shadow-none outline-none focus:border-none focus:shadow-none focus:outline-0 dark:bg-zinc-950 dark:text-white dark:placeholder-zinc-400`}
                     placeholder="Search for a document..."
                     value={Search.term}
                     onChange={handleSearch}
@@ -73,12 +76,20 @@ const SearchBar = () => {
 };
 
 export default function SearchModal() {
-    const Dispatch = useAppDispatch();
+    const Dispatch: any = useAppDispatch();
     const Search = useAppSelector((state) => state.search);
+    const FilteredDocuments = useAppSelector(
+        (state) => state.search.filteredDocuments
+    );
     const isOpen = Search.modal.isOpen;
-    const BarRef = React.useRef<HTMLInputElement>(null);
+
+    console.log("Search Modal Rendered");
+
+    console.log("Search Modal Rendered with Search: ", Search);
 
     const closeModal = () => {
+        console.log("Closing Modal...");
+
         Dispatch(
             setModal({
                 isOpen: false,
@@ -124,8 +135,87 @@ export default function SearchModal() {
                                     {/* Search Input Div */}
                                     <SearchBar />
 
-                                    {/* Search Display */}
-                                    <div className="h-50 w-50 relative flex flex-col items-center justify-start bg-zinc-50 dark:bg-zinc-950"></div>
+                                    {Search.term.length > 0 && (
+                                        <>
+                                            <div className="w-full relative h-full overflow-x-hidden overflow-y-auto bg-zinc-100 dark:bg-zinc-950">
+                                                {FilteredDocuments.map(
+                                                    (DocumentGroup) => {
+                                                        return (
+                                                            <>
+                                                                {/* Title: "Group of Documents" */}
+                                                                <h3 className="px-5 py-2 relative text-left h-auto w-full bg-zinc-100 dark:bg-zinc-950 text-zinc-700 dark:text-zinc-200 font-bold text-xs">
+                                                                    {
+                                                                        DocumentGroup.name
+                                                                    }
+                                                                </h3>
+                                                                {/* Search Display */}
+                                                                <div className="relative h-auto w-full flex flex-col items-center justify-start bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white">
+                                                                    {/* Inner Documents */}
+                                                                    {DocumentGroup.documents.map(
+                                                                        (
+                                                                            DocumentGroupElement
+                                                                        ) => {
+                                                                            return (
+                                                                                <Link 
+                                                                                    href={`/app/translate?doc=${DocumentGroupElement.id}`}
+                                                                                className="w-full flex flex-col justify-start items-start text-left">
+                                                                                    <div className="group text-sm px-5 py-2 w-full relative h-auto max-h-full bg-none flex gap-2 justify-start items-center odd:bg-white even:bg-zinc-50 odd:dark:bg-zinc-950 even:dark:bg-zinc-900 hover:bg-purple-500 dark:hover:bg-purple-600 hover:text-purple-50 dark:hover:text-purple-100">
+                                                                                        <TableDocument
+                                                                                            color="currentColor"
+                                                                                            className="text-purple-500
+                                                                                    dark:text-purple-600
+                                                                                    group-hover:text-purple-50
+                                                                                    dark:group-hover:text-purple-100
+                                                                                    "
+                                                                                            variant="TwoTone"
+                                                                                        />
+                                                                                        {
+                                                                                            DocumentGroupElement.name
+                                                                                        }
+                                                                                    </div>
+                                                                                </Link>
+                                                                            );
+                                                                        }
+                                                                    )}
+                                                                </div>
+                                                            </>
+                                                        );
+                                                    }
+                                                )}
+                                                {/* Empty state */}
+                                                {FilteredDocuments.length ===
+                                                    0 && (
+                                                    <div className="relative h-full w-full flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white">
+                                                        <p className="text-sm text-center text-bold opacity-50">
+                                                            Nothing Found.
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Bottom Bar */}
+                                            <div className="w-full relative h-12 flex justify-between items-center bg-zinc-100 dark:bg-zinc-950 px-5 py-2">
+                                                <div
+                                                    className="flex w-full justify-center items-center 
+                                                text-zinc-700 dark:text-zinc-500 font-bold text-xs text-opacity-50"
+                                                >
+                                                    {/* Credits to Developer Yassine Chettouch */}
+                                                    Search Engine credits to
+                                                    <span className="text-purple-500 ml-1 dark:text-purple-600 hover:text-purple-400 dark:hover:text-purple-100">
+                                                        <a
+                                                            href="https://github.com/yassine-ct"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            {" "}
+                                                            Developer{" "}
+                                                        </a>
+                                                    </span>
+                                                    .
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </Dialog.Panel>
                         </Transition.Child>

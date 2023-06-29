@@ -50,6 +50,9 @@ export default function PageTitle() {
 
     return (
         <div className="flex h-auto w-full flex-col items-start justify-start gap-2 text-left">
+            {/* Title for the App Selection Page */}
+            <Title />
+
             {/* Search Bar */}
             <div
                 className="mb-3 flex w-full items-center"
@@ -72,13 +75,9 @@ export default function PageTitle() {
                         placeholder="Quick search..."
                         value={Search.term}
                         onChange={handleSearch}
-                        onClick={handleClick}
                         required
                     />
-                    <kbd
-                        className="absolute right-2 top-1/2 -translate-y-1/2 transform rounded-lg border border-gray-200 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:border-gray-500 dark:bg-gray-600 dark:text-gray-100"
-                        onClick={handleClick}
-                    >
+                    <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 transform rounded-lg border border-zinc-200 bg-zinc-100/50 px-2 py-1 text-xs font-semibold text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-zinc-300">
                         ⌘ K
                     </kbd>
                 </div>
@@ -94,9 +93,6 @@ export default function PageTitle() {
                     <span className="sr-only">Search</span>
                 </button>
             </div>
-
-            {/* Title for the App Selection Page */}
-            <Title />
         </div>
     );
 }

@@ -6,7 +6,10 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "eslint": "eslint --ext \"js,ts,jsx,tsx\" ./src",
+        "prettier": "prettier \"src/**/*.{ts,tsx,js,jsx}\"",
+        "lint": "next prettier --check && next eslint",
+        "lint:fix": "yarn prettier --write && yarn eslint --fix"
     },
     "dependencies": {
         "@headlessui/react": "^1.7.15",
