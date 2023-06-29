@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setModal, setSearch } from "@/redux/slices/searchSlice";
 import { Hashtag, SearchNormal, TableDocument } from "iconsax-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const SearchBar = () => {
     const Dispatch = useAppDispatch();
@@ -76,16 +77,13 @@ const SearchBar = () => {
 };
 
 export default function SearchModal() {
+    const Router = useRouter();
     const Dispatch: any = useAppDispatch();
     const Search = useAppSelector((state) => state.search);
     const FilteredDocuments = useAppSelector(
         (state) => state.search.filteredDocuments
     );
     const isOpen = Search.modal.isOpen;
-
-    console.log("Search Modal Rendered");
-
-    console.log("Search Modal Rendered with Search: ", Search);
 
     const closeModal = () => {
         console.log("Closing Modal...");
@@ -141,44 +139,45 @@ export default function SearchModal() {
                                                 {FilteredDocuments.map(
                                                     (DocumentGroup) => {
                                                         return (
-                                                            <>
-                                                                {/* Title: "Group of Documents" */}
+                                                            <React.Fragment
+                                                                key={
+                                                                    DocumentGroup.name
+                                                                }
+                                                            >
                                                                 <h3 className="px-5 py-2 relative text-left h-auto w-full bg-zinc-100 dark:bg-zinc-950 text-zinc-700 dark:text-zinc-200 font-bold text-xs">
                                                                     {
                                                                         DocumentGroup.name
                                                                     }
                                                                 </h3>
-                                                                {/* Search Display */}
                                                                 <div className="relative h-auto w-full flex flex-col items-center justify-start bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white">
-                                                                    {/* Inner Documents */}
                                                                     {DocumentGroup.documents.map(
                                                                         (
-                                                                            DocumentGroupElement
+                                                                            DocumentGroupElement,
+                                                                            index
                                                                         ) => {
                                                                             return (
-                                                                                <Link 
+                                                                                <Link
+                                                                                    key={
+                                                                                        DocumentGroupElement.id
+                                                                                    }
                                                                                     href={`/app/translate?doc=${DocumentGroupElement.id}`}
-                                                                                className="w-full flex flex-col justify-start items-start text-left">
-                                                                                    <div className="group text-sm px-5 py-2 w-full relative h-auto max-h-full bg-none flex gap-2 justify-start items-center odd:bg-white even:bg-zinc-50 odd:dark:bg-zinc-950 even:dark:bg-zinc-900 hover:bg-purple-500 dark:hover:bg-purple-600 hover:text-purple-50 dark:hover:text-purple-100">
-                                                                                        <TableDocument
-                                                                                            color="currentColor"
-                                                                                            className="text-purple-500
-                                                                                    dark:text-purple-600
-                                                                                    group-hover:text-purple-50
-                                                                                    dark:group-hover:text-purple-100
-                                                                                    "
-                                                                                            variant="TwoTone"
-                                                                                        />
-                                                                                        {
-                                                                                            DocumentGroupElement.name
-                                                                                        }
-                                                                                    </div>
+                                                                                    className={`group text-sm px-5 py-2 w-full relative h-auto max-h-full bg-none flex gap-2 justify-start items-center odd:bg-white even:bg-zinc-50 odd:dark:bg-zinc-950 even:dark:bg-zinc-900 hover:bg-purple-500 dark:hover:bg-purple-600 hover:text-purple-50 dark:hover:text-purple-100 focus:bg-purple-500 dark:focus:bg-purple-600 focus:text-purple-50 dark:focus:text-purple-100`}
+                                                                                    
+                                                                                >
+                                                                                    <TableDocument
+                                                                                        color="currentColor"
+                                                                                        className="text-purple-500 dark:text-purple-600 group-hover:text-purple-50 dark:group-hover:text-purple-100"
+                                                                                        variant="TwoTone"
+                                                                                    />
+                                                                                    {
+                                                                                        DocumentGroupElement.name
+                                                                                    }
                                                                                 </Link>
                                                                             );
                                                                         }
                                                                     )}
                                                                 </div>
-                                                            </>
+                                                            </React.Fragment>
                                                         );
                                                     }
                                                 )}
