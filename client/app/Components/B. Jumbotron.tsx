@@ -50,7 +50,7 @@ export default function Jumbotron() {
                         {/* Alpha Version */}
                         Web App is currently in{" "}
                         <Link
-                            href="/"
+                            href="/app"
                             className="font-semibold text-purple-600 
                             hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-600
                             "
