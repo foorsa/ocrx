@@ -46,7 +46,14 @@ export default function Jumbotron() {
         <div className="mx-auto flex max-w-screen-xl flex-col items-center justify-center p-10 text-center lg:py-16">
             <AnimatePresence mode="wait">
                 <div className="hidden sm:mb-8 sm:flex sm:justify-center">
-                    <div className="relative rounded-full px-3 py-1 text-sm leading-6 text-zinc-600 ring-1 ring-zinc-900/25 hover:ring-zinc-900/50 dark:text-zinc-100 dark:ring-zinc-100/25 dark:hover:ring-zinc-100/50">
+                    <motion.div
+                        initial="Initial"
+                        animate="Enter"
+                        exit="Exit"
+                        variants={Variants}
+                        transition={{ delay: 0, type: "spring", bounce: 0 }}
+                        className="relative rounded-full px-3 py-1 text-sm leading-6 text-zinc-600 ring-1 ring-zinc-900/25 hover:ring-zinc-900/50 dark:text-zinc-100 dark:ring-zinc-100/25 dark:hover:ring-zinc-100/50"
+                    >
                         {/* Alpha Version */}
                         Web App is currently in{" "}
                         <Link
@@ -66,7 +73,7 @@ export default function Jumbotron() {
                                 variant="Bulk"
                             />
                         </Link>
-                    </div>
+                    </motion.div>
                 </div>
                 <motion.h1
                     initial="Initial"

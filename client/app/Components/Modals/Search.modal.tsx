@@ -9,11 +9,14 @@ import { setModal, setSearch } from "@/redux/slices/searchSlice";
 import { Hashtag, SearchNormal, TableDocument } from "iconsax-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { DocumentType, DocumentsGroupType } from "@/redux/data/Documents";
+import { toast } from "react-hot-toast";
 
 const SearchBar = () => {
     const Dispatch = useAppDispatch();
     const Search = useAppSelector((state) => state.search);
     const isOpen = Search.modal.isOpen;
+    const SearchBarRef = useRef<HTMLInputElement>(null);
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
@@ -32,6 +35,12 @@ const SearchBar = () => {
             );
         }
     };
+
+    useEffect(() => {
+        if (isOpen) {
+            SearchBarRef?.current?.focus();
+        }
+    }, []);
 
     return (
         <div className="flex w-full items-start">
@@ -55,6 +64,10 @@ const SearchBar = () => {
                     value={Search.term}
                     onChange={handleSearch}
                     onKeyDown={keyDownHandler}
+                    ref={SearchBarRef}
+                    onBlur={(e) => {
+                        e.target.focus();
+                    }}
                     required
                 />
                 {/* KBD */}
@@ -85,6 +98,11 @@ export default function SearchModal() {
     );
     const isOpen = Search.modal.isOpen;
 
+    const [SelectedDocument, setSelectedDocument] = useState<{
+        id: string;
+        index: number;
+    } | null>(null);
+
     const closeModal = () => {
         console.log("Closing Modal...");
 
@@ -95,6 +113,117 @@ export default function SearchModal() {
             })
         );
     };
+    let Filtered = FilteredDocuments;
+
+    const CombinedDocs = Filtered.map(
+        (DocumentsGroup: DocumentsGroupType, Index: number) => {
+            return DocumentsGroup.documents;
+        }
+    );
+
+    const FlattenedDocs = CombinedDocs.flat().map(
+        (GroupDocument: DocumentType, Index: number) => {
+            return {
+                id: GroupDocument.id,
+                index: Index,
+            };
+        }
+    );
+    useEffect(() => {
+        const handleKeyDown = (event: any) => {
+
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+
+
+                if (SelectedDocument === null) {
+                    setSelectedDocument(FlattenedDocs[0]);
+                } else {
+                    const CurrentIndex = SelectedDocument.index;
+                    const NextIndex = CurrentIndex + 1;
+                    if (NextIndex <= FlattenedDocs.length - 1) {
+                        // Find the index inside the FlattenedDocs
+                        const NextDocument = FlattenedDocs.find(
+                            (doc) => doc.index === NextIndex
+                        );
+                        if (
+                            NextDocument !== undefined &&
+                            NextDocument !== null
+                        ) {
+                            setSelectedDocument(NextDocument);
+                        }
+                    }
+                }
+                
+                // Scroll to the Selected Index
+                if (SelectedDocument !== null) {
+                    const SelectedElement = document.getElementById(SelectedDocument?.id);
+                    if (SelectedElement !== null) {
+                        SelectedElement.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                            inline: "center",
+                        });
+                    }
+                }
+            } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+
+                if (SelectedDocument === null) {
+                    setSelectedDocument(FlattenedDocs[0]);
+                } else {
+                    const CurrentIndex = SelectedDocument.index;
+                    const NextIndex = CurrentIndex - 1;
+                    if (NextIndex >= 0) {
+                        // Find the index inside the FlattenedDocs
+                        const NextDocument = FlattenedDocs.find(
+                            (doc) => doc.index === NextIndex
+                        );
+                        if (
+                            NextDocument !== undefined &&
+                            NextDocument !== null
+                        ) {
+                            setSelectedDocument(NextDocument);
+                        }
+                    }
+                }
+                // Scroll to the Selected Index
+                if (SelectedDocument !== null) {
+                    const SelectedElement = document.getElementById(SelectedDocument?.id);
+                    if (SelectedElement !== null) {
+                        SelectedElement.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                            inline: "center",
+                        });
+                    }
+                }
+            }
+
+            if (event.key === "Enter" || event.key === "Return" && isOpen) {
+                event.preventDefault();
+                if (SelectedDocument !== null) {
+                    const Document = FlattenedDocs.find(
+                        (doc) => doc.id === SelectedDocument.id
+                    );
+                    if (Document !== undefined && Document !== null) {
+                        // Trigger Click Event to element with ID of selected Document
+                        const SelectedElement = document.getElementById(Document?.id);
+                        if (SelectedElement !== null) {
+                            SelectedElement.click();
+                            closeModal();
+                        }
+                    }
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [SelectedDocument, FlattenedDocs]);
 
     return (
         <Transition.Root show={isOpen} as={Fragment}>
@@ -160,13 +289,46 @@ export default function SearchModal() {
                                                                                     key={
                                                                                         DocumentGroupElement.id
                                                                                     }
+                                                                                    id={DocumentGroupElement.id}
+                                                                                    onClick={
+                                                                                        closeModal
+                                                                                    }
+                                                                                    onMouseEnter={() => {
+                                                                                        const DocumentWithSameId =
+                                                                                            FlattenedDocs.find(
+                                                                                                (
+                                                                                                    DocumentProbablyWithSameId
+                                                                                                ) =>
+                                                                                                    DocumentProbablyWithSameId.id ===
+                                                                                                    DocumentGroupElement.id
+                                                                                            );
+
+                                                                                        if (
+                                                                                            DocumentWithSameId !==
+                                                                                            undefined
+                                                                                        ) {
+                                                                                            setSelectedDocument(
+                                                                                                DocumentWithSameId
+                                                                                            );
+                                                                                        }
+                                                                                    }}
                                                                                     href={`/app/translate?doc=${DocumentGroupElement.id}`}
-                                                                                    className={`group text-sm px-5 py-2 w-full relative h-auto max-h-full bg-none flex gap-2 justify-start items-center odd:bg-white even:bg-zinc-50 odd:dark:bg-zinc-950 even:dark:bg-zinc-900 hover:bg-purple-500 dark:hover:bg-purple-600 hover:text-purple-50 dark:hover:text-purple-100 focus:bg-purple-500 dark:focus:bg-purple-600 focus:text-purple-50 dark:focus:text-purple-100`}
-                                                                                    
+                                                                                    className={`group text-sm px-5 py-2 w-full relative h-auto max-h-full bg-none flex gap-2 justify-start items-center
+                                                                                    ${
+                                                                                        SelectedDocument !==
+                                                                                            null &&
+                                                                                        SelectedDocument.id ===
+                                                                                            DocumentGroupElement.id
+                                                                                            ? "bg-purple-500 dark:bg-purple-600 text-purple-50 dark:text-purple-100 hover:bg-purple-500 dark:hover:bg-purple-600 hover:text-purple-50 dark:hover:text-purple-100"
+                                                                                            : "odd:bg-white even:bg-zinc-100 odd:dark:bg-zinc-900 even:dark:bg-zinc-950"
+                                                                                    }
+                                                                                    `}
                                                                                 >
                                                                                     <TableDocument
                                                                                         color="currentColor"
-                                                                                        className="text-purple-500 dark:text-purple-600 group-hover:text-purple-50 dark:group-hover:text-purple-100"
+                                                                                        className={
+                                                                                            "w-5 h-5"
+                                                                                        }
                                                                                         variant="TwoTone"
                                                                                     />
                                                                                     {
