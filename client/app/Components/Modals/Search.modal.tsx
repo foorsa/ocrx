@@ -27,6 +27,7 @@ const SearchBar = () => {
     const keyDownHandler = (event: any) => {
         if (event.ctrlKey && event.code === "KeyK") {
             event.preventDefault();
+            Dispatch(setSearch(""));
             Dispatch(
                 setModal({
                     isOpen: false,
@@ -104,14 +105,14 @@ export default function SearchModal() {
     } | null>(null);
 
     const closeModal = () => {
-        console.log("Closing Modal...");
-
         Dispatch(
             setModal({
                 isOpen: false,
                 Document: null,
             })
         );
+
+        Dispatch(setSearch(""));
     };
     let Filtered = FilteredDocuments;
 
@@ -215,6 +216,8 @@ export default function SearchModal() {
                         );
                         if (SelectedElement !== null) {
                             SelectedElement.click();
+                            // Clear Search
+                            Dispatch(setSearch(""));
                             closeModal();
                         }
                     }

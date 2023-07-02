@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import First_DocumentUpload from "./Steps/1. Document Upload";
 import Stepper from "./Steps/0. Stepper";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Documents } from "@/redux/data/Documents";
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import BaccalaureateDegree from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
+import { setSearch } from "@/redux/slices/searchSlice";
 
 const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     return (
@@ -63,6 +64,10 @@ export default function Container({
         exit: { opacity: 0, x: -100 },
         transition: { duration: 0.3 },
     };
+
+    useEffect(() => {
+        Dispatch(setSearch(""));
+    }, []);
 
     return (
         <div className="relative flex-1 h-full w-full min-h-screen min-w-full flex text-center flex-col justify-start items-center p-5">

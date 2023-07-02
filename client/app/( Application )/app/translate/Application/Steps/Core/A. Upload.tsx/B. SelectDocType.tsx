@@ -100,31 +100,58 @@ const SelectDocType = () => {
                                                 return (
                                                     <Menu.Item>
                                                         {({ active }) => (
-                                                            <button
-                                                                type="button"
-                                                                className={classNames(
-                                                                    active
-                                                                        ? "bg-purple-500 text-white"
-                                                                        : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-600 dark:hover:text-white",
-                                                                    "inline-flex w-full px-4 py-2 text-sm rounded-md"
+                                                            <>
+                                                                {InnerDocument.state ===
+                                                                "Available" ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        className={classNames(
+                                                                            active
+                                                                                ? "bg-purple-500 text-white"
+                                                                                : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-600 dark:hover:text-white",
+                                                                            "inline-flex w-full px-4 py-2 text-sm rounded-md"
+                                                                        )}
+                                                                        onClick={() =>
+                                                                            handleSelectType(
+                                                                                InnerDocument
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <div className="inline-flex items-left justify-center text-left">
+                                                                            <TableDocument
+                                                                                color="currentColor"
+                                                                                className="mr-2"
+                                                                                variant="Bulk"
+                                                                            />
+                                                                            {
+                                                                                InnerDocument.name
+                                                                            }
+                                                                        </div>
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        type="button"
+                                                                        className={
+                                                                            "inline-flex w-full px-4 py-2 text-sm rounded-md text-zinc-400 cursor-not-allowed dark:text-zinc-600"
+                                                                        }
+                                                                        onClick={() =>
+                                                                            toast.error(
+                                                                                "This document is not supported yet."
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        {" "}
+                                                                        <TableDocument
+                                                                            color="currentColor"
+                                                                            className="mr-2"
+                                                                            variant="Bulk"
+                                                                        />
+                                                                        {
+                                                                            InnerDocument.name
+                                                                        }
+                                                                    </button>
                                                                 )}
-                                                                onClick={() =>
-                                                                    handleSelectType(
-                                                                        InnerDocument
-                                                                    )
-                                                                }
-                                                            >
-                                                                <div className="inline-flex items-left justify-center text-left">
-                                                                    <TableDocument
-                                                                        color="currentColor"
-                                                                        className="mr-2"
-                                                                        variant="Bulk"
-                                                                    />
-                                                                    {
-                                                                        InnerDocument.name
-                                                                    }
-                                                                </div>
-                                                            </button>
+                                                            </>
                                                         )}
                                                     </Menu.Item>
                                                 );
