@@ -10,7 +10,7 @@ import Third_FinishOperation from "./Steps/3. Finish Operation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Documents } from "@/redux/data/Documents";
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
-import BaccalaureateDegree from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Degree";
+import BaccalaureateDegree from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
 
 const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     return (

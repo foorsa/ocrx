@@ -1,12 +1,13 @@
-import { EAS } from "./Docs/EAS"
+import { DocumentsGroupType } from "../../Documents"
+import { PoliceRecordChecks } from "./Docs/Police Record Checks"
 import { SOPIBDOL } from "./Docs/SOPIBDOL"
 
-export const ExtraDocs = {
+export const ExtraDocs: DocumentsGroupType = {
     name: "Extra Documents",
     id: "ExtraDocs",
     description: "Extra documents that can be used in the application.",
     documents: [
-        EAS,
+        PoliceRecordChecks,
         SOPIBDOL
     ]
 }

@@ -8,6 +8,7 @@ import Colors from "tailwindcss/colors";
 import PageWrapper from "../components/PageWrapper";
 import { Analytics } from "@vercel/analytics/react";
 import SearchModal from "./Components/Modals/Search.modal";
+import { Documents } from "@/redux/data/Documents";
 
 const prombt: any = Prompt({
     subsets: ["latin"],

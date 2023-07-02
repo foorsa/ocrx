@@ -6,6 +6,7 @@ export type DocumentType = {
     name: string;
     id: string;
     description: string;
+    state: "Available" | "Unavailable";
     fields: {
         name: string;
         type: string;

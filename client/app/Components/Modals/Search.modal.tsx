@@ -131,10 +131,8 @@ export default function SearchModal() {
     );
     useEffect(() => {
         const handleKeyDown = (event: any) => {
-
             if (event.key === "ArrowDown") {
                 event.preventDefault();
-
 
                 if (SelectedDocument === null) {
                     setSelectedDocument(FlattenedDocs[0]);
@@ -154,10 +152,12 @@ export default function SearchModal() {
                         }
                     }
                 }
-                
+
                 // Scroll to the Selected Index
                 if (SelectedDocument !== null) {
-                    const SelectedElement = document.getElementById(SelectedDocument?.id);
+                    const SelectedElement = document.getElementById(
+                        SelectedDocument?.id
+                    );
                     if (SelectedElement !== null) {
                         SelectedElement.scrollIntoView({
                             behavior: "smooth",
@@ -189,7 +189,9 @@ export default function SearchModal() {
                 }
                 // Scroll to the Selected Index
                 if (SelectedDocument !== null) {
-                    const SelectedElement = document.getElementById(SelectedDocument?.id);
+                    const SelectedElement = document.getElementById(
+                        SelectedDocument?.id
+                    );
                     if (SelectedElement !== null) {
                         SelectedElement.scrollIntoView({
                             behavior: "smooth",
@@ -200,7 +202,7 @@ export default function SearchModal() {
                 }
             }
 
-            if (event.key === "Enter" || event.key === "Return" && isOpen) {
+            if (event.key === "Enter" || (event.key === "Return" && isOpen)) {
                 event.preventDefault();
                 if (SelectedDocument !== null) {
                     const Document = FlattenedDocs.find(
@@ -208,7 +210,9 @@ export default function SearchModal() {
                     );
                     if (Document !== undefined && Document !== null) {
                         // Trigger Click Event to element with ID of selected Document
-                        const SelectedElement = document.getElementById(Document?.id);
+                        const SelectedElement = document.getElementById(
+                            Document?.id
+                        );
                         if (SelectedElement !== null) {
                             SelectedElement.click();
                             closeModal();
@@ -273,6 +277,7 @@ export default function SearchModal() {
                                                                     DocumentGroup.name
                                                                 }
                                                             >
+                                                                <div className="w-full relative h-auto flex flex-col items-center justify-start"></div>
                                                                 <h3 className="px-5 py-2 relative text-left h-auto w-full bg-zinc-100 dark:bg-zinc-950 text-zinc-700 dark:text-zinc-200 font-bold text-xs">
                                                                     {
                                                                         DocumentGroup.name
@@ -289,7 +294,9 @@ export default function SearchModal() {
                                                                                     key={
                                                                                         DocumentGroupElement.id
                                                                                     }
-                                                                                    id={DocumentGroupElement.id}
+                                                                                    id={
+                                                                                        DocumentGroupElement.id
+                                                                                    }
                                                                                     onClick={
                                                                                         closeModal
                                                                                     }

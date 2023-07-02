@@ -1,6 +1,66 @@
-export const SOPIBDOL = {
-    name: "Statement of penalties issued by deprivation of liberty",
-    description: "An official document attesting a certain fact or event.",
+import { DocumentType } from "@/redux/data/Documents";
+
+export const SOPIBDOL: DocumentType = {
     id: "SOPIBDOL",
-    fields: []
+    name: "Statement of penalties issued by deprivation of liberty",
+    description: "Statement of penalties issued by deprivation of liberty is a document that contains the penalties issued by deprivation of liberty of the candidate. It is issued by the National Center for Examinations and Evaluations of the Ministry of National Education and Vocational Training of Morocco. It is issued in Arabic and French.",
+    state: "Available",
+    fields: [
+        {
+            name: "Start Date",
+            type: "text",
+            description: "Start Date of the Statement of penalties issued by deprivation of liberty",
+            required: true,
+            value: "",
+        },
+        {
+            name: "End Date",
+            type: "text",
+            description: "End Date of the Statement of penalties issued by deprivation of liberty",
+            required: true,
+            value: "",
+        },
+        {
+            name: "Identity Card Number",
+            type: "text",
+            description: "Identity Card Number of the Candidate",
+            required: true,
+            value: "",
+        },
+        {
+            name: "First Name",
+            type: "text",
+            description: "First Name of the Candidate",
+            required: true,
+            value: "",
+        },
+        {
+            name: "Last Name",
+            type: "text",
+            description: "Last Name of the Candidate",
+            required: true,
+            value: "",
+        },
+        {
+            name: "Date of Birth",
+            type: "text",
+            description: "Date of Birth of the Candidate",
+            required: true,
+            value: "",
+        },
+        {
+            name: "Place of Birth",
+            type: "text",
+            description: "Place of Birth of the Candidate",
+            required: true,
+            value: "",
+        },
+        {
+            name: "Address",
+            type: "text",
+            description: "Address of the Candidate",
+            required: true,
+            value: "",
+        },
+    ]
 }

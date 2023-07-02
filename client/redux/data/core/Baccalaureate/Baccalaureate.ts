@@ -1,13 +1,14 @@
-import { BaccalaureateDegree } from "./Docs/Baccalaureate Degree";
-import { SchoolCertificate } from "./Docs/School Cetificate";
+import { DocumentType, DocumentsGroupType } from "../../Documents";
+import { BaccalaureateCertificate } from "./Docs/Baccalaureate Certificate";
+import { SchoolCertificate } from "./Docs/School Certificate";
 import { TranscriptOfNotes } from "./Docs/Transcript of notes";
 
-export const Baccalaureate = {
-    name: "Baccalaurerate Degrees",
+export const Baccalaureate: DocumentsGroupType = {
+    name: "Baccalaureate Degrees",
     description: "Examination intended to qualify successful candidates for higher education.",
     id: "Baccalaureate",
     documents: [
-        BaccalaureateDegree,
+        BaccalaureateCertificate,
         SchoolCertificate,
         TranscriptOfNotes
     ]
