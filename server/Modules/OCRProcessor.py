@@ -8,13 +8,12 @@ from PIL import Image
 import argparse
 import imutils
 
-# import cv2
 
-
+# Define the OCR Processor Class
 class OCRProcessor:
     def __init__(self):
-        self.file_path = None
-        self.file_content = None
+        self.File_Path = None
+        self.File_Content = None
 
     def Fix_Orientation(self, image_path):
         # TODO: Fix image orientation
@@ -40,8 +39,8 @@ class OCRProcessor:
         # Return the rotated image path
         return rotated_image_path
 
-    def Read_PDF(self, file_path):
-        self.file_path = file_path
+    def Read_PDF(self, Document_Type, File_Path):
+        self.File_Path = File_Path
 
         # Check if running on the production server
         if os.getenv("ENV_MODE") == "production":
@@ -51,7 +50,7 @@ class OCRProcessor:
             ] = "./.apt/usr/share/tesseract-ocr/4.00/tessdata/"
 
         try:
-            pages = convert_from_path(file_path, 500)
+            pages = convert_from_path(File_Path, 500)
             text_content = ""
             for page in pages:
                 text_content += pytesseract.image_to_string(page, lang="fra")

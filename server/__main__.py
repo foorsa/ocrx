@@ -37,6 +37,7 @@ app.config["SESSIONS_FOLDER"] = SessionsFolder
 os.environ["TESSDATA_PREFIX"] = os.path.join(os.path.dirname(__file__), "tessdata")
 
 
+# Receive a file and document type, generate a session, and return the session data.
 @app.route("/api/process", methods=["POST"])
 @cross_origin()
 def ProcessRequest():
@@ -78,11 +79,14 @@ def ProcessRequest():
     if Content is None:
         return "Error reading file. Please try again."
 
+    # Using JSON to load the GPT-3 response
     import json
 
+    # Correct the content with GPT-3
     Corrected = GPT.Correct(Content, Doctype)
     CorrectedObject = json.loads(Corrected)
     Description = GPT.Describe(Content, Doctype)
+
     # Prepare the response data
     ResponseData = {
         "Session": SessionData,

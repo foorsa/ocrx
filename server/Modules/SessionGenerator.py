@@ -53,3 +53,7 @@ class SessionGenerator:
             json.dump(data, f)
 
         return data
+
+    def Destroy(self):
+        session_path = os.path.join(os.getcwd(), "Sessions", self.id)
+        shutil.rmtree(session_path)

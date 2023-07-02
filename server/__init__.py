@@ -16,11 +16,16 @@ from Modules.GPTCorrector import GPTCorrector
 from Modules.PDFGenerator import PDFGenerator
 
 
+# Intialize the Flask app
 app = Flask(__name__)
+
+# Enable CORS
 CORS(app, resources={r"*": {"origins": "*"}})
+
+# Enable debug mode
 app.debug = True
 
-# Create instances of OCRProcessor and GPTCorrector
+# Create instances of OCRProcessor - GPTCorrector - PDFGenerator
 OCR = OCRProcessor()
 GPT = GPTCorrector("gpt-3.5-turbo")
 PDF = PDFGenerator()
@@ -33,50 +38,59 @@ app.config["UPLOAD_FOLDER"] = UploadFolder
 app.config["RESULTS_FOLDER"] = ResultsFolder
 app.config["SESSIONS_FOLDER"] = SessionsFolder
 
-# Set TESSDATA_PREFIX to the path of the traineddata file
+# Load the traineddata file for Tesseract - Contains the language models (e.g., English, French, Arabic, etc.)
 os.environ["TESSDATA_PREFIX"] = os.path.join(os.path.dirname(__file__), "tessdata")
 
 
+# Route to Receive the Initial Request
+# POST Request: File, Document Type
 @app.route("/api/process", methods=["POST"])
 @cross_origin()
 def ProcessRequest():
-    # Check if file and document_type fields are present in the request
     if "file" not in request.files or "document_type" not in request.form:
         if "file" not in request.files:
             return jsonify({"error": "File field is required."}), 400
         elif "document_type" not in request.form:
-            return jsonify({"error": "Document_type field is required."}), 400
+            return jsonify({"error": "Document Type field is required."}), 400
 
-        return jsonify({"error": "File and document_type fields are required."}), 400
+        return jsonify({"error": "File and Document Type fields are required."}), 400
 
+    # Store the File
     File = request.files["file"]
+
+    # Store the Document Type
     Doctype = request.form["document_type"]
 
-    # Check if file is present and has an allowed extension (e.g., PDF, PNG, JPG)
+    # Check if the File is Empty - No File Selected
     if File.filename == "":
         return jsonify({"error": "No file selected."}), 400
 
+    # Check if the Document Type is Empty - No Document Type Selected
     AllowedExtensions = {"pdf", "png", "jpg", "jpeg"}
+
+    # Check if the File Extension is Allowed
     FileExtension = File.filename.rsplit(".", 1)[1].lower()
     if FileExtension not in AllowedExtensions:
         return jsonify({"error": "Invalid file extension."}), 400
 
-    # Generate a session for the user request
+    # Generate a Session - Creates a Unique ID
     Session = SessionGenerator(File, Doctype)
 
+    # Generate the Session Data: Session ID, Document Type, File Name, File Path, Public File Path, Status, Error
     SessionData = Session.Generate()
 
-    # Perform OCR and correction operations on the file
+    # Set Content to None
     Content = None
     if FileExtension == "pdf":
-        Content = OCR.Read_PDF(SessionData["File Path"])
+        # If the File is a PDF, Read the PDF
+        Content = OCR.Read_PDF(SessionData["Document Type"], SessionData["File Path"])
     elif FileExtension in {"png", "jpg", "jpeg"}:
-        # OCR.Fix_Orientation(SessionData["File Path"])
-        # OCR.Fix_Orientation(SessionData["File Path"])
-        Content = OCR.Read_Image(SessionData["File Path"])
+        # If the File is an Image, Read the Image
+        Content = OCR.Read_Image(SessionData["Document Type"], SessionData["File Path"])
 
+    # Check if Content is None
     if Content is None:
-        return "Error reading file. Please try again."
+        return jsonify({"error": "Error Reading File Content."}), 400
 
     import json
 
@@ -91,62 +105,60 @@ def ProcessRequest():
         "RAW": Content,
     }
 
-    # Return the response with session data and corrected content
     return jsonify(ResponseData), 200, {"Content-Type": "application/json"}
 
 
+# Get the Uploaded File from the Server - Send the File to the Client
 @app.route("/Sessions/<session_id>/Uploads/<filename>", methods=["GET"])
 def get_file(session_id, filename):
-    # Construct the file path based on the session ID and filename
     file_path = os.path.join(os.getcwd(), "Sessions", session_id, "Uploads", filename)
 
-    # Check if the file exists
     if os.path.isfile(file_path):
-        # Use Flask's send_file function to send the file in the response
         return send_file(file_path)
     else:
         return "File not found", 404
 
 
+# Get the Generated PDF from the Server - Send the PDF to the Client
 @app.route("/Sessions/<session_id>/Results/<filename>", methods=["GET"])
 def get_pdf(session_id, filename):
-    # Construct the file path based on the session ID and filename
     file_path = os.path.join(os.getcwd(), "Sessions", session_id, "Results", filename)
 
-    # Check if the file exists
     if os.path.isfile(file_path):
-        # Use Flask's send_file function to send the file in the response
         return send_file(file_path)
     else:
         return "File not found", 404
 
 
+# Route to Generate the PDF - Send the PDF Information to the Client
 @app.route("/api/generate", methods=["POST"])
 def GeneratePDF():
-    # Validate the request JSON
+    # Get the Request Data as JSON
     data = request.get_json()
+
+    # Check if the Request Data is Empty
     if not data:
         return jsonify(error="Invalid request JSON"), 400
 
+    # Set the Required Fields
     required_fields = ["SessionID", "DocumentType", "Fields"]
+
+    # Check if the Required Fields are in the Request Data
     missing_fields = [field for field in required_fields if field not in data]
+
+    # Check if there are Missing Fields
     if missing_fields:
         return jsonify(error=f'Missing fields: {", ".join(missing_fields)}'), 400
 
-    # Perform additional validations as needed
+    # Get the Session ID, Document Type, and Fields
+    Session_Id = data["SessionID"]
+    Document_Type = data["DocumentType"]
+    Fields = data["Fields"]
 
-    # Access the values from the request JSON
-    session_id = data["SessionID"]
-    document_type = data["DocumentType"]
-    fields = data["Fields"]
+    PDF_Path = PDF.Generate(Document_Type, Session_Id, Fields)
 
-    # Process the document data
-    PDF_Path = PDF.Generate(document_type, session_id, fields)
+    Public_PDF_Path = f"/Sessions/{Session_Id}/Results/Output.pdf"
 
-    # Generate a public URL for the PDF
-    Public_PDF_Path = f"/Sessions/{session_id}/Results/Output.pdf"
-
-    # Return a response
     response = {
         "success": True,
         "message": "Document processed successfully.",
@@ -158,7 +170,7 @@ def GeneratePDF():
     return jsonify(response), 200
 
 
-if __name__ == "__main__":
+if __name__ == "__init__":
     from waitress import serve
 
     serve(app, host="0.0.0.0", port=8080)
