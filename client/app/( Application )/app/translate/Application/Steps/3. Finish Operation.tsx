@@ -31,8 +31,11 @@ export default function Third_FinishOperation() {
 
     const handleDownloadPDF = () => {
         // Open the PDF in a new tab
-        if (Session.publicPDFPath && Session.publicPDFPath != "") {
-            window.open(PYTHON_PUBLIC_URL + Session.publicPDFPath, "_blank");
+        if (
+            Session.Generation?.["PDF Link"] &&
+            Session.Generation["PDF Link"] != ""
+        ) {
+            window.open(Session.Generation["PDF Link"], "_blank");
         } else {
             toast.error("The PDF is not ready yet.");
         }
