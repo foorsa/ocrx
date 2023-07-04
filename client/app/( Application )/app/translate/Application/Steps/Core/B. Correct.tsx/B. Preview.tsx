@@ -23,16 +23,12 @@ export default function Preview() {
     const PYTHON_PUBLIC_URL = getApiServerUrl();
 
     React.useEffect(() => {
-        if (Session.publicFilePath && Session.publicFilePath.length > 0) {
-            setPreview(PYTHON_PUBLIC_URL + Session.publicFilePath);
-        } else {
-            if (
-                UploadedFile &&
-                UploadedFile.preview &&
-                UploadedFile.preview.length > 0
-            ) {
-                setPreview(UploadedFile.preview || "");
-            }
+        if (
+            UploadedFile &&
+            UploadedFile.preview &&
+            UploadedFile.preview.length > 0
+        ) {
+            setPreview(UploadedFile.preview || "");
         }
     }, [UploadedFile, UploadedFile]);
 
