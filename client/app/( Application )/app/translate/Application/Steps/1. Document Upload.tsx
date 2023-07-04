@@ -15,7 +15,7 @@ import {
     LinkSquare,
     Timer,
 } from "iconsax-react";
-import FileUploadService from "./Core/A. Upload.tsx/C. FileUploadService";
+import FileUploadService from "./Core/A. Upload/C. FileUploadService";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button, Tooltip } from "flowbite-react";
@@ -25,17 +25,18 @@ import {
     setDocumentType,
 } from "@/redux/actions/documentTypeActions";
 import { Documents } from "@/redux/data/Documents";
-import SelectDocType from "./Core/A. Upload.tsx/B. SelectDocType";
-import Heading from "./Core/A. Upload.tsx/A. Heading";
-import { nextStep, resetStep } from "@/redux/actions/stepActions";
+import SelectDocType from "./Core/A. Upload/B. SelectDocType";
+import Heading from "./Core/A. Upload/A. Heading";
+import { nextStep, resetStep, setStep } from "@/redux/actions/stepActions";
 import axios from "axios";
 import { Doctype } from "@/redux/types/states/Document Type";
-import Processing from "./Core/A. Upload.tsx/D. Processing";
+import Processing from "./Core/A. Upload/D. Processing";
 import { setProcess } from "@/redux/actions/processActions";
 import { resetFile } from "@/redux/actions/fileActions";
 import { clearSession, setSession } from "@/redux/actions/sessionActions";
-import { Session } from "@/redux/types/states/Session";
+import { Session, Session as SessionType } from "@/redux/types/states/Session";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
+import { Steps } from "@/redux/types/states/Step";
 
 // Selection for Document Type
 
@@ -61,14 +62,14 @@ export default function First_DocumentUpload() {
 
         const API_URL = getApiServerUrl();
 
-        const url = API_URL + "/api/process";
+        const Process_URL = API_URL + "/api/process";
 
         const formData = new FormData();
         formData.append("file", UploadedFile.file);
         formData.append("document_type", Doctype.id);
 
         try {
-            const response = await axios.post(url, formData, {
+            const response = await axios.post(Process_URL, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -77,7 +78,7 @@ export default function First_DocumentUpload() {
             const Response = response.data;
 
             const SessionData: Session = {
-                "Session Id": Response["Session ID"],
+                "Session Id": Response["Session Id"],
                 "Document Type": Response["Document Type"],
                 Uploads: Response["Uploads"],
                 Extraction: Response["Extraction"],
@@ -104,12 +105,8 @@ export default function First_DocumentUpload() {
                 fields: ExtractedData,
             };
 
-            console.log("Updated Doctype: ", updatedDoctype);
-
             // Set the extracted data in the redux store
             dispatch(setDocumentType(updatedDoctype));
-
-            console.log("New Doctype: ", Doctype);
 
             dispatch(
                 setProcess({
@@ -119,7 +116,89 @@ export default function First_DocumentUpload() {
                 })
             );
 
-            dispatch(nextStep());
+            // Reset the process
+            dispatch(
+                setProcess({
+                    isLoading: true,
+                    name: "Generating PDF",
+                    description: "Generating your PDF...",
+                })
+            );
+
+            const RequestData = {
+                SessionID: Session["Session Id"],
+                DocumentType: Doctype.name,
+                Fields: Doctype.fields,
+            };
+
+            console.log("Request Data: ", RequestData);
+
+            const API_URL = getApiServerUrl();
+
+            const Generate_URL = API_URL + "/api/generate";
+
+            try {
+                const Response = await axios.post(Generate_URL, RequestData);
+
+                if (Response.status === 200) {
+                    console.log("Generated PDF successfully: ", Response.data);
+                    // Reset the process
+                    dispatch(
+                        setProcess({
+                            isLoading: false,
+                            name: "Success",
+                            description: "Your PDF has been generated.",
+                        })
+                    );
+
+                    const Res = Response.data;
+
+                    const SessionData: SessionType = {
+                        "Session Id": Res["Session ID"],
+                        "Document Type": Res["Document Type"],
+                        Uploads: Res["Uploads"],
+                        Extraction: Res["Extraction"],
+                        Generation: Res["Generation"],
+                        Status: Res["Status"],
+                        Error: Res["Error"],
+                    };
+
+                    dispatch(setSession(SessionData));
+
+                    dispatch(setStep(Steps.Finish));
+
+                    toast.success("Your Document has been generated successfully.");
+                } else {
+                    console.log("Error while generating PDF: ", Response.data);
+
+                    // Reset the process
+
+                    dispatch(
+                        setProcess({
+                            isLoading: false,
+                            name: "Error",
+                            description: "An error has occured.",
+                        })
+                    );
+
+                    toast.error(
+                        Response.data.message ||
+                            "An error has occured on the server !"
+                    );
+                }
+            } catch (err: any) {
+                console.log("Error while sending request: ", err);
+                // Reset the process
+                dispatch(
+                    setProcess({
+                        isLoading: false,
+                        name: "Error",
+                        description: "An error has occured.",
+                    })
+                );
+
+                toast.error(err.message);
+            }
         } catch (error: any) {
             // Handle errors
             console.error("Error:", error.message);

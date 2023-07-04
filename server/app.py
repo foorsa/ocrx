@@ -3,7 +3,28 @@
 # Libraries
 import datetime
 import os
-from flask import Flask, jsonify, request, send_file, send_from_directory
+from flask import (
+    Blueprint,
+    Flask,
+    jsonify,
+    request,
+    send_file,
+    send_from_directory,
+    render_template,
+)
+
+app = Flask(__name__)
+
+
+@app.route("/")
+def hello_world():
+    return render_template("index.html")
+
+
+if __name__ == "__main__":
+    app.debug = True
+    app.run()
+
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
 import json
@@ -25,8 +46,19 @@ app.debug = True
 os.environ["TESSDATA_PREFIX"] = os.path.join(os.path.dirname(__file__), "tessdata")
 
 
+# Configuration for views Folder
+views = Blueprint("views", __name__, template_folder="templates")
+
+
 # Route to Receive the Initial Request
+@app.route("/")
+def hello_world():
+    return render_template("index.html")
+
+
 # POST Request: File, Document Type
+
+
 @app.route("/api/process", methods=["POST"])
 @cross_origin()
 def ProcessRequest():
@@ -162,15 +194,9 @@ def GeneratePDF():
 
     SESSION.GetSession(Session_Id)
 
-    return (
-        jsonify(
-            {
-                "message": "All Good to Go, keep going bruh.",
-                "FoundSessionID": SESSION.Get(),
-            }
-        ),
-        200,
-    )
+    SESSION.Generate(Fields)
+
+    return jsonify(SESSION.Get()), 200, {"Content-Type": "application/json"}
 
 
 if __name__ == "__main__":

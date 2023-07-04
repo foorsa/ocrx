@@ -1,5 +1,8 @@
 # import the necessary packages
+import io
 import os
+import tempfile
+from PyPDF2 import PdfReader
 import cv2
 from gridfs import GridOut
 import numpy as np
@@ -9,6 +12,14 @@ from pytesseract import Output
 from PIL import Image
 import argparse
 import imutils
+
+
+# # Check if running on the production server
+# if os.getenv("ENV_MODE") == "production":
+#     # Set the TESSDATA_PREFIX environment variable for production
+#     os.environ[
+#         "TESSDATA_PREFIX"
+#     ] = "./.apt/usr/share/tesseract-ocr/4.00/tessdata/"
 
 
 # Define the OCR Processor Class
@@ -42,23 +53,23 @@ class OCRProcessor:
         return rotated_image_path
 
     # Read the PDF File
-    def Read_PDF(self, Document_Type, File_Path):
-        self.File_Path = File_Path
+    def Read_PDF(self, Document_Type, SessionId, PDF_Bytes):
+        Extracted = ""
 
-        # Check if running on the production server
-        if os.getenv("ENV_MODE") == "production":
-            # Set the TESSDATA_PREFIX environment variable for production
-            os.environ[
-                "TESSDATA_PREFIX"
-            ] = "./.apt/usr/share/tesseract-ocr/4.00/tessdata/"
+        # Temporary File Path
+        Temporary_PDF_Path = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
 
+        # Write the PDF Bytes to a Temporary File
+        with open(Temporary_PDF_Path, "wb") as f:
+            f.write(PDF_Bytes.getbuffer())
+
+        # Convert each Page to an Image
         try:
-            pages = convert_from_path(File_Path, 500)
-            text_content = ""
+            pages = convert_from_path(Temporary_PDF_Path, 500)
+            Extracted = ""
             for page in pages:
-                text_content += pytesseract.image_to_string(page, lang="fra")
-            self.file_content = text_content
-            return text_content
+                Extracted += pytesseract.image_to_string(page, lang="fra")
+            return Extracted
         except Exception as e:
             print(f"Error reading PDF file: {str(e)}")
 
@@ -67,7 +78,8 @@ class OCRProcessor:
         try:
             text_content = pytesseract.image_to_string(
                 Image,
-                config="fra+ara",
+                lang="fra",
+                config="--psm 1 --oem 3 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
             )
             self.file_content = text_content
             return text_content

@@ -7,6 +7,7 @@ import {
     Check,
     CloseSquare,
     DocumentDownload,
+    Google,
     Link,
     LinkSquare,
 } from "iconsax-react";
@@ -19,6 +20,7 @@ import { resetDocumentType } from "@/redux/actions/documentTypeActions";
 import { resetProcess } from "@/redux/actions/processActions";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Steps } from "@/redux/types/states/Step";
+import PDFPreview from "./Core/C. Finish/A. PDF Preview";
 
 export default function Third_FinishOperation() {
     // Routing
@@ -54,8 +56,22 @@ export default function Third_FinishOperation() {
         dispatch(resetProcess());
     };
 
+    const handleEditDocument = () => {
+        if (
+            Session.Generation?.["Google Docs Link"] &&
+            Session.Generation["Google Docs Link"] != ""
+        ) {
+            window.open(Session.Generation["Google Docs Link"], "_blank");
+        } else {
+            toast.error("The Google Docs link is not ready yet.");
+        }
+    };
+
     return (
         <div className="relative w-full">
+            {/* PDF Preview Container */}
+            <PDFPreview />
+
             <h5 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
                 Finish the Operation
             </h5>
@@ -74,6 +90,18 @@ export default function Third_FinishOperation() {
                 >
                     Download PDF
                     <DocumentDownload
+                        color="currentColor"
+                        variant="Bulk"
+                        className="inline w-5 h-5"
+                    />
+                </button>
+                <button
+                    type="button"
+                    className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-purple-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
+                    onClick={handleEditDocument}
+                >
+                    Edit in Google Docs
+                    <Google
                         color="currentColor"
                         variant="Bulk"
                         className="inline w-5 h-5"

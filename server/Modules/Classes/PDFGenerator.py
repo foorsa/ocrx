@@ -2,82 +2,65 @@
 # (Baccalaureate Diploma, Language Diploma, Master Diploma)
 # and methods to fill in the template with the translated information.
 # You can use libraries like ReportLab or PyFPDF to generate the PDF files.
+import datetime
 import os
 import requests
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
+import json
 
-# URL = "https://script.google.com/macros/s/AKfycbxLTDAyEzqC1l49RVLI6BosQMfcv3Eb7y6_Nu3z6aSkAmqGg0N38YyRLV2MB-pX6aQ9/exec?SerialNumber={}&Candidate={}&DateOfBirth={}&Institute={}&City={}&Province={}&Session={}&Mention={}&Series={}"
 
-# JSON Authentication File is in the Root Directory: /Cloud/credentials.json
-credentials = service_account.Credentials.from_service_account_file(
-    os.path.join(os.getcwd(), "server", "Cloud", "credentials.json")
-)
-
-# Use the credentials to authenticate
-drive_service = build("drive", "v3", credentials=credentials)
-docs_service = build("docs", "v1", credentials=credentials)
+TemplateIDs = {
+    # Baccalaureate
+    "Baccalaureate-Certificate": "1X3rr9TPPR7egAZLvDalNBAnkOYizgAmezHwFgRw1rzE",
+    "Baccalaureate-School-Certificate": "18HyzaYEH9JPbseo_SXebTBZ-O8gjAIP_x-m6XDRVbAU",
+    # Master
+    "Master-Certificate": "1gBQowrWKrdR98okjfY8s7rRL3vteY64f6sM3Wx8TzR8",
+    "Master-Transcript-of-Marks": "Master-Transcript-of-Marks",
+    "Certificate-of-success-at-diploma": "1TFocZylhyKTNXlvZ8Bz-sKJAPOdpIdx1w37-Kyw7rJk",
+    # Extra Docs
+    "ExtraDocs-Police-Record-Checks": "18JiMZbk2qHXnhi0ecqHKq3L4Hu4GLNWnirx2PXKAoi0",
+    "SOPIBDOL": "1G42GpqZrapdmjbinaa6JGeKXK0v2V4wkX4Be2K7RvoI",
+}
 
 
 class PDFGenerator:
-    def Generate(self, document_type, session_id, fields):
-        if document_type == "Baccalaureate-Certificate":
-            PDF_Path = self.BaccalaureateDiploma(session_id, fields)
-            return PDF_Path
+    def Generate(self, Doctype, SessionId, Fields):
+        # Get the template ID
+        TemplateId = None
+        if Doctype in TemplateIDs:
+            TemplateId = TemplateIDs[Doctype]
         else:
-            raise ValueError("Unsupported document type")
+            return None
 
-    def BaccalaureateDiploma(self, session_id, fields):
-        SerialNumber = None
-        Candidate = None
-        DateOfBirth = None
-        Institute = None
-        City = None
-        Province = None
-        Session = None
-        Mention = None
-        Series = None
+        # Fields are an array of object containing the field name and the value and description, etc.
+        # Transform them into a dictionary
+        # Keys are the field names and values are the field values
+        Fields = {field["name"]: field["value"] for field in Fields}
+        # Add Session Id and Translation Date to Fields
+        Fields["Session Id"] = SessionId
+        # Beautiful Date
+        Fields["Translation Date"] = datetime.datetime.now().strftime("%d %B %Y")
 
-        for field in fields:
-            match field["name"]:
-                case "Serial Number":
-                    SerialNumber = field["value"]
-                case "Candidate":
-                    Candidate = field["value"]
-                case "Date of birth":
-                    DateOfBirth = field["value"]
-                case "Institute":
-                    Institute = field["value"]
-                case "City":
-                    City = field["value"]
-                case "Province":
-                    Province = field["value"]
-                case "Session":
-                    Session = field["value"]
-                case "Series":
-                    Series = field["value"]
-                case "Mention":
-                    Mention = field["value"]
-                case _:
-                    return False
+        # Get the template
+        URL = f"https://script.google.com/macros/s/AKfycbxt1JwpWDPzQ1dKF6L8Xfulm4kK_QCRtXrH_8OG0QbEOfWZT3TN6umsEI80G_3E4FxA/exec"
+        DATA = {"templateId": TemplateId, "replacements": Fields}
+        Response = requests.post(URL, data=json.dumps(DATA))
 
-        # Generate the PDF using the provided fields
-        print("[Processing] ", "Baccalaureate Diploma - ", Candidate)
-        response = requests.get(
-            URL.format(
-                SerialNumber,
-                Candidate,
-                DateOfBirth,
-                Institute,
-                City,
-                Province,
-                Session,
-                Mention,
-                Series,
-            )
-        )
-        print("[File Generated] ", "Baccalaureate Diploma - ", Candidate)
-        response = requests.get(response.content)
-        print("[File Downloaded] ", "Baccalaureate Diploma - ", Candidate)
+        if Response.status_code == 200:
+            links = Response.json()
 
-        return response
+            print("Google Docs Link:", links["docLink"])
+            print("PDF Link:", links["pdfLink"])
+            print("Preview Link:", links["previewLink"])
+
+            Links = {
+                "PDF Link": links["pdfLink"],
+                "Google Docs Link": links["docLink"],
+                "Preview Link": links["previewLink"],
+            }
+
+            return Links
+        else:
+            print("Status:", Response.status_code)
+            print("Content:", Response.reason)
+
+            return None

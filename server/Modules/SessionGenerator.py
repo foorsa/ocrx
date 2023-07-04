@@ -8,6 +8,7 @@ from pymongo import MongoClient
 import gridfs
 from PIL import Image
 import io
+from pdf2image import convert_from_path, convert_from_bytes
 
 # Classes Required for Operations
 from Modules.Classes.OCRProcessor import OCRProcessor
@@ -101,8 +102,12 @@ class SessionGenerator:
             FileExtension = File.filename.rsplit(".", 1)[1].lower()
 
             if FileExtension == "pdf":
+                # Create PDF Object
+                PDf_Bytes = io.BytesIO(File.read())
                 # If the File is a PDF, Read the PDF
-                Content = OCR.Read_PDF(self.session["Document Type"], File)
+                Content = OCR.Read_PDF(
+                    self.session["Document Type"], self.session["Session Id"], PDf_Bytes
+                )
             elif FileExtension in {"png", "jpg", "jpeg"}:
                 # convert bytes to a file-like object
                 file_like = io.BytesIO(File.read())
@@ -189,7 +194,15 @@ class SessionGenerator:
             self.session["Status"] = "Error"
             return self.session
 
-        return
+        # Generate the PDF
+        Links = PDF.Generate(
+            self.session["Document Type"], self.session["Session Id"], Fields
+        )
+
+        # Add the Links to the Session
+        self.session["Generation"] = Links
+
+        return self.session
 
     def Destroy(self):
         # Remove the session document from the 'sessions' collection

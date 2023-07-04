@@ -19,6 +19,7 @@ interface Session {
     "Generation"?: {
         "PDF Link": string;
         "Google Docs Link": string;
+        "Preview Link": string;
     }
 }
 

@@ -9,9 +9,9 @@ import {
     Link,
     LinkSquare,
 } from "iconsax-react";
-import Heading from "./Core/B. Correct.tsx/A. Heading";
-import Fields from "./Core/B. Correct.tsx/C. Fields";
-import Preview from "./Core/B. Correct.tsx/B. Preview";
+import Heading from "./Core/B. Correct/A. Heading";
+import Fields from "./Core/B. Correct/C. Fields";
+import Preview from "./Core/B. Correct/B. Preview";
 import { resetProcess, setProcess } from "@/redux/actions/processActions";
 import { nextStep, resetStep, setStep } from "@/redux/actions/stepActions";
 import {
@@ -21,7 +21,7 @@ import {
 import Baccalaureate from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
 import { toast } from "react-hot-toast";
 import { Field } from "@/redux/types/states/Document Type";
-import Processing from "./Core/B. Correct.tsx/D. Processing";
+import Processing from "./Core/B. Correct/D. Processing";
 import axios from "axios";
 import { clearSession, setSession } from "@/redux/actions/sessionActions";
 import { resetFile } from "@/redux/actions/fileActions";
@@ -113,6 +113,20 @@ export default function Second_CorrectData() {
                 Fields: Doctype.fields,
             };
 
+            // Check that the Request Data has all the required fields
+            for (const [key, value] of Object.entries(RequestData)) {
+                if (value === null || value === undefined) {
+                    console.log(
+                        `The field ${key} is missing in the request data.`
+                    );
+                    return toast.error(
+                        `The field ${key} is missing in the request data.`
+                    );
+                }
+            }
+
+            console.log("Request Data: ", RequestData);
+
             const API_URL = getApiServerUrl();
 
             const url = API_URL + "/api/generate";
@@ -120,7 +134,7 @@ export default function Second_CorrectData() {
             try {
                 const Response = await axios.post(url, RequestData);
 
-                if (Response.data.success === true) {
+                if (Response.status === 200) {
                     console.log("Generated PDF successfully: ", Response.data);
                     // Reset the process
                     dispatch(
@@ -157,26 +171,27 @@ export default function Second_CorrectData() {
                         setProcess({
                             isLoading: false,
                             name: "Error",
-                            description: "An error has occupurple.",
+                            description: "An error has occured.",
                         })
                     );
 
                     toast.error(
-                        "An error has occupurple while generating the PDF."
+                        Response.data.message ||
+                            "An error has occured on the server !"
                     );
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.log("Error while sending request: ", err);
                 // Reset the process
                 dispatch(
                     setProcess({
                         isLoading: false,
                         name: "Error",
-                        description: "An error has occupurple.",
+                        description: "An error has occured.",
                     })
                 );
 
-                toast.error("An error has occupurple.");
+                toast.error(err.message);
             }
         }
     };

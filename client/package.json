@@ -14,6 +14,8 @@
     "dependencies": {
         "@headlessui/react": "^1.7.15",
         "@heroicons/react": "^2.0.18",
+        "@react-pdf-viewer/core": "^3.12.0",
+        "@react-pdf/renderer": "^3.1.12",
         "@reduxjs/toolkit": "^1.9.5",
         "@types/node": "20.2.5",
         "@types/react": "18.2.8",
@@ -54,11 +56,12 @@
         "zoom.ts": "^8.0.0"
     },
     "devDependencies": {
+        "@types/pdfjs-dist": "^2.10.378",
         "@types/react-redux": "^7.1.25",
         "@types/redux": "^3.6.0",
         "autoprefixer": "^10.4.14",
         "file-loader": "^6.2.0",
-        "pdfjs-dist": "../../node_modules/pdfjs-dist",
+        "pdfjs-dist": "^3.8.162",
         "postcss": "^8.4.24",
         "prettier": "^2.8.8",
         "tailwindcss": "^3.3.2",
