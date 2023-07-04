@@ -20,6 +20,6 @@ export const initialState: {
         isLoading: false,
     },
     session: {
-        sessionId: '',
+        "Session Id": "",
     }
 };
