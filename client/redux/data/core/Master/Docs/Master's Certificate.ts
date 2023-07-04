@@ -5,6 +5,7 @@ export const MasterCertificate: DocumentType = {
     name: "Master Certificate",
     description: "Master Certificate is a document that certifies that the candidate has successfully completed his studies at a particular institute and has obtained a Master's degree.",
     state: "Available",
+    templateId: "1gBQowrWKrdR98okjfY8s7rRL3vteY64f6sM3Wx8TzR8",
     fields: [
         {
             name: "Province",

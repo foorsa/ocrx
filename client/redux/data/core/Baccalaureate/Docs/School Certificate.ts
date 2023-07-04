@@ -5,6 +5,7 @@ export const SchoolCertificate: DocumentType = {
     "name": "School Certificate",
     "description": "The School Certificate is a document that certifies that the candidate is continuing his studies at a particular institute.",
     "state": "Available",
+    "templateId": "18HyzaYEH9JPbseo_SXebTBZ-O8gjAIP_x-m6XDRVbAU",
     "fields": [
         {
             "name": "Number",
@@ -63,16 +64,16 @@ export const SchoolCertificate: DocumentType = {
             "value": "",
         },
         {
-            "name": "Session",
+            "name": "Level",
             "type": "text",
-            "description": "Year and Month, e.g: July 2020, etc.",
+            "description": "Current level of the Candidate at the institution",
             "required": true,
             "value": "",
         },
         {
-            "name": "Series",
+            "name": "Date of issue",
             "type": "text",
-            "description": "Specialty Name",
+            "description": "Date of issue of the School Certificate",
             "required": true,
             "value": "",
         },

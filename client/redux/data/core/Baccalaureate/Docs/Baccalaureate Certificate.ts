@@ -5,6 +5,7 @@ export const BaccalaureateCertificate: DocumentType = {
     name: "Baccalaureate Certificate",
     description: "The Baccalaureate Certificate is a document that certifies that the candidate has passed the Baccalaureate Examination.",
     state: "Available",
+    templateId: "1X3rr9TPPR7egAZLvDalNBAnkOYizgAmezHwFgRw1rzE",
     fields: [
         {
             name: "Serial Number",
@@ -28,7 +29,7 @@ export const BaccalaureateCertificate: DocumentType = {
             value: "",
         },
         {
-            name: "City",
+            name: "City of birth",
             type: "text",
             description: "City of the Candidate",
             required: true,
@@ -56,19 +57,26 @@ export const BaccalaureateCertificate: DocumentType = {
             value: "",
         },
         {
-            name: "Series",
+            name: "Option",
             type: "text",
             description: "Specialty Name",
             required: true,
             value: "",
         },
         {
-            name: "Mention",
+            name: "Grade",
             type: "text",
             description: "Mention of the Candidate",
             required: true,
             value: "",
         },
+        {
+            name: "Date of issue",
+            type: "text",
+            description: "Date of the Issue of the cerrtificate",
+            required: true,
+            value: "",
+        }
     ],
 }
 

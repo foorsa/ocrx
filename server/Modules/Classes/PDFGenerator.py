@@ -4,13 +4,24 @@
 # You can use libraries like ReportLab or PyFPDF to generate the PDF files.
 import os
 import requests
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
-URL = "https://script.google.com/macros/s/AKfycbxLTDAyEzqC1l49RVLI6BosQMfcv3Eb7y6_Nu3z6aSkAmqGg0N38YyRLV2MB-pX6aQ9/exec?SerialNumber={}&Candidate={}&DateOfBirth={}&Institute={}&City={}&Province={}&Session={}&Mention={}&Series={}"
+# URL = "https://script.google.com/macros/s/AKfycbxLTDAyEzqC1l49RVLI6BosQMfcv3Eb7y6_Nu3z6aSkAmqGg0N38YyRLV2MB-pX6aQ9/exec?SerialNumber={}&Candidate={}&DateOfBirth={}&Institute={}&City={}&Province={}&Session={}&Mention={}&Series={}"
+
+# JSON Authentication File is in the Root Directory: /Cloud/credentials.json
+credentials = service_account.Credentials.from_service_account_file(
+    os.path.join(os.getcwd(), "server", "Cloud", "credentials.json")
+)
+
+# Use the credentials to authenticate
+drive_service = build("drive", "v3", credentials=credentials)
+docs_service = build("docs", "v1", credentials=credentials)
 
 
 class PDFGenerator:
     def Generate(self, document_type, session_id, fields):
-        if document_type == "Baccalaureate Diploma":
+        if document_type == "Baccalaureate-Certificate":
             PDF_Path = self.BaccalaureateDiploma(session_id, fields)
             return PDF_Path
         else:
@@ -68,21 +79,5 @@ class PDFGenerator:
         print("[File Generated] ", "Baccalaureate Diploma - ", Candidate)
         response = requests.get(response.content)
         print("[File Downloaded] ", "Baccalaureate Diploma - ", Candidate)
-        # with open("Baccalaureate Diploma - {}.pdf".format(Candidate), "wb") as f:
-        #     f.write(response.content)
 
-        # Return the PDF data
-        # Based on the session ID, save the PDF data to the Session Results folder
-        # "/Sessions/{session_id}/Results/Output.pdf".
-
-        # Create the folder if it doesn't exist
-        Folder_Path = os.path.join(os.getcwd(), "Sessions", session_id, "Results")
-        if not os.path.exists(Folder_Path):
-            os.makedirs(Folder_Path)
-
-        # Save the PDF file
-        PDF_Path = os.path.join(Folder_Path, "Output.pdf")
-        with open(PDF_Path, "wb") as file:
-            file.write(response.content)
-
-        return PDF_Path
+        return response

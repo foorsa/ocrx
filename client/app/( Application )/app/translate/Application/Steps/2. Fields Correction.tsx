@@ -26,6 +26,7 @@ import axios from "axios";
 import { clearSession, setSession } from "@/redux/actions/sessionActions";
 import { resetFile } from "@/redux/actions/fileActions";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
+import { Session as SessionType } from "@/redux/types/states/Session";
 
 // Selection for Document Type
 
@@ -107,7 +108,7 @@ export default function Second_CorrectData() {
             );
 
             const RequestData = {
-                SessionID: Session.sessionId,
+                SessionID: Session["Session Id"],
                 DocumentType: Doctype.name,
                 Fields: Doctype.fields,
             };
@@ -130,13 +131,19 @@ export default function Second_CorrectData() {
                         })
                     );
 
-                    dispatch(
-                        setSession({
-                            ...Session,
-                            PDFPath: Response.data["PDF_Path"],
-                            publicPDFPath: Response.data["Public PDF Path"],
-                        })
-                    );
+                    const Res = Response.data;
+
+                    const SessionData: SessionType = {
+                        "Session Id": Res["Session ID"],
+                        "Document Type": Res["Document Type"],
+                        Uploads: Res["Uploads"],
+                        Extraction: Res["Extraction"],
+                        Generation: Res["Generation"],
+                        Status: Res["Status"],
+                        Error: Res["Error"],
+                    };
+
+                    dispatch(setSession(SessionData));
 
                     dispatch(nextStep());
 

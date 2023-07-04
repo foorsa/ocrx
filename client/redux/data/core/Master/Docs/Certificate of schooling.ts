@@ -5,6 +5,7 @@ export const CertificateOfSchooling: DocumentType = {
     description: "Certificate of schooling is a document that contains the schooling data of the candidate.",
     id: "Certificate-of-schooling",
     state: "Available",
+    templateId: "1tWVsD9xKxVLYlM4FwnsHsIkEyVLPj0X_hcyqitvFhHM",
     fields: [
         {
             name: "Province",
@@ -46,6 +47,13 @@ export const CertificateOfSchooling: DocumentType = {
             name: "Date of birth",
             type: "text",
             description: "Student's  Date of Birth",
+            required: true,
+            value: "",
+        },
+        {
+            name: "Sector Session",
+            type: "text",
+            description: "Sector Session of the Candidate, e.g: 2019, 2020, etc.",
             required: true,
             value: "",
         },

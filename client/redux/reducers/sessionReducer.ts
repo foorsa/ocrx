@@ -3,7 +3,7 @@ import { SessionAction, SET_SESSION, CLEAR_SESSION } from '@/redux/types/actions
 
 
 const initialState: Session = {
-    sessionId: '',
+    "Session Id": '',
 };
 
 const sessionReducer = (state = initialState, action: SessionAction): Session => {

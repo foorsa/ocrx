@@ -1,59 +1,228 @@
-import json
-import os
+# Nameaspace: /Modules/SessionGenerator.py
+
 import datetime
+import json
+import numpy as np
 from werkzeug.utils import secure_filename
-import shutil
+from pymongo import MongoClient
+import gridfs
+from PIL import Image
+import io
+
+# Classes Required for Operations
+from Modules.Classes.OCRProcessor import OCRProcessor
+from Modules.Classes.GPTCorrector import GPTCorrector
+from Modules.Classes.PDFGenerator import PDFGenerator
+
+# Colorful Print Functions
+from colorist import Color
+
+
+# Load BSON Data from the database
+from bson import json_util
+
+
+def parse_json(data):
+    return json.loads(json_util.dumps(data))
 
 
 class SessionGenerator:
-    def __init__(self, File, DocumentType):
+    def __init__(self, Files, DocumentType):
         self.id = ""
-        self.file = File
         self.document_type = DocumentType
+        self.files = Files  # Now a list of files
+        self.session = {
+            "Session Id": "",
+            "Document Type": "",
+            "Uploads": [],
+            "Status": "Pending",
+            "Error": None,
+        }
+        self.client = MongoClient(
+            "mongodb://127.0.0.1:27017/"
+        )  # Connect to your MongoDB server
+        self.db = self.client["OCRX-db"]  # Use your database
+        self.fs = gridfs.GridFS(self.db)  # Use GridFS for file storage
 
-    def Generate(self):
-        # The session folder is created in the server's root directory
-        # The session folder contains two subfolders: Uploads and Results
-        # Plus a Data file that contains information about the session
+    # Get the Session Information
+    def Get(self):
+        return parse_json(self.session)
 
+    def Initialize(self):
         # Session ID
         session_id = str(datetime.datetime.now())
-        self.id = session_id.replace(" ", "_").replace(":", "-").replace(".", "-")
+        self.id = session_id.replace(" ", "").replace(":", "-").replace(".", "-")
 
-        # Create session directory
-        session_path = os.path.join(os.getcwd(), "Sessions", self.id)
-        os.makedirs(session_path)
+        # Save files
+        Uploads = []
+        for file in self.files:
+            filename = secure_filename(file.filename)
+            file_data = file.read()  # Call the method to read the file data
 
-        # Uploads folder
-        uploads_path = os.path.join(session_path, "Uploads")
-        os.makedirs(uploads_path)
+            file_id = self.fs.put(
+                file_data, filename=filename
+            )  # Save the file data to GridFS
+            Uploads.append({"Upload Id": file_id, "File": filename})
 
-        # Results folder
-        results_path = os.path.join(session_path, "Results")
-        os.makedirs(results_path)
-
-        # Save file
-        filename = secure_filename(self.file.filename)
-        file_path = os.path.join(uploads_path, filename)
-        self.file.save(file_path)
-
-        # Create data.json file
-        data = {
-            "Session ID": self.id,
+        # Create session document
+        Session = {
+            "Session Id": self.id,
             "Document Type": self.document_type,
-            "File Name": filename,
-            "File Path": file_path,
-            "Public File Path": "/Sessions/{}/Uploads/{}".format(self.id, filename),
+            "Uploads": Uploads,
             "Status": "Processing",
             "Error": None,
         }
 
-        data_path = os.path.join(session_path, "Data.json")
-        with open(data_path, "w") as f:
-            json.dump(data, f)
+        self.session = Session
 
-        return data
+        # Insert the session document into the 'sessions' collection
+        self.db.sessions.insert_one(Session)
+
+        return Session
+
+    def Read(self):
+        # Process the session document
+        print(
+            f"[...] Processing Session: {Color.RED}{self.session['Session Id']}{Color.OFF}"
+        )
+
+        # Optical Character Recognition
+        OCR = OCRProcessor()
+
+        Content = None
+        for File in self.session["Uploads"]:
+            # Get the File ID
+            FileId = File["Upload Id"]
+
+            # Get the File
+            File = self.fs.get(FileId)
+
+            # Get the File Extension
+            FileExtension = File.filename.rsplit(".", 1)[1].lower()
+
+            if FileExtension == "pdf":
+                # If the File is a PDF, Read the PDF
+                Content = OCR.Read_PDF(self.session["Document Type"], File)
+            elif FileExtension in {"png", "jpg", "jpeg"}:
+                # convert bytes to a file-like object
+                file_like = io.BytesIO(File.read())
+
+                # create an Image object
+                img = Image.open(file_like)
+                # If the File is an Image, Read the Image
+                Content = OCR.Read_Image(self.session["Document Type"], img)
+
+            # Check if Content is None
+            if Content is None:
+                self.session["Error"] = {
+                    "error": "Error Reading File Content.",
+                    "message": "File Content is None",
+                    "file": File,
+                    "status": 400,
+                }
+                self.session["Status"] = "Error"
+                return self.session
+            else:
+                # Add the Content to the Session
+                self.session["Extraction"] = {"RAW": Content}
+        # Update the Session object
+        self.db.sessions.update_one(
+            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
+
+        return self.session
+
+    def GetFile(self, SessionID):
+        # Get the Session
+        Session = self.db.sessions.find_one({"Session Id": SessionID})
+
+        # Get the File
+        File = self.fs.get(Session["Uploads"][0]["Upload Id"])
+
+        FileLike = io.BytesIO(File.read())
+
+        # If File is Image
+        if File.filename.rsplit(".", 1)[1].lower() in {"png", "jpg", "jpeg"}:
+            # create an Image object
+            img = Image.open(FileLike)
+            return img
+
+        return FileLike
+
+    def Correct(self):
+        # GPT to Correct the Output of the OCR
+        GPT = GPTCorrector()
+
+        (Content, Doctype) = (
+            self.session["Extraction"]["RAW"],
+            self.session["Document Type"],
+        )
+
+        Corrected = GPT.Correct(Content, Doctype)
+
+        CorrectedObject = json.loads(Corrected)
+
+        Description = GPT.Describe(Corrected, Doctype)
+
+        self.session["Extraction"]["Corrected"] = CorrectedObject
+
+        self.session["Extraction"]["Description"] = Description
+
+        # Update the Session object
+        self.db.sessions.update_one(
+            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
+
+        return self.session
+
+    def Generate(self, Fields):
+        # Method to generate PDF files from Correct Output
+        PDF = PDFGenerator()
+
+        # Fields are required to generate the PDF
+        if Fields is None:
+            self.session["Error"] = {
+                "error": "Error Generating PDF.",
+                "message": "Fields are None",
+                "status": 400,
+            }
+            self.session["Status"] = "Error"
+            return self.session
+
+        return
 
     def Destroy(self):
-        session_path = os.path.join(os.getcwd(), "Sessions", self.id)
-        shutil.rmtree(session_path)
+        # Remove the session document from the 'sessions' collection
+        self.db.sessions.delete_one({"Session Id": self.id})
+
+        # Remove the files from GridFS
+        for filename in self.filenames:
+            file = self.db.fs.files.find_one({"filename": filename})
+            if file:
+                self.fs.delete(file["_id"])
+
+    # Public methods
+    def DestroyAll(self):
+        # Get all the Sessions and remove them from the Database
+        self.db.sessions.delete_many({})
+        # Remove all the files from GridFS
+        for file in self.db.fs.files.find():
+            self.fs.delete(file["_id"])
+
+        return self.session
+
+    # Get Session by ID and Set it as the Current Session
+    def GetSession(self, SessionID):
+        # Get the Session
+        Session = self.db.sessions.find_one({"Session Id": SessionID})
+
+        # Set the Session
+        self.session = Session
+
+        return Session
+
+    # Throw an error
+    def Error(self, Error):
+        self.session["Error"] = Error
+        self.session["Status"] = "Error"
+        return self.session

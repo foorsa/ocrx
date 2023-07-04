@@ -1,6 +1,8 @@
 # import the necessary packages
 import os
 import cv2
+from gridfs import GridOut
+import numpy as np
 from pdf2image import convert_from_path, convert_from_bytes
 import pytesseract
 from pytesseract import Output
@@ -12,9 +14,9 @@ import imutils
 # Define the OCR Processor Class
 class OCRProcessor:
     def __init__(self):
-        self.File_Path = None
-        self.File_Content = None
+        pass
 
+    # Fixing the Image Orientation
     def Fix_Orientation(self, image_path):
         # TODO: Fix image orientation
 
@@ -39,6 +41,7 @@ class OCRProcessor:
         # Return the rotated image path
         return rotated_image_path
 
+    # Read the PDF File
     def Read_PDF(self, Document_Type, File_Path):
         self.File_Path = File_Path
 
@@ -59,15 +62,12 @@ class OCRProcessor:
         except Exception as e:
             print(f"Error reading PDF file: {str(e)}")
 
-    def Read_Image(self, file_path):
-        self.file_path = file_path
-
+    # Read the Image File
+    def Read_Image(self, DocumentType, Image):
         try:
-            image = Image.open(file_path)
             text_content = pytesseract.image_to_string(
-                image,
-                lang="fra",
-                config="",
+                Image,
+                config="fra+ara",
             )
             self.file_content = text_content
             return text_content

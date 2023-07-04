@@ -36,6 +36,7 @@ export default function Container({
 }) {
     const Step = useAppSelector((state) => state.step);
     const Process = useAppSelector((state) => state.process);
+    const Doctype = useAppSelector((state) => state.documentType); // Add this line
     const Dispatch = useAppDispatch();
 
     if (DocId !== undefined && DocId != "" && typeof DocId === "string") {
@@ -45,7 +46,14 @@ export default function Container({
             Doc.documents.map((Doc) => {
                 if (Doc.id === DocId && !isFound) {
                     isFound = true;
-                    return Dispatch(setDocumentType(Doc));
+                    // Check if the Doctype in the store already has values
+                    const hasValues = Doctype?.fields.some(
+                        (field) => field.value !== ""
+                    );
+                    // Only dispatch the action if the Doctype doesn't have values
+                    if (!hasValues) {
+                        return Dispatch(setDocumentType(Doc));
+                    }
                 }
             });
         });

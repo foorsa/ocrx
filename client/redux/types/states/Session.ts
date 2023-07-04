@@ -1,18 +1,25 @@
 import { Doctype } from "./Document Type";
 
 interface Session {
-    sessionId: string;
-    documentType?: string;
-    fileName?: string;
-    filePath?: string;
-    publicFilePath?: string;
-    status?: string;
-    error?: string;
-    RAW?: string;
-    Description?: string;
-    Corrected?: string;
-    PDFPath?: string;
-    publicPDFPath?: string;
+    "Session Id": string;
+    "Document Type"?: string;
+    "Status"?: string;
+    "Error"?: any;
+    "Uploads"?: {
+        "File": string;
+        "Upload Id": {
+            "$oid": string;
+        };
+    }[];
+    "Extraction"?: {
+        "Corrected"?: string;
+        "RAW"?: string;
+        "Description": string;
+    },
+    "Generation"?: {
+        "PDF Link": string;
+        "Google Docs Link": string;
+    }
 }
 
 export type { Session };

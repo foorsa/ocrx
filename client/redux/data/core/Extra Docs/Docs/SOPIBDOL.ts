@@ -5,18 +5,26 @@ export const SOPIBDOL: DocumentType = {
     name: "Statement of penalties issued by deprivation of liberty",
     description: "Statement of penalties issued by deprivation of liberty is a document that contains the penalties issued by deprivation of liberty of the candidate. It is issued by the National Center for Examinations and Evaluations of the Ministry of National Education and Vocational Training of Morocco. It is issued in Arabic and French.",
     state: "Available",
+    templateId: "1G42GpqZrapdmjbinaa6JGeKXK0v2V4wkX4Be2K7RvoI",
     fields: [
+        {
+            name: "City of court",
+            type: "text",
+            description: "City of court where the penalty was issued.",
+            required: true,
+            value: "",
+        },
         {
             name: "Start Date",
             type: "text",
-            description: "Start Date of the Statement of penalties issued by deprivation of liberty",
+            description: "Start Date",
             required: true,
             value: "",
         },
         {
             name: "End Date",
             type: "text",
-            description: "End Date of the Statement of penalties issued by deprivation of liberty",
+            description: "End Date",
             required: true,
             value: "",
         },

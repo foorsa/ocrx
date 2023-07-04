@@ -5,39 +5,33 @@ import { Doctype, Field } from "@/redux/types/states/Document Type";
 
 export default function Fields() {
     const dispatch = useAppDispatch();
-    const documentType: Doctype | null = useAppSelector(
+    const Doctype: Doctype | null = useAppSelector(
         (state) => state.documentType
     );
-
-    const [fields, setFields] = React.useState<Field[]>([]);
-
-    useEffect(() => {
-        if (documentType && documentType.fields) {
-            setFields(documentType.fields);
-        }
-    }, [documentType]);
 
     const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
 
         // Update the field in the document type
-        if (documentType && documentType.fields) {
-            const newFields = documentType.fields.map((field) => {
+        if (Doctype && Doctype.fields) {
+            const newFields = Doctype.fields.map((field) => {
                 if (field.name === name) {
                     field.value = value;
                 }
                 return field;
             });
 
-            dispatch(setDocumentType({ ...documentType, fields: newFields }));
+            dispatch(setDocumentType({ ...Doctype, fields: newFields }));
         }
     };
+
+    console.log("Second Step Soctype: ", Doctype);
 
     return (
         <div className="relative w-full text-left">
             {/* If there's a selected Doctype, Display its fields. */}
-            {documentType && documentType.fields
-                ? documentType.fields.map((field) => {
+            {Doctype && Doctype.fields
+                ? Doctype.fields.map((field) => {
                       return (
                           <div className="mb-6" key={field.name}>
                               <label

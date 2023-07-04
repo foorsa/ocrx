@@ -9,8 +9,9 @@ import { Tooltip } from "flowbite-react";
 import toast from "react-hot-toast";
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import { Documents, DocumentType } from "@/redux/data/Documents";
-import { Menu, Transition } from "@headlessui/react";
+import { Menu, Transition, Listbox } from "@headlessui/react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(" ");
@@ -40,19 +41,17 @@ const SelectDocType = () => {
     );
 
     const handleSelectType = (type: DocumentType) => {
+        setDropdownOpen(false);
         dispatch(setDocumentType(type));
-
         // Change URL Search Parameter to the selected document type
         const queryString = createQueryString("doc", type.id);
 
         // <pathname>?doc=doctype
-        Router.push(Pathname + "?" + queryString);
-
-        setDropdownOpen(false);
+        Router.replace(Pathname + "?" + queryString, { scroll: false } as any);
     };
 
     return (
-        <Menu as="div" className="relative inline-block w-full text-left">
+        <Menu as="div" className="relative inline-block w-full text-left mb-2">
             {/* Label */}
             <label
                 className="block tracking-wide text-zinc-500 dark:text-zinc-300 text-xs font-bold mb-2"
@@ -111,11 +110,14 @@ const SelectDocType = () => {
                                                                                 : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-600 dark:hover:text-white",
                                                                             "inline-flex w-full px-4 py-2 text-sm rounded-md"
                                                                         )}
-                                                                        onClick={() =>
+                                                                        onClick={(
+                                                                            e
+                                                                        ) => {
+                                                                            e.preventDefault();
                                                                             handleSelectType(
                                                                                 InnerDocument
-                                                                            )
-                                                                        }
+                                                                            );
+                                                                        }}
                                                                     >
                                                                         <div className="inline-flex items-left justify-center text-left">
                                                                             <TableDocument

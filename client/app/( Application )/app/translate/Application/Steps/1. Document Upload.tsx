@@ -44,6 +44,7 @@ export default function First_DocumentUpload() {
     const Doctype = useAppSelector((state) => state.documentType);
     const UploadedFile = useAppSelector((state) => state.file);
     const Process = useAppSelector((state) => state.process);
+    const Session = useAppSelector((state) => state.session);
 
     const handleNextStep = async () => {
         if (!UploadedFile) return toast.error("Please upload a file");
@@ -64,7 +65,7 @@ export default function First_DocumentUpload() {
 
         const formData = new FormData();
         formData.append("file", UploadedFile.file);
-        formData.append("document_type", Doctype.name);
+        formData.append("document_type", Doctype.id);
 
         try {
             const response = await axios.post(url, formData, {
@@ -73,51 +74,42 @@ export default function First_DocumentUpload() {
                 },
             });
 
-            console.log(response.data);
-
-            // Change the Fields Values in the redux Store
-            const ExtractedData = Doctype.fields.map((field: any) => {
-                const value = response.data["Corrected"][field.name];
-
-                // Remove value from field
-                delete field.value;
-
-                // Add value to field
-                return {
-                    ...field,
-                    value,
-                };
-            });
-
-            // Doctype without the fields
-            const DoctypeNoFields = {
-                id: Doctype.id,
-                name: Doctype.name,
-                description: Doctype.description,
-            };
-
-            // Set the extracted data in the redux store
-            dispatch(
-                setDocumentType({
-                    ...DoctypeNoFields,
-                    fields: ExtractedData,
-                })
-            );
+            const Response = response.data;
 
             const SessionData: Session = {
-                sessionId: response.data["Session"]["Session ID"],
-                documentType: response.data["Session"]["Document Type"],
-                fileName: response.data["Session"]["File Name"],
-                filePath: response.data["Session"]["File Path"],
-                publicFilePath: response.data["Session"]["Public File Path"],
-                status: response.data["Session"]["Status"],
-                error: response.data["Session"]["Error"],
-                RAW: response.data["RAW"],
-                Description: response.data["Description"],
-                Corrected: response.data["Corrected"],
+                "Session Id": Response["Session ID"],
+                "Document Type": Response["Document Type"],
+                Uploads: Response["Uploads"],
+                Extraction: Response["Extraction"],
+                Status: Response["Status"],
+                Error: Response["Error"],
             };
 
             dispatch(setSession(SessionData));
+
+            // Change the Fields Values in the redux Store
+            const ExtractedData = Doctype.fields.map((field: any) => {
+                const value =
+                    response.data["Extraction"]["Corrected"][field.name];
+
+                return {
+                    ...field,
+                    value: value,
+                };
+            });
+
+            // Create a new Doctype object with updated fields
+            const updatedDoctype = {
+                ...Doctype,
+                fields: ExtractedData,
+            };
+
+            console.log("Updated Doctype: ", updatedDoctype);
+
+            // Set the extracted data in the redux store
+            dispatch(setDocumentType(updatedDoctype));
+
+            console.log("New Doctype: ", Doctype);
 
             dispatch(
                 setProcess({
