@@ -2,21 +2,16 @@
 
 import datetime
 import json
-import numpy as np
 from werkzeug.utils import secure_filename
 from pymongo import MongoClient
 import gridfs
 from PIL import Image
 import io
-from pdf2image import convert_from_path, convert_from_bytes
 
 # Classes Required for Operations
 from Modules.Classes.OCRProcessor import OCRProcessor
 from Modules.Classes.GPTCorrector import GPTCorrector
 from Modules.Classes.PDFGenerator import PDFGenerator
-
-# Colorful Print Functions
-from colorist import Color
 
 
 # Load BSON Data from the database
@@ -83,9 +78,7 @@ class SessionGenerator:
 
     def Read(self):
         # Process the session document
-        print(
-            f"[...] Processing Session: {Color.RED}{self.session['Session Id']}{Color.OFF}"
-        )
+        print(f"[...] Processing Session: {self.session['Session Id']}")
 
         # Optical Character Recognition
         OCR = OCRProcessor()

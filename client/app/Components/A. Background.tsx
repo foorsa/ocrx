@@ -4,6 +4,7 @@ import React from "react";
 import StarsBackground from "./Layout/StarsBackground";
 
 import Colors from "tailwindcss/colors";
+import Particles from "./Layout/Particles";
 
 interface Props {
     Variant?: "Home" | "App";
@@ -18,6 +19,7 @@ export default function Background({ Variant }: Props) {
             {Variant == "Home" ? (
                 <>
                     <StarsBackground />
+                    <Particles />
                     {/* Bottom Center - Wide purple Gradient */}
                     {/* Division for Blurry Elements */}
                     <div className="absolute h-full w-full min-h-full top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100">

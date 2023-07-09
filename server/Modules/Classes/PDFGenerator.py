@@ -3,7 +3,6 @@
 # and methods to fill in the template with the translated information.
 # You can use libraries like ReportLab or PyFPDF to generate the PDF files.
 import datetime
-import os
 import requests
 import json
 

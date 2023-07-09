@@ -1,21 +1,9 @@
 # JSON
-import json
 import requests
 
 
-# Decorator to prompt for GPT3
-def PromptForGPT3(func):
-    def Wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-
-    return Wrapper
-
-
 def PromptString(PromptVersion, AvailableDoctypes, PromptOptions):
-    Prompt = ""
-    match PromptVersion:
-        case 1:
-            Prompt = f"""
+    return f"""
                 We are in a python project, I need help in getting precise
                 output from the OCR processor.
 
@@ -78,27 +66,8 @@ def PromptString(PromptVersion, AvailableDoctypes, PromptOptions):
                     DO NOT ADD ANYTHING TO THE JSON OBJECT, JUST TRANSLATE IT AND RETURN IT.
                     NO COMMENTS, NO EXPLANATIONS, NO ADDITIONAL TEXT.
             """
-        case 2:
-            Prompt = f"""
-                I'm working on a Python project that uses OCR to process files, which could be PDFs or images, and categorize them according to a document type. The document types are:
-
-                {AvailableDoctypes}
-
-                The OCR output, stored in the variable 'Content', is not always accurate and needs correction. The corrected data should be structured as follows:
-
-                {PromptOptions}
-
-                Please correct the OCR output, translate any French words to English, and format the data into a JSON object. Remember, only the values should be translated, not the keys. Use your best judgement to determine the validity of the values. The final output should be a valid JSON object with the same keys as the example above. Please do not add any comments, explanations, or additional text.
-                
-                Object Key (Do Not Translate it) : Object Value (Translate it to English)
-            """
-        case _:
-            return "Invalid Prompt Version."
-
-    return Prompt
 
 
-@PromptForGPT3
 def GeneratePrompt(Doctype):
     # Options available for each Document Type
     # Load JSON From URL
@@ -128,8 +97,3 @@ def GeneratePrompt(Doctype):
     Prompt = PromptString(2, AvailableDoctypes, PromptOptions)
 
     return Prompt
-
-
-# Example Prompt
-Doctype = "Baccalaureate-Certificate"
-Prompt = GeneratePrompt(Doctype)
