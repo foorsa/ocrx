@@ -3,7 +3,9 @@
 import datetime
 import json
 from werkzeug.utils import secure_filename
-from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+from urllib.parse import quote_plus
 import gridfs
 from PIL import Image
 import io
@@ -13,6 +15,18 @@ from Modules.Classes.OCRProcessor import OCRProcessor
 from Modules.Classes.GPTCorrector import GPTCorrector
 from Modules.Classes.PDFGenerator import PDFGenerator
 
+# Credentials
+username = quote_plus('yassinechettouch')
+password = quote_plus('0tr7$F1m!@OCRX')
+cluster = 'ocrx-db.rpxyaec.mongodb.net'
+
+# Auth Method
+authentication_method = 'SCRAM'
+
+uri = 'mongodb+srv://' + username + ':' + password + '@' + cluster + '/?retryWrites=true&w=majority'
+
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
 
 # Load BSON Data from the database
 from bson import json_util
@@ -34,10 +48,8 @@ class SessionGenerator:
             "Status": "Pending",
             "Error": None,
         }
-        self.client = MongoClient(
-            "mongodb://127.0.0.1:27017/"
-        )  # Connect to your MongoDB server
-        self.db = self.client["OCRX-db"]  # Use your database
+        self.client = MongoClient(uri, server_api=ServerApi('1'))
+        self.db = self.client["OCRX-db"]  # Connect to the 'ocrx-db' database
         self.fs = gridfs.GridFS(self.db)  # Use GridFS for file storage
 
     # Get the Session Information
@@ -52,13 +64,16 @@ class SessionGenerator:
         # Save files
         Uploads = []
         for file in self.files:
-            filename = secure_filename(file.filename)
-            file_data = file.read()  # Call the method to read the file data
-
+            # Files are List of Filenames in the App UPLOAD_FOLDER
+            # Get the file data
+            File = open(file, "rb")
+            file_data = File.read()  # Call the method to read the file data
+            
             file_id = self.fs.put(
-                file_data, filename=filename
+                file_data, filename=secure_filename(file)
             )  # Save the file data to GridFS
-            Uploads.append({"Upload Id": file_id, "File": filename})
+            
+            Uploads.append({"Upload Id": file_id, "File": file})
 
         # Create session document
         Session = {
