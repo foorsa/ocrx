@@ -9,6 +9,8 @@ from urllib.parse import quote_plus
 import gridfs
 from PIL import Image
 import io
+import os
+from unicodedata import normalize
 
 # Classes Required for Operations
 from Modules.Classes.OCRProcessor import OCRProcessor
@@ -16,17 +18,25 @@ from Modules.Classes.GPTCorrector import GPTCorrector
 from Modules.Classes.PDFGenerator import PDFGenerator
 
 # Credentials
-username = quote_plus('yassinechettouch')
-password = quote_plus('0tr7$F1m!@OCRX')
-cluster = 'ocrx-db.rpxyaec.mongodb.net'
+username = quote_plus("yassinechettouch")
+password = quote_plus("0tr7$F1m!@OCRX")
+cluster = "ocrx-db.rpxyaec.mongodb.net"
 
 # Auth Method
-authentication_method = 'SCRAM'
+authentication_method = "SCRAM"
 
-uri = 'mongodb+srv://' + username + ':' + password + '@' + cluster + '/?retryWrites=true&w=majority'
+uri = (
+    "mongodb+srv://"
+    + username
+    + ":"
+    + password
+    + "@"
+    + cluster
+    + "/?retryWrites=true&w=majority"
+)
 
 # Create a new client and connect to the server
-client = MongoClient(uri, server_api=ServerApi('1'))
+client = MongoClient(uri, server_api=ServerApi("1"))
 
 # Load BSON Data from the database
 from bson import json_util
@@ -48,7 +58,7 @@ class SessionGenerator:
             "Status": "Pending",
             "Error": None,
         }
-        self.client = MongoClient(uri, server_api=ServerApi('1'))
+        self.client = MongoClient(uri, server_api=ServerApi("1"))
         self.db = self.client["OCRX-db"]  # Connect to the 'ocrx-db' database
         self.fs = gridfs.GridFS(self.db)  # Use GridFS for file storage
 
@@ -61,19 +71,23 @@ class SessionGenerator:
         session_id = str(datetime.datetime.now())
         self.id = session_id.replace(" ", "").replace(":", "-").replace(".", "-")
 
-        # Save files
         Uploads = []
-        for file in self.files:
-            # Files are List of Filenames in the App UPLOAD_FOLDER
-            # Get the file data
-            File = open(file, "rb")
-            file_data = File.read()  # Call the method to read the file data
-            
-            file_id = self.fs.put(
-                file_data, filename=secure_filename(file)
-            )  # Save the file data to GridFS
-            
-            Uploads.append({"Upload Id": file_id, "File": file})
+        for file_path in self.files:
+            try:
+                with open(file_path, "rb") as file:
+                    FileData = file.read()
+                    FileName = "Upload.{}".format(file_path.split(".")[-1])
+                    FileId = self.fs.put(FileData, filename=FileName)
+                    Uploads.append({"Upload Id": FileId, "File": FileName})
+            except FileNotFoundError:
+                print(f"File not found: {file_path}")
+            except IOError as e:
+                print(f"Error opening file: {file_path} - {e}")
+            else:
+                print(
+                    f"Successfully opened file: ",
+                    "Upload.{}".format(file_path.split(".")[-1]),
+                )
 
         # Create session document
         Session = {
@@ -94,7 +108,7 @@ class SessionGenerator:
     def Read(self):
         # Process the session document
         print(f"[...] Processing Session: {self.session['Session Id']}")
-
+        print(f"[...] Document Type: {self.session['Document Type']}")
         # Optical Character Recognition
         OCR = OCRProcessor()
 

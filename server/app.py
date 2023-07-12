@@ -8,20 +8,22 @@ from flask import (
     Flask,
     jsonify,
     request,
-    send_file,
-    send_from_directory,
     render_template,
 )
-from celery import Celery
-from celery.backends.redis import RedisBackend
 import redis
-from rq import Queue
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
 import json
+import time
+from rq import Queue
+from rq.job import Job
+from worker import conn  # Redis connection
+from tasks import ProcessTask
+import tempfile
 
 # Modules
 from Modules.SessionGenerator import SessionGenerator
+
 
 app = Flask(__name__)
 CORS(app, resources={r"*": {"origins": "*"}})
@@ -38,74 +40,37 @@ views = Blueprint("views", __name__, template_folder="templates")
 if not os.path.exists(app.config["UPLOAD_FOLDER"]):
     os.makedirs(app.config["UPLOAD_FOLDER"])
 
+
+WindowsTessData = os.path.join(os.path.dirname(__file__), "tessdata")
+
 # Load the traineddata file for Tesseract - Contains the language models (e.g., English, French, Arabic, etc.)
-os.environ["TESSDATA_PREFIX"] = os.path.join(os.path.dirname(__file__), "tessdata")
+os.environ["TESSDATA_PREFIX"] = WindowsTessData
 
-
-# Set up Celery
-celery = Celery(app.name, broker='redis://localhost:6379/0')
-
-# Set up Redis
-R = redis.Redis(host='localhost', port=6379, db=0)
-
-# Set up RQ
-Q = Queue(connection=R)
-
-# Define the Background Task
-def BackgroundTask(Files, Doctype):
-    # Session Processing Code
-    Session = SessionGenerator(Files, Doctype)
-
-    # Initialize the Session
-    try:
-        Session.Initialize()
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-    # Read the Document Content
-    try:
-        Session.Read()
-    except Exception as e:
-        ErrorMessage = str(e)
-        Session.Error(ErrorMessage)
-        return (
-            jsonify({"error": ErrorMessage}),
-            400,
-        )
-
-    # Correct the Document Content
-    try:
-        Session.Correct()
-    except Exception as e:
-        ErrorMessage = str(e)
-        Session.Error(ErrorMessage)
-        return (
-            jsonify({"error": ErrorMessage}),
-            400,
-        )
-
-    # Load BSON Data from the database
-    from bson import json_util
-
-    def parse_json(data):
-        return json.loads(json_util.dumps(data))
-
-    return jsonify(Session.Get()), 200, {"Content-Type": "application/json"};
-
-# Configure Redis as the result backend
-celery.conf.update(
-    result_backend='redis://localhost:6379/0',
-    result_backend_transport_options={'visibility_timeout': 3600},  # Optional: Set visibility timeout for results
-    result_serializer='json',  # Optional: Set result serializer
-    result_extended=True,  # Optional: Enable extended result attributes
-    task_ignore_result=False,  # Optional: Enable task result tracking
-    task_track_started=True,  # Optional: Enable task started tracking
+# TESSDATA_PREFIX for UNIX Systems
+os.environ["TESSDATA_PREFIX"] = WindowsTessData.replace("\\", "/").replace(
+    "C:", "/mnt/c"
 )
+
+print("Tessdata Path: ", os.environ["TESSDATA_PREFIX"])
+
+
+# Connect to Redis
+Redis = redis.Redis(host="localhost", port=6379, db=0)
+Q = Queue(connection=conn)
+
 
 # Route to the Home Page
 @app.route("/")
 def hello_world():
     return render_template("index.html")
+
+
+# Route to list all Queued Tasks - For Testing Purposes and Debugging
+@app.route("/api/tasks")
+@cross_origin()
+def ListTasks():
+    return
+
 
 # Route to queue the task and return immediately
 @app.route("/api/process", methods=["POST"])
@@ -139,57 +104,50 @@ def ProcessRequest():
         # Check if the File Extension is Allowed
         if FileExtension not in AllowedExtensions:
             return jsonify({"error": "Invalid file extension."}), 400
-        
-    SavedFiles = []
-    # Save the Files to a Temporary Folder
-    for File in Files:
-        # Unique Filename
-        Filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
-        
-        # Secure the Filename
-        Filename = secure_filename(Filename + "." + File.filename.rsplit(".", 1)[1].lower())
 
-        # Save the File
-        File.save(os.path.join(app.config["UPLOAD_FOLDER"], Filename))
-        
-        # Append the Saved File to the List
-        SavedFiles.append(Filename)
+    # Save files to a temporary directory
+    SavedFiles = []
+    for File in Files:
+        filename = secure_filename(File.filename)
+        FilePath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        File.save(FilePath)
+
+        WindowsPath = FilePath
+
+        UnixPath = WindowsPath.replace("C:", "/mnt/c").replace("\\", "/")
+
+        print(
+            f"The Default Windows Path - {WindowsPath} - is converted to a UNIX Path - {UnixPath}"
+        )
+
+        SavedFiles.append(UnixPath)
 
     # Queue the file processing task
-    Task = ProcessSession.apply_async(args=[SavedFiles, Doctype])
+    Task = Q.enqueue(ProcessTask, SavedFiles, Doctype)
 
     # Return the task ID to the client
-    return jsonify({'Task_Id': Task.id}), 202
+    return (
+        jsonify(
+            {
+                "Task_Id": Task.id,
+            }
+        ),
+        202,
+    )
+
 
 # Route for checking task status
-@app.route('/api/task/<Task_Id>', methods=['GET'])
+@app.route("/api/task/<Task_Id>", methods=["GET"])
 def TaskStatus(Task_Id):
-    Task = ProcessSession.AsyncResult(Task_Id)
-    if Task.state == 'PENDING':
-        response = {
-            'state': Task.state,
-            'status': 'Pending...'
-        }
-    elif Task.state == "SUCCESS":
-        response = {
-            'state': Task.state,
-            'status': str(Task.info),  # this is the result returned by the task
-            'result': Task.get()  # this is the value returned by the task
-        }  
-    elif Task.state != 'FAILURE':
-        response = {
-            'state': Task.state,
-            'status': str(Task.info),  # this is the result you returned from your task
-        }
-    else:
-        # something went wrong in the background job
-        response = {
-            'state': Task.state,
-            'status': str(Task.info),  # this contains the exception raised
-        }
+    job = Job.fetch(Task_Id, connection=conn)
 
-    
-    return jsonify(response), 200
+    if job.is_finished:
+        return jsonify({"status": "completed", "result": job.result}), 200
+    elif job.is_failed:
+        return jsonify({"status": "failed"}), 200
+    else:
+        return jsonify({"status": "pending"}), 200
+
 
 # Route to Generate the PDF - Send the PDF Information to the Client
 @app.route("/api/generate", methods=["POST"])
@@ -223,6 +181,7 @@ def GeneratePDF():
 
     return jsonify(SESSION.Get()), 200, {"Content-Type": "application/json"}
 
+
 # Destroy All Sessions in the Database (To free up space)
 @app.route("/api/destroy/all", methods=["POST", "GET"])
 @cross_origin()
@@ -235,7 +194,9 @@ def DestroyAll():
         {"Content-Type": "application/json"},
     )
 
-if __name__ == "__main__":
-    from waitress import serve
 
-    serve(app, host="0.0.0.0", port=8080)
+if __name__ == "__main__":
+    # from waitress import serve
+
+    # serve(app, host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -47,8 +47,8 @@ class OCRProcessor:
         try:
             text_content = pytesseract.image_to_string(
                 Image,
-                lang="fra",
-                config="--psm 1 --oem 3 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                lang="fra+ara",
+                config="",
             )
             self.file_content = text_content
             return text_content
