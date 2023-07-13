@@ -17,8 +17,8 @@ def ProcessTask(Files, DocumentType):
         ErrorMessage = str(e)
         print(f"[ERROR] {ErrorMessage}")
         return {
-            "status": "error",
-            "message": ErrorMessage,
+            "Status": "Error",
+            "Message": e,
         }
 
     # Read the Document Content
@@ -28,10 +28,13 @@ def ProcessTask(Files, DocumentType):
         print("[OK] Processing Task for OCR Finished !")
     except Exception as e:
         ErrorMessage = str(e)
-        Session.Error(ErrorMessage)
-        return
+        return {
+            "Status": "Error",
+            "Message": e,
+        }
 
     # Correct the Document Content
+    print("[...] Processing Task for AI Correction [...]")
     try:
         Session.Correct()
         print("[OK] Processing Task for Correction Finished !")
@@ -40,16 +43,21 @@ def ProcessTask(Files, DocumentType):
         Session.Error(ErrorMessage)
         print(f"[ERROR] {ErrorMessage}")
         return {
-            "status": "error",
-            "message": ErrorMessage,
+            "Status": "Error",
+            "Message": ErrorMessage,
         }
 
     # Load BSON Data from the database
+    print("[...] Processing Task for JSON Serialization [...]")
     from bson import json_util
 
     def parse_json(Result):
         return json.loads(json_util.dumps(Result))
 
+    print("[...] Processing Task for JSON Serialization Finished !")
+
     print("[OK] Processing Task Finished !")
 
-    return parse_json(Session.Get())
+    SessionObject = Session.Get()
+
+    return parse_json(SessionObject)

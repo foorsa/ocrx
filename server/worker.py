@@ -4,7 +4,17 @@ import redis
 import multiprocessing
 
 # Establish a connection to Redis
+
+# Development
 conn = redis.Redis(host="localhost", port=6379, db=0)
+
+# Production
+# conn = redis.Redis(
+#   host='eu1-brave-turtle-39167.upstash.io',
+#   port=39167,
+#   password='e2fd377feafd4c67bb674bfc06efae0c',
+#   ssl=True
+# )
 
 if __name__ == "__main__":
     with Connection(conn):

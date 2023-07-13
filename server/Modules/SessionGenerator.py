@@ -57,6 +57,7 @@ class SessionGenerator:
             "Uploads": [],
             "Status": "Pending",
             "Error": None,
+            "Message": "",
         }
         self.client = MongoClient(uri, server_api=ServerApi("1"))
         self.db = self.client["OCRX-db"]  # Connect to the 'ocrx-db' database
@@ -64,7 +65,8 @@ class SessionGenerator:
 
     # Get the Session Information
     def Get(self):
-        return parse_json(self.session)
+        Session = self.session
+        return parse_json(Session)
 
     def Initialize(self):
         # Session ID
@@ -96,6 +98,7 @@ class SessionGenerator:
             "Uploads": Uploads,
             "Status": "Processing",
             "Error": None,
+            "Message": "",
         }
 
         self.session = Session
@@ -141,12 +144,7 @@ class SessionGenerator:
 
             # Check if Content is None
             if Content is None:
-                self.session["Error"] = {
-                    "error": "Error Reading File Content.",
-                    "message": "File Content is None",
-                    "file": File,
-                    "status": 400,
-                }
+                self.session["Error"] = "Error Reading the File, Please Try Again."
                 self.session["Status"] = "Error"
                 return self.session
             else:

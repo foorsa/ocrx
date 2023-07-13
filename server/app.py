@@ -69,7 +69,28 @@ def hello_world():
 @app.route("/api/tasks")
 @cross_origin()
 def ListTasks():
-    return
+    # Get all the Tasks in the Queue
+    Tasks = Q.jobs
+
+    # Create a List of Tasks
+    TaskList = []
+    for Task in Tasks:
+        TaskList.append(
+            {
+                "Task Id": Task.id,
+                "Task Status": Task.get_status(),
+                "Task Result": Task.result,
+            }
+        )
+
+    # Return the List of Tasks
+    return jsonify(
+        {
+            "Tasks": TaskList,
+            "Message": "Successfully Retrieved the List of Tasks.",
+            "Status": "OK",
+        }
+    )
 
 
 # Route to queue the task and return immediately
@@ -96,9 +117,10 @@ def ProcessRequest():
 
     # Check if the File is Empty - No File Selected
     for File in Files:
+        # Declare Allowed File Extensions
         AllowedExtensions = {"pdf", "png", "jpg", "jpeg"}
 
-        # Isolate the File Extension
+        # Isolate the File Extension of the Request File
         FileExtension = File.filename.rsplit(".", 1)[1].lower()
 
         # Check if the File Extension is Allowed
@@ -137,16 +159,32 @@ def ProcessRequest():
 
 
 # Route for checking task status
-@app.route("/api/task/<Task_Id>", methods=["GET"])
-def TaskStatus(Task_Id):
-    job = Job.fetch(Task_Id, connection=conn)
+@app.route("/api/task/<TaskId>", methods=["GET"])
+@cross_origin()
+def TaskStatus(TaskId: str):
+    try:
+        conn.ping()
+    except ConnectionError as e:
+        return jsonify({"Error": "Failed to connect to Redis.", "ID": TaskId}), 500
 
-    if job.is_finished:
-        return jsonify({"status": "completed", "result": job.result}), 200
-    elif job.is_failed:
-        return jsonify({"status": "failed"}), 200
+    try:
+        job = Job.fetch(TaskId, connection=conn)
+    except Exception as e:
+        return jsonify({"Error": "Task does not exist.", "ID": TaskId}), 404
+
+    jobStatus = job.get_status(refresh=True)
+
+    # UPPERCASE the Job Status
+    jobStatus = jobStatus.upper()
+
+    Response = None
+
+    if jobStatus == "FINISHED":
+        Response = {"Status": jobStatus, "ID": TaskId, "Result": job.result}
     else:
-        return jsonify({"status": "pending"}), 200
+        Response = {"Status": jobStatus, "ID": TaskId}
+
+    return jsonify(Response), 200
 
 
 # Route to Generate the PDF - Send the PDF Information to the Client
@@ -196,7 +234,7 @@ def DestroyAll():
 
 
 if __name__ == "__main__":
-    # from waitress import serve
+    from waitress import serve
 
-    # serve(app, host="0.0.0.0", port=8080)
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    serve(app, host="0.0.0.0", port=8080)
+    # app.run(host="localhost", port=5000, debug=True)
