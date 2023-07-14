@@ -9,11 +9,13 @@ import multiprocessing
 
 # Production
 conn = redis.Redis(
-  host='eu1-brave-turtle-39167.upstash.io',
-  port=39167,
-  password='e2fd377feafd4c67bb674bfc06efae0c',
-  ssl=True
+    host="eu1-brave-turtle-39167.upstash.io",
+    port=39167,
+    password="e2fd377feafd4c67bb674bfc06efae0c",
+    ssl=True,
+    ssl_cert_reqs="CERT_REQUIRED",
 )
+
 
 if __name__ == "__main__":
     with Connection(conn):
@@ -25,7 +27,4 @@ if __name__ == "__main__":
 
         # Start the worker using spawn method
         multiprocessing.set_start_method("spawn")
-        worker.work(
-            burst=False,
-            logging_level="INFO",
-        )
+        worker.work(burst=False, logging_level="INFO")
