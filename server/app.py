@@ -30,8 +30,12 @@ app.debug = True
 app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(__file__), "Uploads")
 
 # Setup the Celery Config in Flask Application
-app.config["CELERY_BROKER_URL"] = "redis://localhost:6379"
-app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"
+app.config[
+    "CELERY_BROKER_URL"
+] = "redis://default:e2fd377feafd4c67bb674bfc06efae0c@eu1-brave-turtle-39167.upstash.io:39167"
+app.config[
+    "CELERY_RESULT_BACKEND"
+] = "redis://default:e2fd377feafd4c67bb674bfc06efae0c@eu1-brave-turtle-39167.upstash.io:39167/0"
 
 print("Celery Broker URL: ", app.config["CELERY_BROKER_URL"])
 print("Celery Result Backend: ", app.config["CELERY_RESULT_BACKEND"])
