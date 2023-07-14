@@ -9,13 +9,13 @@ from flask import (
     request,
     render_template,
 )
-import redis
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
-from rq import Queue
-from rq.job import Job
-from worker import conn  # Redis connection
-from tasks import ProcessTask
+from celery import Celery
+import json
+from celery.result import AsyncResult
+
+# from celery import Celery
 
 # Modules
 from Modules.SessionGenerator import SessionGenerator
@@ -28,6 +28,83 @@ app.debug = True
 
 # Set the Upload Folder
 app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(__file__), "Uploads")
+
+# Setup the Celery Config in Flask Application
+app.config["CELERY_BROKER_URL"] = "redis://localhost:6379"
+app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"
+
+print("Celery Broker URL: ", app.config["CELERY_BROKER_URL"])
+print("Celery Result Backend: ", app.config["CELERY_RESULT_BACKEND"])
+
+# Initialize Celery
+celery = Celery(
+    app.name,
+    broker=app.config["CELERY_BROKER_URL"],
+    backend=app.config["CELERY_RESULT_BACKEND"],
+)
+
+
+# Task for Processing the Operation
+@celery.task
+def ProcessTask(Files, DocumentType):
+    print("[...] Processing Task Started !")
+
+    Session = SessionGenerator(Files, DocumentType)
+
+    # Initialize the Session
+    print("[...] Intializing the Session Object [...]")
+    try:
+        Session.Initialize()
+        print("[OK] Session Object Initialized !")
+    except Exception as e:
+        ErrorMessage = str(e)
+        print(f"[ERROR] {ErrorMessage}")
+        return {
+            "Status": "Error",
+            "Message": e,
+        }
+
+    # Read the Document Content
+    print("[...] Processing Task for OCR [...]")
+    try:
+        Session.Read()
+        print("[OK] Processing Task for OCR Finished !")
+    except Exception as e:
+        ErrorMessage = str(e)
+        return {
+            "Status": "Error",
+            "Message": e,
+        }
+
+    # Correct the Document Content
+    print("[...] Processing Task for AI Correction [...]")
+    try:
+        Session.Correct()
+        print("[OK] Processing Task for Correction Finished !")
+    except Exception as e:
+        ErrorMessage = str(e)
+        Session.Error(ErrorMessage)
+        print(f"[ERROR] {ErrorMessage}")
+        return {
+            "Status": "Error",
+            "Message": ErrorMessage,
+        }
+
+    # Load BSON Data from the database
+    print("[...] Processing Task for JSON Serialization [...]")
+    from bson import json_util
+
+    def parse_json(Result):
+        return json.loads(json_util.dumps(Result))
+
+    print("[...] Processing Task for JSON Serialization Finished !")
+
+    print("[OK] Processing Task Finished !")
+
+    SessionObject = Session.Get()
+
+    return parse_json(SessionObject)
+
 
 # Configuration for views Folder
 views = Blueprint("views", __name__, template_folder="templates")
@@ -49,10 +126,21 @@ os.environ["TESSDATA_PREFIX"] = WindowsTessData.replace("\\", "/").replace(
 
 print("Tessdata Path: ", os.environ["TESSDATA_PREFIX"])
 
+# Establish a connection to Redis
 
-# Connect to Redis
-Redis = redis.Redis(host="localhost", port=6379, db=0)
-Q = Queue(connection=conn)
+# Development
+# conn = redis.Redis(host="localhost", port=6379, db=0)
+
+# Production
+# conn = redis.Redis(
+#     host="eu1-brave-turtle-39167.upstash.io",
+#     port=39167,
+#     password="e2fd377feafd4c67bb674bfc06efae0c",
+#     ssl=True, # Enable SSL
+#     db=0,
+# )
+
+#
 
 
 # Route to the Home Page
@@ -66,23 +154,22 @@ def hello_world():
 @cross_origin()
 def ListTasks():
     # Get all the Tasks in the Queue
-    Tasks = Q.jobs
+    Tasks = celery.control.inspect().active()
 
-    # Create a List of Tasks
-    TaskList = []
-    for Task in Tasks:
-        TaskList.append(
+    # Check if the Queue is Empty
+    if Tasks is None:
+        return jsonify(
             {
-                "Task Id": Task.id,
-                "Task Status": Task.get_status(),
-                "Task Result": Task.result,
+                "Tasks": [],
+                "Message": "No Tasks in the Queue.",
+                "Status": "OK",
             }
         )
 
     # Return the List of Tasks
     return jsonify(
         {
-            "Tasks": TaskList,
+            "Tasks": Tasks,
             "Message": "Successfully Retrieved the List of Tasks.",
             "Status": "OK",
         }
@@ -141,7 +228,7 @@ def ProcessRequest():
         SavedFiles.append(UnixPath)
 
     # Queue the file processing task
-    Task = Q.enqueue(ProcessTask, SavedFiles, Doctype)
+    Task = ProcessTask.delay(SavedFiles, Doctype)
 
     # Return the task ID to the client
     return (
@@ -159,24 +246,19 @@ def ProcessRequest():
 @cross_origin()
 def TaskStatus(TaskId: str):
     try:
-        conn.ping()
-    except ConnectionError as e:
-        return jsonify({"Error": "Failed to connect to Redis.", "ID": TaskId}), 500
-
-    try:
-        job = Job.fetch(TaskId, connection=conn)
+        result = AsyncResult(TaskId, app=celery)
     except Exception as e:
         return jsonify({"Error": "Task does not exist.", "ID": TaskId}), 404
 
-    jobStatus = job.get_status(refresh=True)
+    jobStatus = result.status
 
     # UPPERCASE the Job Status
     jobStatus = jobStatus.upper()
 
     Response = None
 
-    if jobStatus == "FINISHED":
-        Response = {"Status": jobStatus, "ID": TaskId, "Result": job.result}
+    if jobStatus == "SUCCESS":
+        Response = {"Status": jobStatus, "ID": TaskId, "Result": result.result}
     else:
         Response = {"Status": jobStatus, "ID": TaskId}
 
