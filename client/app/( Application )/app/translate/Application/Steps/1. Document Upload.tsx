@@ -215,151 +215,130 @@ export default function First_DocumentUpload() {
                 return;
             });
 
+        console.log("Process Result: ", ProcessResult);
+
+        if (!ProcessResult) {
+            return;
+        }
+
+        // All good, keep going.
+
         //
         //
         // Third Step: Set the Session Data
 
-        //     console.log("Session Response: ", SessionResponse);
+        Dispatch(
+            setSession({
+                "Session Id": ProcessResult["Session Id"],
+                "Document Type": ProcessResult["Document Type"],
+                Uploads: ProcessResult["Uploads"],
+                Extraction: ProcessResult["Extraction"],
+                Status: ProcessResult["Status"],
+                Error: ProcessResult["Error"],
+            })
+        );
 
-        //     // Set the Session Data in the redux store
+        // All good, keep going.
 
-        //     const SessionData: Session = {
-        //         "Session Id": SessionResponse["Session Id"],
-        //         "Document Type": SessionResponse["Document Type"],
-        //         Uploads: SessionResponse["Uploads"],
-        //         Extraction: SessionResponse["Extraction"],
-        //         Status: SessionResponse["Status"],
-        //         Error: SessionResponse["Error"],
-        //     };
+        //
+        //
+        // Fourth Step: Set the Fields Values
 
-        //     dispatch(setSession(SessionData));
+        const ExtractedData = Doctype.fields.map((field: any) => {
+            const value: string = ProcessResult?.Extraction?.Corrected
+                ? ProcessResult?.Extraction?.Corrected[field.name]
+                : "";
 
-        //     // Change the Fields Values in the redux Store
-        //     const ExtractedData = Doctype.fields.map((field: any) => {
-        //         const value: string = SessionResponse.Extraction?.Corrected
-        //             ? SessionResponse?.Extraction?.Corrected[field.name]
-        //             : "";
+            return {
+                ...field,
+                value: value,
+            };
+        });
 
-        //         return {
-        //             ...field,
-        //             value: value,
-        //         };
-        //     });
+        // Create a new Doctype object with updated fields
+        const updatedDoctype = {
+            ...Doctype,
+            fields: ExtractedData,
+        };
 
-        //     // Create a new Doctype object with updated fields
-        //     const updatedDoctype = {
-        //         ...Doctype,
-        //         fields: ExtractedData,
-        //     };
+        // Set the extracted data in the redux store
+        Dispatch(setDocumentType(updatedDoctype));
 
-        //     // Set the extracted data in the redux store
-        //     dispatch(setDocumentType(updatedDoctype));
+        //
+        //
+        // Fifth Step: Generate the PDF
 
-        //     dispatch(
-        //         setProcess({
-        //             isLoading: false,
-        //             name: "Success",
-        //             description: "Your file has been processed successfully.",
-        //         })
-        //     );
+        const RequestData = {
+            SessionID: Session["Session Id"],
+            DocumentType: Doctype.name,
+            Fields: Doctype.fields,
+        };
 
-        //     // Reset the process
-        //     dispatch(
-        //         setProcess({
-        //             isLoading: true,
-        //             name: "Generating PDF",
-        //             description: "Generating your PDF...",
-        //         })
-        //     );
+        console.log("Request Data: ", RequestData);
 
-        //     const RequestData = {
-        //         SessionID: Session["Session Id"],
-        //         DocumentType: Doctype.name,
-        //         Fields: Doctype.fields,
-        //     };
+        const Generate_URL = API_URL + "/api/generate";
 
-        //     console.log("Request Data: ", RequestData);
+        try {
+            const Response = await axios.post(Generate_URL, RequestData);
 
-        //     const Generate_URL = API_URL + "/api/generate";
+            if (Response.status === 200) {
+                console.log("Generated PDF successfully: ", Response.data);
+                // Reset the process
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                        name: "Success",
+                        description: "Your PDF has been generated.",
+                    })
+                );
 
-        //     try {
-        //         const Response = await axios.post(Generate_URL, RequestData);
+                const Res = Response.data;
 
-        //         if (Response.status === 200) {
-        //             console.log("Generated PDF successfully: ", Response.data);
-        //             // Reset the process
-        //             dispatch(
-        //                 setProcess({
-        //                     isLoading: false,
-        //                     name: "Success",
-        //                     description: "Your PDF has been generated.",
-        //                 })
-        //             );
+                const SessionData: SessionType = {
+                    "Session Id": Res["Session Id"],
+                    "Document Type": Res["Document Type"],
+                    Uploads: Res["Uploads"],
+                    Extraction: Res["Extraction"],
+                    Generation: Res["Generation"],
+                    Status: Res["Status"],
+                    Error: Res["Error"],
+                };
 
-        //             const Res = Response.data;
+                Dispatch(setSession(SessionData));
 
-        //             const SessionData: SessionType = {
-        //                 "Session Id": Res["Session ID"],
-        //                 "Document Type": Res["Document Type"],
-        //                 Uploads: Res["Uploads"],
-        //                 Extraction: Res["Extraction"],
-        //                 Generation: Res["Generation"],
-        //                 Status: Res["Status"],
-        //                 Error: Res["Error"],
-        //             };
+                Dispatch(setStep(Steps.Finish));
 
-        //             dispatch(setSession(SessionData));
+                toast.success("Your Document has been generated successfully.");
+            } else {
+                console.log("Error while generating PDF: ", Response.data);
 
-        //             dispatch(setStep(Steps.Finish));
+                // Reset the process
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                        name: "Error",
+                        description: "An error has occurred.",
+                    })
+                );
 
-        //             toast.success(
-        //                 "Your Document has been generated successfully."
-        //             );
-        //         } else {
-        //             console.log("Error while generating PDF: ", Response.data);
+                toast.error(
+                    Response.data.message ||
+                        "An error has occurred on the server!"
+                );
+            }
+        } catch (error: any) {
+            console.log("Error while sending request: ", error);
+            // Reset the process
+            Dispatch(
+                setProcess({
+                    isLoading: false,
+                    name: "Error",
+                    description: "An error has occurred.",
+                })
+            );
 
-        //             // Reset the process
-
-        //             dispatch(
-        //                 setProcess({
-        //                     isLoading: false,
-        //                     name: "Error",
-        //                     description: "An error has occured.",
-        //                 })
-        //             );
-
-        //             toast.error(
-        //                 Response.data.message ||
-        //                     "An error has occured on the server !"
-        //             );
-        //         }
-        //     } catch (err: any) {
-        //         console.log("Error while sending request: ", err);
-        //         // Reset the process
-        //         dispatch(
-        //             setProcess({
-        //                 isLoading: false,
-        //                 name: "Error",
-        //                 description: "An error has occured.",
-        //             })
-        //         );
-
-        //         toast.error(err.message);
-        //     }
-        // } catch (error: any) {
-        //     // Handle errors
-        //     console.error("Error:", error.message);
-        //     toast.error("Error: " + error.message);
-
-        //     // Simulate delay before setting isLoading to false
-        //     dispatch(
-        //         setProcess({
-        //             isLoading: false,
-        //             name: "Error",
-        //             description: "An error occured while processing the file.",
-        //         })
-        //     );
-        // }
+            toast.error(error.message);
+        }
     };
 
     const handleCancelOperation = () => {
