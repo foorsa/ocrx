@@ -158,21 +158,33 @@ export default function First_DocumentUpload() {
                         Result: SessionType;
                     } = response.data;
 
-                    if (TaskData.Status === "FINISHED") {
+                    if (TaskData.Status === "SUCCESS") {
                         console.log("Task finished: ", TaskData);
                         clearInterval(interval);
                         resolve(TaskData.Result);
-                    } else if (TaskData.Status === "FAILED") {
+                    } else if (TaskData.Status === "FAILURE") {
                         console.log("Task failed: ", TaskData);
                         clearInterval(interval);
                         reject(TaskData);
-                    } else if (TaskData.Status === "QUEUED") {
+                    } else if (TaskData.Status === "PENDING") {
                         console.log("Task is queued: ", TaskData);
                         QueueMessage =
                             "Your file is added to the Redis Queue...";
                     } else if (TaskData.Status === "STARTED") {
                         console.log("Task is started: ", TaskData);
+                        QueueMessage = "Your file is now being processed...";
+                    } else if (TaskData.Status === "RETRY") {
+                        console.log("Task is retrying: ", TaskData);
+                        QueueMessage = "Retrying to process your file...";
+                    } else if (TaskData.Status === "REVOKED") {
+                        console.log("Task is revoked: ", TaskData);
+                        clearInterval(interval);
+                        reject(TaskData);
+                    } else {
+                        console.log("Task is unknown: ", TaskData);
                         QueueMessage = "Your file is being processed...";
+                        clearInterval(interval);
+                        reject(TaskData);
                     }
                 } catch (error) {
                     clearInterval(interval);

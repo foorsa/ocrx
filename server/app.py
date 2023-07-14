@@ -14,6 +14,7 @@ from werkzeug.utils import secure_filename
 from celery import Celery
 import json
 from celery.result import AsyncResult
+import dotenv
 
 # from celery import Celery
 
@@ -30,22 +31,44 @@ app.debug = True
 app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(__file__), "Uploads")
 
 # Setup the Celery Config in Flask Application
-app.config[
-    "CELERY_BROKER_URL"
-] = "redis://default:e2fd377feafd4c67bb674bfc06efae0c@eu1-brave-turtle-39167.upstash.io:39167"
-app.config[
-    "CELERY_RESULT_BACKEND"
-] = "redis://default:e2fd377feafd4c67bb674bfc06efae0c@eu1-brave-turtle-39167.upstash.io:39167/0"
+app.config["CELERY_BROKER_URL"] = dotenv.get_key(".env", "CELERY_BROKER_URL")
+app.config["CELERY_RESULT_BACKEND"] = dotenv.get_key(".env", "CELERY_RESULT_BACKEND")
+app.config["CELERY_REDIS_PASSWORD"] = dotenv.get_key(".env", "CELERY_REDIS_PASSWORD")
+app.config["CELERY_REDIS_USERNAME"] = dotenv.get_key(".env", "CELERY_REDIS_USERNAME")
+app.config["CELERY_REDIS_HOST"] = dotenv.get_key(".env", "CELERY_REDIS_HOST")
+app.config["CELERY_REDIS_PORT"] = dotenv.get_key(".env", "CELERY_REDIS_PORT")
 
-print("Celery Broker URL: ", app.config["CELERY_BROKER_URL"])
-print("Celery Result Backend: ", app.config["CELERY_RESULT_BACKEND"])
 
 # Initialize Celery
 celery = Celery(
     app.name,
-    broker=app.config["CELERY_BROKER_URL"],
-    backend=app.config["CELERY_RESULT_BACKEND"],
 )
+
+celery.conf.update(
+    broker_url=app.config["CELERY_BROKER_URL"],
+    result_backend=app.config["CELERY_RESULT_BACKEND"],
+    broker_connection_max_retries=3,
+    broker_connection_timeout=30,
+    broker_connection_retry=True,
+    worker_prefetch_multiplier=1,
+    task_acks_late=True,
+    task_reject_on_worker_lost=True,
+    task_default_queue="default",
+    task_default_exchange="tasks",
+    task_default_routing_key="task.default",
+    task_default_delivery_mode="transient",
+    timezone="Africa/Casablanca",
+    enable_utc=True,
+)
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("localhost", 6379)],
+#         },
+#     },
+# }
 
 
 # Task for Processing the Operation
@@ -79,7 +102,6 @@ def ProcessTask(Files, DocumentType):
             "Status": "Error",
             "Message": e,
         }
-
     # Correct the Document Content
     print("[...] Processing Task for AI Correction [...]")
     try:
@@ -129,22 +151,6 @@ os.environ["TESSDATA_PREFIX"] = WindowsTessData.replace("\\", "/").replace(
 )
 
 print("Tessdata Path: ", os.environ["TESSDATA_PREFIX"])
-
-# Establish a connection to Redis
-
-# Development
-# conn = redis.Redis(host="localhost", port=6379, db=0)
-
-# Production
-# conn = redis.Redis(
-#     host="eu1-brave-turtle-39167.upstash.io",
-#     port=39167,
-#     password="e2fd377feafd4c67bb674bfc06efae0c",
-#     ssl=True, # Enable SSL
-#     db=0,
-# )
-
-#
 
 
 # Route to the Home Page
