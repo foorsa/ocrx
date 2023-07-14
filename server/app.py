@@ -1,7 +1,6 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 
 # Libraries
-import datetime
 import os
 from flask import (
     Blueprint,
@@ -13,13 +12,10 @@ from flask import (
 import redis
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
-import json
-import time
 from rq import Queue
 from rq.job import Job
 from worker import conn  # Redis connection
 from tasks import ProcessTask
-import tempfile
 
 # Modules
 from Modules.SessionGenerator import SessionGenerator

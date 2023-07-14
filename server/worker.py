@@ -1,4 +1,3 @@
-import sys
 from rq import Queue, Worker, Connection
 import redis
 import multiprocessing

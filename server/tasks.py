@@ -1,4 +1,3 @@
-import time
 import json
 from Modules.SessionGenerator import SessionGenerator
 
