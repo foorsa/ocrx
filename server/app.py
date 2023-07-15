@@ -32,6 +32,9 @@ app.debug = True
 # Set the Upload Folder
 app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(__file__), "Uploads")
 
+# Flask Timezone
+app.config["TIMEZONE"] = "Africa/Casablanca"
+
 # Setup the Celery Config in Flask Application
 app.config["CELERY_BROKER_URL"] = dotenv.get_key(".env", "CELERY_BROKER_URL")
 app.config["CELERY_RESULT_BACKEND"] = dotenv.get_key(".env", "CELERY_RESULT_BACKEND")
@@ -49,19 +52,9 @@ celery = Celery(
 celery.conf.update(
     broker_url=app.config["CELERY_BROKER_URL"],
     result_backend=app.config["CELERY_RESULT_BACKEND"],
-    # broker_connection_max_retries=3,
-    # broker_connection_timeout=30,
-    # broker_connection_retry=True,
-    # worker_prefetch_multiplier=1,
-    # task_acks_late=True,
-    # task_reject_on_worker_lost=True,
-    # task_default_queue="default",
-    # task_default_exchange="tasks",
-    # task_default_routing_key="task.default",
-    # task_default_delivery_mode="transient",
-    timezone="Africa/Casablanca",
-    enable_utc=True,
     rate_limit="10/m",
+    broker_connection_retry_on_startup=True,
+    # Recommended settings for Celery and Redis for Production Server
 )
 
 
@@ -172,7 +165,8 @@ def DestroyTasks():
 
     # Destroy all the Tasks
     for Task in Tasks:
-        celery.control.revoke(Task["id"], terminate=True)
+        for TaskID in Tasks[Task]:
+            celery.control.revoke(TaskID["id"], terminate=True)
 
     # Return the List of Tasks
     return jsonify(
@@ -215,16 +209,22 @@ def ListTasks():
 @app.route("/api/process", methods=["POST"])
 @cross_origin()
 def ProcessRequest():
+    # DEBUG PRINT
+    print("[!] Request Received !")
+
     # Request Validation Code
     if "file" not in request.files or "document_type" not in request.form:
         if "file" not in request.files:
+            print("[X] File field is required.")
             return (
                 jsonify({"error": "File field is required."}),
                 400,
             )
         elif "document_type" not in request.form:
+            print("[X] Document Type field is required.")
             return jsonify({"error": "Document Type field is required."}), 400
 
+        print("[X] File and Document Type fields are required.")
         return jsonify({"error": "File and Document Type fields are required."}), 400
 
     # Store the File
@@ -243,10 +243,12 @@ def ProcessRequest():
 
         # Check if the File Extension is Allowed
         if FileExtension not in AllowedExtensions:
+            print("[X] Invalid file extension.")
             return jsonify({"error": "Invalid file extension."}), 400
 
     # Save files to a temporary directory
     SavedFiles = []
+    print("[...] Saving Files to Temporary Directory [...]")
     for File in Files:
         filename = secure_filename(File.filename)
         FilePath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -256,14 +258,23 @@ def ProcessRequest():
 
         UnixPath = WindowsPath.replace("C:", "/mnt/c").replace("\\", "/")
 
-        print(
-            f"The Default Windows Path - {WindowsPath} - is converted to a UNIX Path - {UnixPath}"
-        )
+        # print(
+        #     f"The Default Windows Path - {WindowsPath} - is converted to a UNIX Path - {UnixPath}"
+        # )
 
         SavedFiles.append(UnixPath)
 
+    print("[OK] Saving Files to Temporary Directory Finished !")
+
     # Queue the file processing task
+
+    print("[...] Processing Task for File Correction [...]")
     Task = ProcessTask.delay(SavedFiles, Doctype)
+
+    print("[OK] Processing Task for File Correction Finished !")
+
+    print("[!] Proccessing Task Queued ! [OK]")
+    print("[!] Task ID: ", Task.id)
 
     # Return the task ID to the client
     return (
@@ -294,6 +305,12 @@ def TaskStatus(TaskId: str):
 
     if jobStatus == "SUCCESS":
         Response = {"Status": jobStatus, "ID": TaskId, "Result": result.result}
+    elif jobStatus == "FAILURE":
+        Response = {
+            "ID": TaskId,
+            "Status": jobStatus,
+            "Reason": str(result.info),
+        }
     else:
         Response = {"Status": jobStatus, "ID": TaskId}
 
