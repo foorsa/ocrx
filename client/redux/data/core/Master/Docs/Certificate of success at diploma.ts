@@ -63,5 +63,20 @@ export const CertificateOfSuccessAtDiploma: DocumentType = {
             required: true,
             value: "",
         },
+        {
+            name: "Certificate City",
+            type: "text",
+            description: "Year of the Certificate, e.g: 2019, etc.",
+            required: true,
+            value: "",
+        },
+        {
+            name: "Certificate Date",
+            type: "text",
+            description: "Year of the Certificate, e.g: 2019, etc.",
+            required: true,
+            value: "",
+        },
+
     ]
 }

@@ -15,6 +15,8 @@ from celery import Celery
 import json
 from celery.result import AsyncResult
 import dotenv
+import gunicorn
+import redis
 
 # from celery import Celery
 
@@ -47,28 +49,20 @@ celery = Celery(
 celery.conf.update(
     broker_url=app.config["CELERY_BROKER_URL"],
     result_backend=app.config["CELERY_RESULT_BACKEND"],
-    broker_connection_max_retries=3,
-    broker_connection_timeout=30,
-    broker_connection_retry=True,
-    worker_prefetch_multiplier=1,
-    task_acks_late=True,
-    task_reject_on_worker_lost=True,
-    task_default_queue="default",
-    task_default_exchange="tasks",
-    task_default_routing_key="task.default",
-    task_default_delivery_mode="transient",
+    # broker_connection_max_retries=3,
+    # broker_connection_timeout=30,
+    # broker_connection_retry=True,
+    # worker_prefetch_multiplier=1,
+    # task_acks_late=True,
+    # task_reject_on_worker_lost=True,
+    # task_default_queue="default",
+    # task_default_exchange="tasks",
+    # task_default_routing_key="task.default",
+    # task_default_delivery_mode="transient",
     timezone="Africa/Casablanca",
     enable_utc=True,
+    rate_limit="10/m",
 )
-
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [("localhost", 6379)],
-#         },
-#     },
-# }
 
 
 # Task for Processing the Operation
@@ -157,6 +151,37 @@ print("Tessdata Path: ", os.environ["TESSDATA_PREFIX"])
 @app.route("/")
 def hello_world():
     return render_template("index.html")
+
+
+# Destroy all Tasks and Cancel all Operations
+@app.route("/api/destroy")
+@cross_origin()
+def DestroyTasks():
+    # Get all the Tasks in the Queue
+    Tasks = celery.control.inspect().active()
+
+    # Check if the Queue is Empty
+    if Tasks is None:
+        return jsonify(
+            {
+                "Tasks": [],
+                "Message": "No Tasks in the Queue.",
+                "Status": "OK",
+            }
+        )
+
+    # Destroy all the Tasks
+    for Task in Tasks:
+        celery.control.revoke(Task["id"], terminate=True)
+
+    # Return the List of Tasks
+    return jsonify(
+        {
+            "Tasks": Tasks,
+            "Message": "Successfully Destroyed all Tasks.",
+            "Status": "OK",
+        }
+    )
 
 
 # Route to list all Queued Tasks - For Testing Purposes and Debugging
