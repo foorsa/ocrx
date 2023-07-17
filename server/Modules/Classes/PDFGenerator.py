@@ -50,7 +50,7 @@ class PDFGenerator:
         }
 
         # Get the template
-        URL = f"https://script.google.com/macros/s/AKfycbxmuZTOFTgx4IxRpyRm192HuG6w_ocsfoCvJcIoGQYgfilG9XcYOaQwRhCHCkLcDoWS/exec"
+        URL = f"https://script.google.com/macros/s/AKfycby7KL_cW5-9fYlxZbp4iWCd1vBkU-VGJ2XpJLRuJM98I5wqhUMTdseflaib0V_FC92V/exec"
         DATA = {
             "templateId": Template_Id,
             "replacements": Values,
@@ -60,10 +60,6 @@ class PDFGenerator:
 
         if Response.status_code == 200:
             links = Response.json()
-
-            print("Google Docs Link:", links["docLink"])
-            print("PDF Link:", links["pdfLink"])
-            print("Preview Link:", links["previewLink"])
 
             Links = {
                 "PDF Link": links["pdfLink"],

@@ -38,7 +38,14 @@ export const MasterCertificate: DocumentType = {
         {
             name: "Date of birth",
             type: "text",
-            description: "Student's  Date of Birth",
+            description: "Student's Date of Birth",
+            required: true,
+            value: "",
+        },
+        {
+            name: "City of birth",
+            type: "text",
+            description: "Student's City of Birth",
             required: true,
             value: "",
         },
