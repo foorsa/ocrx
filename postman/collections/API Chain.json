@@ -1,0 +1,155 @@
+{
+	"info": {
+		"_postman_id": "e5065005-c6d4-49f5-ba05-97f718d99c20",
+		"name": "API Chain",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "27577188-e5065005-c6d4-49f5-ba05-97f718d99c20"
+	},
+	"item": [
+		{
+			"name": "1. Session Initialization",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "bdca780f-37b9-4261-b16a-6f07bf5ed618",
+						"exec": [
+							"const responseJson = pm.response.json();\r",
+							"const Session_Id = responseJson.Session[\"Session Id\"];\r",
+							"\r",
+							"pm.environment.set(\"Session Id\", Session_Id);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"id": "31c5febd-823d-4bf6-a9a5-ad7a4a39fb2b",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "document_type",
+							"value": "Baccalaureate-Certificate",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/C:/Users/YASSI/OneDrive/Documents/GitHub/OCRX/data/Baccaulaureate Diplomas/Baccaulareate_5.jpeg"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{OCRX Flask Server}}/api/v1/initialize",
+					"host": [
+						"{{OCRX Flask Server}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"initialize"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Extraction.",
+			"id": "eb9b0af6-5fea-4d45-ac59-e930e16e3bbf",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{OCRX Flask Server}}/api/v1/extract?Session_Id={{OCRX's Session Id}}",
+					"host": [
+						"{{OCRX Flask Server}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"extract"
+					],
+					"query": [
+						{
+							"key": "Session_Id",
+							"value": "{{OCRX's Session Id}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Translation.",
+			"id": "a73134e3-64bc-4b73-bdcc-d8ed17356b8c",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{OCRX Flask Server}}/api/v1/translate?Session_Id={{OCRX's Session Id}}",
+					"host": [
+						"{{OCRX Flask Server}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"translate"
+					],
+					"query": [
+						{
+							"key": "Session_Id",
+							"value": "{{OCRX's Session Id}}",
+							"type": "text"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Generate.",
+			"id": "57613d4c-1be5-4d9b-a5bd-c99325527837",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Session_Id\": [{{OCRX's Session Id}}],\r\n    \"Values\": [\"Hello bro!\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{OCRX Flask Server}}/api/v1/generate",
+					"host": [
+						"{{OCRX Flask Server}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"generate"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
