@@ -47,10 +47,10 @@ def parse_json(data):
 
 
 class SessionGenerator:
-    def __init__(self, Files, DocumentType):
+    def __init__(self):
         self.id = ""
-        self.document_type = DocumentType
-        self.files = Files  # Now a list of files
+        self.document_type = ""
+        self.files = []
         self.session = {
             "Session Id": "",
             "Document Type": "",
@@ -68,10 +68,21 @@ class SessionGenerator:
         Session = self.session
         return parse_json(Session)
 
-    def Initialize(self):
+    def Set(self, Session_Id):
+        # Find Session ID
+        Session = self.db.sessions.find_one({"Session Id": Session_Id})
+        if Session:
+            self.session = Session
+            return True
+        else:
+            return False
+
+    def Initialize(self, DocumentType, Files):
         # Session ID
         session_id = str(datetime.datetime.now())
         self.id = session_id.replace(" ", "").replace(":", "-").replace(".", "-")
+        self.document_type = DocumentType
+        self.files = Files
 
         Uploads = []
         for file_path in self.files:
@@ -96,7 +107,7 @@ class SessionGenerator:
             "Session Id": self.id,
             "Document Type": self.document_type,
             "Uploads": Uploads,
-            "Status": "Processing",
+            "Status": "Initialized",
             "Error": None,
             "Message": "",
         }
@@ -150,29 +161,14 @@ class SessionGenerator:
             else:
                 # Add the Content to the Session
                 self.session["Extraction"] = {"RAW": Content}
+                # Add new Status
+                self.session["Status"] = "Extracted"
         # Update the Session object
         self.db.sessions.update_one(
             {"Session Id": self.session["Session Id"]}, {"$set": self.session}
         )
 
         return self.session
-
-    def GetFile(self, SessionID):
-        # Get the Session
-        Session = self.db.sessions.find_one({"Session Id": SessionID})
-
-        # Get the File
-        File = self.fs.get(Session["Uploads"][0]["Upload Id"])
-
-        FileLike = io.BytesIO(File.read())
-
-        # If File is Image
-        if File.filename.rsplit(".", 1)[1].lower() in {"png", "jpg", "jpeg"}:
-            # create an Image object
-            img = Image.open(FileLike)
-            return img
-
-        return FileLike
 
     def Correct(self):
         # GPT to Correct the Output of the OCR
@@ -193,6 +189,9 @@ class SessionGenerator:
 
         self.session["Extraction"]["Description"] = Description
 
+        # Update the Status of the Session
+        self.session["Status"] = "Corrected"
+
         # Update the Session object
         self.db.sessions.update_one(
             {"Session Id": self.session["Session Id"]}, {"$set": self.session}
@@ -200,23 +199,15 @@ class SessionGenerator:
 
         return self.session
 
-    def Generate(self, Fields):
+    def Generate(self):
         # Method to generate PDF files from Correct Output
         PDF = PDFGenerator()
 
-        # Fields are required to generate the PDF
-        if Fields is None:
-            self.session["Error"] = {
-                "error": "Error Generating PDF.",
-                "message": "Fields are None",
-                "status": 400,
-            }
-            self.session["Status"] = "Error"
-            return self.session
+        Values = self.session["Extraction"]["Corrected"]
 
         # Generate the PDF
         Links = PDF.Generate(
-            self.session["Document Type"], self.session["Session Id"], Fields
+            self.session["Document Type"], self.session["Session Id"], Values
         )
 
         # Add the Links to the Session
@@ -253,6 +244,34 @@ class SessionGenerator:
         self.session = Session
 
         return Session
+
+    def GetFile(self, SessionID):
+        # Get the Session
+        Session = self.db.sessions.find_one({"Session Id": SessionID})
+
+        # Get the File
+        File = self.fs.get(Session["Uploads"][0]["Upload Id"])
+
+        FileLike = io.BytesIO(File.read())
+
+        # If File is Image
+        if File.filename.rsplit(".", 1)[1].lower() in {"png", "jpg", "jpeg"}:
+            # create an Image object
+            img = Image.open(FileLike)
+            return img
+
+        return FileLike
+
+    # Method to set Values for Corrected Fields
+    def SetValues(self, NewValues):
+        OldValues = self.session["Extraction"]["Corrected"]
+
+        for Field in NewValues:
+            OldValues[Field] = NewValues[Field]
+
+        self.session["Extraction"]["Corrected"] = OldValues
+
+        return self.session
 
     # Throw an error
     def Error(self, Error):

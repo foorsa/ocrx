@@ -22,26 +22,40 @@ TemplateIDs = {
 
 
 class PDFGenerator:
-    def Generate(self, Doctype, SessionId, Fields):
+    def Generate(self, Document_Type, SessionId, Values):
         # Get the template ID
-        TemplateId = None
-        if Doctype in TemplateIDs:
-            TemplateId = TemplateIDs[Doctype]
+        Template_Id = None
+        if Document_Type in TemplateIDs:
+            Template_Id = TemplateIDs[Document_Type]
         else:
-            return None
+            return {
+                "Error": "Error Generating PDF.",
+                "Status": 400,
+                "Message": "Document Type not found",
+            }
 
-        # Fields are an array of object containing the field name and the value and description, etc.
-        # Transform them into a dictionary
-        # Keys are the field names and values are the field values
-        Fields = {field["name"]: field["value"] for field in Fields}
+        # Fields is a dictionary with the fields to fill in the template
+
         # Add Session Id and Translation Date to Fields
-        Fields["Session Id"] = SessionId
-        # Beautiful Date
-        Fields["Translation Date"] = datetime.datetime.now().strftime("%d %B %Y")
+        Values["Session Id"] = SessionId
+        Values["Translation Date"] = datetime.datetime.now().strftime("%d %B %Y")
+
+        # Meta Data is a dictionary with the information
+        # about the session
+        # We use it to fill the name of the file, and the Translation Date and Session Id
+        Meta_Data = {
+            "Document_Type": Document_Type,
+            "Session_Id": SessionId,
+            "Translation_Date": datetime.datetime.now().strftime("%d %B %Y"),
+        }
 
         # Get the template
-        URL = f"https://script.google.com/macros/s/AKfycbxt1JwpWDPzQ1dKF6L8Xfulm4kK_QCRtXrH_8OG0QbEOfWZT3TN6umsEI80G_3E4FxA/exec"
-        DATA = {"templateId": TemplateId, "replacements": Fields}
+        URL = f"https://script.google.com/macros/s/AKfycbxmuZTOFTgx4IxRpyRm192HuG6w_ocsfoCvJcIoGQYgfilG9XcYOaQwRhCHCkLcDoWS/exec"
+        DATA = {
+            "templateId": Template_Id,
+            "replacements": Values,
+            "metaData": Meta_Data,
+        }
         Response = requests.post(URL, data=json.dumps(DATA))
 
         if Response.status_code == 200:
@@ -62,4 +76,8 @@ class PDFGenerator:
             print("Status:", Response.status_code)
             print("Content:", Response.reason)
 
-            return None
+            return {
+                "Error": "Error Generating PDF.",
+                "Status": Response.status_code,
+                "Message": Response.reason,
+            }

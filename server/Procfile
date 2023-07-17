@@ -1,2 +1,2 @@
-web: gunicorn app:app
-worker: celery -A app.celery worker -l INFO
+web: gunicorn wsgi:app
+worker: celery -A app.celery worker -l DEBUG --concurrency=4 --without-heartbeat --without-gossip --without-mingle
