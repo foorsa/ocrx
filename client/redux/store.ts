@@ -27,7 +27,7 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 // Create the Redux store
 export const store = configureStore({
-    reducer: rootReducer,
+    reducer: persistedReducer,
     devTools: process.env.NODE_ENV !== "production",
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({
         immutableCheck: false,
