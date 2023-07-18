@@ -46,15 +46,12 @@ def CreateFlaskApp():
     os.environ["TESSDATA_PREFIX"] = WindowsTessData
 
     # TESSDATA_PREFIX for UNIX Systems
-    os.environ["TESSDATA_PREFIX"] = WindowsTessData.replace("\\", "/").replace(
-        "C:", "/mnt/c"
-    )
-
-    FlaskApp.register_blueprint(API_BLUEPRINT)
-
-    print("Tessdata Path: ", os.environ["TESSDATA_PREFIX"])
+    # os.environ["TESSDATA_PREFIX"] = WindowsTessData.replace("\\", "/").replace(
+    #     "C:", "/mnt/c"
+    # )
 
     # Register the blueprint for API routes
+    FlaskApp.register_blueprint(API_BLUEPRINT)
 
     # Rest of your app configuration
     return FlaskApp

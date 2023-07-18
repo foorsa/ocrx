@@ -78,13 +78,13 @@ def Intialize():
 
         WindowsPath = FilePath
 
-        UnixPath = WindowsPath.replace("C:", "/mnt/c").replace("\\", "/")
+        # UnixPath = WindowsPath.replace("C:", "/mnt/c").replace("\\", "/")
 
         # print(
         #     f"The Default Windows Path - {WindowsPath} - is converted to a UNIX Path - {UnixPath}"
         # )
 
-        SavedFiles.append(UnixPath)
+        SavedFiles.append(WindowsPath)
 
     print("[OK] Saving Files to Temporary Directory Finished !")
 

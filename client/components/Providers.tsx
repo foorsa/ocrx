@@ -45,19 +45,23 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             <main className="relative flex min-h-screen flex-col items-center justify-between">
                 <Background Variant={BackgroundVariant} />
                 <Toaster
-                    position="bottom-right"
+                    position="bottom-center"
                     toastOptions={{
-                        className: "",
+                        className: "cursor-default",
                         style: {
                             border: "none",
                             padding: 0,
                             color: "currentColor",
                             background: "none",
                             backgroundColor: "none",
+                            cursor: "default",
+                            zIndex: 50,
+                            boxShadow: "none",
+                            pointerEvents: "all",
                         },
                         // Default options for specific types
                         success: {
-                            duration: 3000,
+                            duration: 1000,
                             iconTheme: {
                                 primary: "#10b981",
                                 secondary: "#064e3b",
@@ -74,13 +78,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 >
                     {(t) => (
                         <ToastBar
-                            position="bottom-right" // Used to adapt the animation
+                            position="bottom-center" // Used to adapt the animation
                             toast={t}
+                            key={t.id}
                         >
                             {({ icon, message }) => (
                                 <div
                                     id="toast-default"
-                                    className="flex max-w-sm items-center justify-center space-x-2 rounded-lg border border-zinc-200 bg-white p-3 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
+                                    className="flex max-w-sm shadow-2xl filter-none items-center justify-center space-x-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
                                     role="alert"
                                 >
                                     <div className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg">

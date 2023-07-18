@@ -50,7 +50,7 @@ class PDFGenerator:
         }
 
         # Get the template
-        URL = "https://script.google.com/macros/s/AKfycbwulQtedL9Y-M8wRbHkYOZV4j5J4DwamGSQ8xoa6d5eZCm5KeQ7-o3RyCdh1Z9hk-4/exec"
+        URL = "https://script.google.com/macros/s/AKfycbyW_7F5FqO6KxwIHqJq1nYAPvU_y0iie_blYpMJxQMTjqwrwP2quhc_IWSMkZjhhcPk/exec"
         DATA = {
             "templateId": Template_Id,
             "replacements": Values,

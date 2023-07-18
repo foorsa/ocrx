@@ -11,7 +11,9 @@ import {
     CloseSquare,
     Code,
     Document,
+    DocumentText,
     DocumentUpload,
+    Google,
     LinkSquare,
     Timer,
 } from "iconsax-react";
@@ -37,6 +39,7 @@ import { clearSession, setSession } from "@/redux/actions/sessionActions";
 import { Session, Session as SessionType } from "@/redux/types/states/Session";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Steps } from "@/redux/types/states/Step";
+import { DocumentCheckIcon } from "@heroicons/react/20/solid";
 
 // Selection for Document Type
 
@@ -63,65 +66,56 @@ export default function First_DocumentUpload() {
                 description: "Uploading your file to the server...",
             })
         );
-        const API_URL: string = getApiServerUrl();
 
-        let TASK_ID: string = "";
+        const SERVER_API: string = getApiServerUrl();
 
+        toast.loading("Uploading your file to the server...", {
+            id: "Uploading",
+        });
+
+        // [STEP 1] Initialize the session
         try {
-            const PROCESS_URL = API_URL + "/api/process";
+            const PROCESS_URL = SERVER_API + "/api/v1/initialize";
 
-            const FormularData = new FormData();
-            FormularData.append("file", UploadedFile.file);
-            FormularData.append("document_type", Doctype.id);
+            const formData = new FormData();
+            formData.append("file", UploadedFile.file);
+            formData.append("document_type", Doctype.id);
 
-            const Response = await axios.post(PROCESS_URL, FormularData, {
+            const response = await axios.post(PROCESS_URL, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
 
-            const { status, data } = Response;
-            TASK_ID = data?.Task_Id || "";
+            const { status, data } = response;
 
-            switch (status) {
-                case 202:
-                    if (TASK_ID === "") {
-                        return toast.error(
-                            "The server is not responding, please try again later."
-                        );
-                    }
-                    break;
-                case 400:
-                    Dispatch(
-                        setProcess({
-                            isLoading: false,
-                        })
-                    );
-                    return toast.error(
-                        "Please reset the current file and try again."
-                    );
-                default:
-                    Dispatch(
-                        setProcess({
-                            isLoading: false,
-                        })
-                    );
-                    return toast.error("The server is not responding.");
+            if (status == 200 && data.Session.Status == "Initialized") {
+                Dispatch(
+                    setProcess({
+                        isLoading: true,
+                        name: "Extracting",
+                        description: "Extracting your file's data...",
+                    })
+                );
+
+                toast.dismiss("Uploading");
+
+                Dispatch(setSession(data.Session));
+            } else {
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                toast.dismiss("Uploading");
+
+                toast.error("An error occurred. Please try again later.");
             }
-
             // All good, continue with the next steps
-        } catch (Error: any) {
-            console.log("Error while Queueing Task: ", Error);
-
-            let ErrorMessage = "An error occurred.";
-
-            if (Error.response && Error.response.data) {
-                const ErrorData = Error.response.data;
-
-                if (ErrorData.Error || ErrorData.error) {
-                    ErrorMessage = ErrorData.Error || ErrorData.error;
-                }
-            }
+        } catch (error: any) {
+            console.log("Error while Initializing Session: ", error);
+            toast.dismiss("Uploading");
 
             Dispatch(
                 setProcess({
@@ -129,228 +123,318 @@ export default function First_DocumentUpload() {
                 })
             );
 
-            Error.status == 400
-                ? (ErrorMessage =
-                      "Your file has expired, please re-upload it and try again.")
-                : null;
-
-            return toast.error(ErrorMessage);
-        }
-
-        // All good, keep going.
-
-        //
-        //
-        // Second Step: Check the Task ID until it's completed
-        const TASK_URL = API_URL + "/api/task/" + TASK_ID;
-
-        let ProcessResult: SessionType | null = null;
-
-        let QueueMessage: string = "Your file is added to the Redis Queue...";
-
-        const QueuePromise = new Promise<SessionType>((resolve, reject) => {
-            const interval = setInterval(async () => {
-                try {
-                    const response = await axios.get(TASK_URL);
-                    const TaskData: {
-                        ID: string;
-                        Status: string;
-                        Result: SessionType;
-                    } = response.data;
-
-                    if (TaskData.Status === "SUCCESS") {
-                        console.log("Task finished: ", TaskData);
-                        clearInterval(interval);
-                        resolve(TaskData.Result);
-                    } else if (TaskData.Status === "FAILURE") {
-                        console.log("Task failed: ", TaskData);
-                        clearInterval(interval);
-                        reject(TaskData);
-                    } else if (TaskData.Status === "PENDING") {
-                        console.log("Task is queued: ", TaskData);
-                        QueueMessage =
-                            "Your file is added to the Redis Queue...";
-                    } else if (TaskData.Status === "STARTED") {
-                        console.log("Task is started: ", TaskData);
-                        QueueMessage = "Your file is now being processed...";
-                    } else if (TaskData.Status === "RETRY") {
-                        console.log("Task is retrying: ", TaskData);
-                        QueueMessage = "Retrying to process your file...";
-                    } else if (TaskData.Status === "REVOKED") {
-                        console.log("Task is revoked: ", TaskData);
-                        clearInterval(interval);
-                        reject(TaskData);
-                    } else {
-                        console.log("Task is unknown: ", TaskData);
-                        QueueMessage = "Your file is being processed...";
-                        clearInterval(interval);
-                        reject(TaskData);
-                    }
-                } catch (error) {
-                    clearInterval(interval);
-                    reject(error);
+            // Check if the error contains a response
+            if (error.response) {
+                const { status, data } = error.response;
+                switch (status) {
+                    case 400:
+                        return toast.error(
+                            "Please reset the current file and try again."
+                        );
+                    case 500:
+                        return toast.error("The server is not responding.");
+                    default:
+                        return toast.error("Unknown error occurred.");
                 }
-            }, 1000);
-        });
-
-        await toast
-            .promise(QueuePromise, {
-                loading: QueueMessage,
-                success: "Your file has been processed successfully.",
-                error: "An error occurred while processing your file.",
-            })
-            .then((SessionData: SessionType | null) => {
-                // Check Session Validity
-                if (SessionData?.Error !== null && SessionData?.Error !== "") {
-                    console.log("Error while processing: ", SessionData);
-                    Dispatch(
-                        setProcess({
-                            isLoading: false,
-                        })
-                    );
-                    toast.error(
-                        "Bip bip, please try again, the task seems to be stuck."
-                    );
-                }
-
-                // Rest of the function
-                ProcessResult = SessionData;
-
-                return;
-            })
-            .catch((error) => {
-                console.log("Error while checking task status: ", error);
-                toast.error(
-                    "Bip bip, please try again, the task seems to be stuck."
+            } else {
+                // Handle other types of errors (e.g., network errors, timeout)
+                return toast.error(
+                    error.message ||
+                        "An error occurred, please try again later."
                 );
-
-                return;
-            });
-
-        console.log("Process Result: ", ProcessResult);
-
-        if (!ProcessResult) {
-            return;
+            }
         }
 
-        // All good, keep going.
-
-        //
-        //
-        // Third Step: Set the Session Data
-
-        Dispatch(
-            setSession({
-                "Session Id": ProcessResult["Session Id"],
-                "Document Type": ProcessResult["Document Type"],
-                Uploads: ProcessResult["Uploads"],
-                Extraction: ProcessResult["Extraction"],
-                Status: ProcessResult["Status"],
-                Error: ProcessResult["Error"],
-            })
-        );
-
-        // All good, keep going.
-
-        //
-        //
-        // Fourth Step: Set the Fields Values
-
-        const ExtractedData = Doctype.fields.map((field: any) => {
-            const value: string = ProcessResult?.Extraction?.Corrected
-                ? ProcessResult?.Extraction?.Corrected[field.name]
-                : "";
-
-            return {
-                ...field,
-                value: value,
-            };
+        // [STEP 2] Extract the Data from the file
+        toast.loading("Extracting data from your file...", {
+            id: "Extracting",
         });
-
-        // Create a new Doctype object with updated fields
-        const updatedDoctype = {
-            ...Doctype,
-            fields: ExtractedData,
-        };
-
-        // Set the extracted data in the redux store
-        Dispatch(setDocumentType(updatedDoctype));
-
-        //
-        //
-        // Fifth Step: Generate the PDF
-
-        const RequestData = {
-            SessionID: Session["Session Id"],
-            DocumentType: Doctype.name,
-            Fields: Doctype.fields,
-        };
-
-        console.log("Request Data: ", RequestData);
-
-        const Generate_URL = API_URL + "/api/generate";
 
         try {
-            const Response = await axios.post(Generate_URL, RequestData);
+            const SESSION_ID = Session["Session Id"];
 
-            if (Response.status === 200) {
-                console.log("Generated PDF successfully: ", Response.data);
-                // Reset the process
+            if (!SESSION_ID || SESSION_ID == "") {
                 Dispatch(
                     setProcess({
                         isLoading: false,
-                        name: "Success",
-                        description: "Your PDF has been generated.",
                     })
                 );
 
-                const Res = Response.data;
+                console.log("Session ID is missing in: ", Session);
 
-                const SessionData: SessionType = {
-                    "Session Id": Res["Session Id"],
-                    "Document Type": Res["Document Type"],
-                    Uploads: Res["Uploads"],
-                    Extraction: Res["Extraction"],
-                    Generation: Res["Generation"],
-                    Status: Res["Status"],
-                    Error: Res["Error"],
-                };
+                toast.dismiss("Extracting");
+                return toast.error("Session ID is missing.");
+            }
 
-                Dispatch(setSession(SessionData));
+            const EXTRACT_URL =
+                SERVER_API + `/api/v1/extract?Session_Id=${SESSION_ID}`;
 
-                Dispatch(setStep(Steps.Finish));
+            const response = await axios.post(EXTRACT_URL, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
 
-                toast.success("Your Document has been generated successfully.");
+            const { status, data } = response;
+
+            if (status == 200 && data.Session.Status == "Extracted") {
+                Dispatch(
+                    setProcess({
+                        isLoading: true,
+                        name: "Translating",
+                        description: "Translating your file...",
+                    })
+                );
+
+                toast.dismiss("Extracting");
+
+                Dispatch(setSession(data.Session));
             } else {
-                console.log("Error while generating PDF: ", Response.data);
-
-                // Reset the process
                 Dispatch(
                     setProcess({
                         isLoading: false,
-                        name: "Error",
-                        description: "An error has occurred.",
                     })
                 );
 
-                toast.error(
-                    Response.data.message ||
-                        "An error has occurred on the server!"
+                toast.dismiss("Extracting");
+
+                return toast.error(
+                    "An error occurred. Please try again later."
                 );
             }
         } catch (error: any) {
-            console.log("Error while sending request: ", error);
-            // Reset the process
+            console.log("Error while Trnaslating Data: ", error);
+
             Dispatch(
                 setProcess({
                     isLoading: false,
-                    name: "Error",
-                    description: "An error has occurred.",
                 })
             );
 
-            toast.error(error.message);
+            toast.dismiss("Extracting");
+
+            // Check if the error contains a response
+            if (error.response) {
+                const { status, data } = error.response;
+                switch (status) {
+                    case 400:
+                        return toast.error(
+                            "Please reset the current file and try again."
+                        );
+                    case 500:
+                        return toast.error("The server is not responding.");
+                    default:
+                        return toast.error("Unknown error occurred.");
+                }
+            } else {
+                // Handle other types of errors (e.g., network errors, timeout)
+                return toast.error(
+                    error.message ||
+                        "An error occurred, please try again later."
+                );
+            }
         }
+
+        // [STEP 3] Process the Data with AI (Correction)
+        toast.loading("Translating your file...", {
+            id: "Translating",
+        });
+
+        try {
+            const SESSION_ID = Session["Session Id"];
+
+            if (!SESSION_ID || SESSION_ID == "") {
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                console.log("Session ID is missing in: ", Session);
+
+                toast.dismiss("Translating");
+                return toast.error("Session ID is missing.");
+            }
+
+            const TRANSLATE_URL =
+                SERVER_API + `/api/v1/translate?Session_Id=${SESSION_ID}`;
+
+            const response = await axios.post(TRANSLATE_URL, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            const { status, data } = response;
+
+            if (status == 200 && data.Session.Status == "Corrected") {
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                toast.dismiss("Translating");
+
+                Dispatch(setSession(data.Session));
+            } else {
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                toast.dismiss("Translating");
+
+                return toast.error(
+                    "An error occurred. Please try again later."
+                );
+            }
+        } catch (Error: any) {
+            console.log("Error while Trnaslating Data: ", Error);
+
+            Dispatch(
+                setProcess({
+                    isLoading: false,
+                })
+            );
+
+            toast.dismiss("Extracting");
+
+            // Check if the error contains a response
+            if (Error.response) {
+                const { status, data } = Error.response;
+                switch (status) {
+                    case 400:
+                        return toast.error(
+                            "Please reset the current file and try again."
+                        );
+                    case 500:
+                        return toast.error("The server is not responding.");
+                    default:
+                        return toast.error("Unknown error occurred.");
+                }
+            } else {
+                // Handle other types of errors (e.g., network errors, timeout)
+                return toast.error(
+                    Error.message ||
+                        "An error occurred, please try again later."
+                );
+            }
+        }
+
+        // [STEP 4] Generate the Output File
+
+        toast.loading("Generating the output file...", {
+            id: "Generating",
+        });
+
+        try {
+            const SESSION_ID = Session["Session Id"];
+
+            if (!SESSION_ID || SESSION_ID == "") {
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                console.log("Session ID is missing in: ", Session);
+
+                toast.dismiss("Translating");
+                return toast.error(
+                    "Session Identifier is missing, please restart the process."
+                );
+            }
+
+            const GENERATE_URL =
+                SERVER_API + `/api/v1/generate?Session_Id=${SESSION_ID}`;
+
+            const response = await axios.post(GENERATE_URL, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            const { status, data } = response;
+
+            if (status == 200 && data.Session.Status == "Corrected") {
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                toast.dismiss("Translating");
+
+                Dispatch(setSession(data.Session));
+            } else {
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                toast.dismiss("Translating");
+
+                return toast.error(
+                    "An error occurred. Please try again later."
+                );
+            }
+        } catch (Error: any) {
+            console.log("Error while Generating Google Docs File: ", Error);
+
+            Dispatch(
+                setProcess({
+                    isLoading: false,
+                })
+            );
+
+            toast.dismiss("Generating");
+
+            // Check if the error contains a response
+            if (Error.response) {
+                const { status, data } = Error.response;
+                switch (status) {
+                    case 400:
+                        return toast.error(
+                            "Please reset the current file and try again."
+                        );
+                    case 500:
+                        return toast.error("The server is not responding.");
+                    default:
+                        return toast.error("Unknown error occurred.");
+                }
+            } else {
+                // Handle other types of errors (e.g., network errors, timeout)
+                return toast.error(
+                    Error.message ||
+                        "An error occurred, please try again later."
+                );
+            }
+        }
+
+        // [STEP 5] Change the Step
+
+        Dispatch(
+            setProcess({
+                isLoading: false,
+            })
+        );
+
+        toast.dismiss("Generating");
+
+        toast.custom((t) => (
+            <div
+                id="toast-simple"
+                className="flex items-center w-full max-w-xs p-4 space-x-4 text-zinc-500 bg-white divide-x divide-zinc-200 rounded-lg shadow dark:text-zinc-400 dark:divide-zinc-700 space-x dark:bg-zinc-800"
+                role="alert"
+            >
+                <div className="pl-4 text-sm font-normal">
+                    Message sent successfully.
+                </div>
+            </div>
+        ));
     };
 
     const handleCancelOperation = () => {
@@ -388,7 +472,92 @@ export default function First_DocumentUpload() {
             {/* Next Step */}
             {!Process.isLoading && (
                 <button
-                    onClick={handleNextStep}
+                    onClick={() => {
+                        toast.custom((t) => (
+                            <div
+                                id="toast-interactive"
+                                className="w-full max-w-xs p-4 text-zinc-500 bg-white rounded-lg shadow dark:bg-zinc-800 dark:text-zinc-400"
+                                role="alert"
+                            >
+                                <div className="flex">
+                                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-purple-500 bg-purple-100 rounded-lg dark:text-purple-300 dark:bg-purple-900">
+                                        <svg
+                                            className="w-4 h-4"
+                                            aria-hidden="true"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 18 20"
+                                        >
+                                            <path
+                                                stroke="currentColor"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M16 1v5h-5M2 19v-5h5m10-4a8 8 0 0 1-14.947 3.97M1 10a8 8 0 0 1 14.947-3.97"
+                                            />
+                                        </svg>
+                                        <span className="sr-only">
+                                            File is Ready to Download !
+                                        </span>
+                                    </div>
+                                    <div className="ml-3 text-sm font-normal">
+                                        <span className="mb-1 text-sm font-semibold text-zinc-900 dark:text-white">
+                                            File is Ready to Download !
+                                        </span>
+                                        <div className="mb-2 text-sm font-normal">
+                                            <span className="text-zinc-500 dark:text-zinc-400">
+                                                Click on the buttons below to
+                                                download the file or edit it on
+                                                Google Docs.
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <a
+                                                    href="#"
+                                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none dark:bg-purple-500 dark:hover:bg-purple-600"
+                                                >
+                                                    Google Docs
+                                                </a>
+                                            </div>
+                                            <div>
+                                                <a
+                                                    href="#"
+                                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-zinc-900 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-100 focus:outline-none dark:bg-zinc-600 dark:text-white dark:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:border-zinc-700"
+                                                >
+                                                    Download
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => toast.dismiss(t.id)}
+                                        className="ml-auto -mx-1.5 -my-1.5 bg-white items-center justify-center flex-shrink-0 text-zinc-400 hover:text-zinc-900 rounded-lg focus:ring-2 focus:ring-zinc-300 p-1.5 hover:bg-zinc-100 inline-flex h-8 w-8 dark:text-zinc-500 dark:hover:text-white dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                                        data-dismiss-target="#toast-interactive"
+                                        aria-label="Close"
+                                    >
+                                        <span className="sr-only">Close</span>
+                                        <svg
+                                            className="w-3 h-3"
+                                            aria-hidden="true"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 14 14"
+                                        >
+                                            <path
+                                                stroke="currentColor"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        ));
+                    }}
                     className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-700 rounded-lg hover:bg-purple-800 focus:outline-none dark:bg-purple-600 dark:hover:bg-purple-700 focus:bg-purple-500 active:bg-purple-900 transition duration-150 ease-in-out"
                 >
                     Process
