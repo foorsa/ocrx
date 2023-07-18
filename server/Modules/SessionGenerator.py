@@ -3,9 +3,11 @@
 import datetime
 import json
 from werkzeug.utils import secure_filename
+import pymongo
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from urllib.parse import quote_plus
+from time import sleep
 import gridfs
 from PIL import Image
 import io
@@ -17,13 +19,10 @@ from Modules.Classes.OCRProcessor import OCRProcessor
 from Modules.Classes.GPTCorrector import GPTCorrector
 from Modules.Classes.PDFGenerator import PDFGenerator
 
-# Credentials
+
 username = quote_plus("yassinechettouch")
 password = quote_plus("0tr7$F1m!@OCRX")
 cluster = "ocrx-db.rpxyaec.mongodb.net"
-
-# Auth Method
-authentication_method = "SCRAM"
 
 uri = (
     "mongodb+srv://"
@@ -35,7 +34,28 @@ uri = (
     + "/?retryWrites=true&w=majority"
 )
 
-# Create a new client and connect to the server
+# Maximum number of retries
+max_retries = 5
+retry_count = 0
+
+while retry_count < max_retries:
+    try:
+        client = MongoClient(uri, server_api=ServerApi("1"))
+        db = client.get_database("OCRX-db")
+        print("[MongoDB] Connected to the database successfully.")
+        break  # Connection successful, break out of the loop
+    except pymongo.errors.ServerSelectionTimeoutError:
+        # Retry the connection after a short delay
+        sleep(2)
+        retry_count += 1
+        print("[MongoDB] Retrying connection...")
+else:
+    # Maximum number of retries reached, raise an exception or handle the error.
+    print("[MongoDB] Failed to connect to MongoDB after multiple attempts.")
+    raise Exception("Failed to connect to MongoDB after multiple attempts.")
+
+# Continue with your MongoDB operations using the 'db' object.
+
 client = MongoClient(uri, server_api=ServerApi("1"))
 
 # Load BSON Data from the database
@@ -59,8 +79,7 @@ class SessionGenerator:
             "Error": None,
             "Message": "",
         }
-        self.client = MongoClient(uri, server_api=ServerApi("1"))
-        self.db = self.client["OCRX-db"]  # Connect to the 'ocrx-db' database
+        self.db = db  # Connect to the 'ocrx-db' database
         self.fs = gridfs.GridFS(self.db)  # Use GridFS for file storage
 
     # Get the Session Information
