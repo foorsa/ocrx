@@ -135,13 +135,15 @@ export default function First_DocumentUpload() {
                     case 500:
                         return toast.error("The server is not responding.");
                     default:
-                        return toast.error("Unknown error occurred.");
+                        return toast.error(
+                            "Could not initialize the session. Please try again."
+                        );
                 }
             } else {
                 // Handle other types of errors (e.g., network errors, timeout)
                 return toast.error(
                     error.message ||
-                        "An error occurred, please try again later."
+                        "Server is not responding, please try again later."
                 );
             }
         }
@@ -200,11 +202,11 @@ export default function First_DocumentUpload() {
                 toast.dismiss("Extracting");
 
                 return toast.error(
-                    "[SERVER] An error occurred. Please try again later."
+                    "An error occurred while extracting the data. Please try again later."
                 );
             }
         } catch (error: any) {
-            console.log("[SERVER] Error while Trnaslating Data: ", error);
+            console.log("[SERVER] Error while Translating Data: ", error);
 
             Dispatch(
                 setProcess({
@@ -220,20 +222,22 @@ export default function First_DocumentUpload() {
                 switch (status) {
                     case 400:
                         return toast.error(
-                            "[SERVER] Please reset the current file and try again."
+                            "The server got an invalid request. Please try again later."
                         );
                     case 500:
                         return toast.error(
-                            "[SERVER] The server is not responding."
+                            "The server is not responding. Please try again later."
                         );
                     default:
-                        return toast.error("[SERVER] Unknown error occurred.");
+                        return toast.error(
+                            "Server returned an unknown error. Please try again later."
+                        );
                 }
             } else {
                 // Handle other types of errors (e.g., network errors, timeout)
                 return toast.error(
                     error.message ||
-                        "[SERVER] An error occurred, please try again later."
+                        "Server is not responding, please try again later."
                 );
             }
         }
@@ -273,7 +277,7 @@ export default function First_DocumentUpload() {
             if (status == 200 && data.Session.Status == "Corrected") {
                 Dispatch(
                     setProcess({
-                        isLoading: false,
+                        isLoading: true,
                     })
                 );
 
@@ -290,7 +294,7 @@ export default function First_DocumentUpload() {
                 toast.dismiss("Translating");
 
                 return toast.error(
-                    "[AI] An error occurred. Please try again later."
+                    "AI returned an error. Please try again later."
                 );
             }
         } catch (Error: any) {
@@ -310,20 +314,20 @@ export default function First_DocumentUpload() {
                 switch (status) {
                     case 400:
                         return toast.error(
-                            "[OCR] Please reset the current file and try again."
+                            "AI got an invalid request. Please try again later."
                         );
                     case 500:
                         return toast.error(
-                            "[OCR] The server is not responding."
+                            "AI is not responding, please try again later."
                         );
                     default:
-                        return toast.error("[OCR] Unknown error occurred.");
+                        return toast.error("AI returned an unknown error.");
                 }
             } else {
                 // Handle other types of errors (e.g., network errors, timeout)
                 return toast.error(
                     Error.message ||
-                        "[OCR] An error occurred, please try again later."
+                        "AI is not responding, please try again later."
                 );
             }
         }
@@ -363,10 +367,10 @@ export default function First_DocumentUpload() {
 
             const { status, data } = response;
 
-            if (status == 200 && data.Session.Status == "Corrected") {
+            if (status == 200) {
                 Dispatch(
                     setProcess({
-                        isLoading: false,
+                        isLoading: true,
                     })
                 );
 
@@ -383,7 +387,7 @@ export default function First_DocumentUpload() {
                 toast.dismiss("Generating");
 
                 return toast.error(
-                    "[CLOUD] An error occurred. Please try again later."
+                    "Google Cloud returned an error. Please try again later."
                 );
             }
         } catch (Error: any) {
@@ -406,29 +410,22 @@ export default function First_DocumentUpload() {
                 switch (status) {
                     case 400:
                         return toast.error(
-                            "[CLOUD] Please reset the current file and try again."
+                            "Google Cloud got an invalid request. Please try again later."
                         );
                     case 500:
-                        return toast.error(
-                            "[CLOUD] The server is not responding."
-                        );
+                        return toast.error("Google Cloud is not responding.");
                     default:
-                        return toast.error("[CLOUD] Unknown error occurred.");
+                        return toast.error(
+                            "Unknown error occurred on Google Cloud."
+                        );
                 }
             } else {
                 // Handle other types of errors (e.g., network errors, timeout)
                 return toast.error(
                     Error.message ||
-                        "[CLOUD] An error occurred, please try again later."
+                        "A problem occured with the Cloud. Please try again later."
                 );
             }
-        }
-
-        // [STEP 5] Change the Step
-        if (!Session.Generation) {
-            return toast.error(
-                "[CLOUD] Oops! Something went wrong, please try again later."
-            );
         }
 
         Dispatch(
@@ -438,6 +435,9 @@ export default function First_DocumentUpload() {
         );
 
         toast.dismiss("Generating");
+
+        // Change the Step
+        Dispatch(setStep(Steps.Finish));
 
         toast.custom((t) => (
             <div

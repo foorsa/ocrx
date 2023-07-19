@@ -27,6 +27,7 @@ import { clearSession, setSession } from "@/redux/actions/sessionActions";
 import { resetFile } from "@/redux/actions/fileActions";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Session as SessionType } from "@/redux/types/states/Session";
+import { Steps } from "@/redux/types/states/Step";
 
 // Selection for Document Type
 
@@ -86,6 +87,8 @@ export default function Second_CorrectData() {
             }
         });
 
+        let MissingFields = [];
+
         RequiredFields?.forEach((StateField) => {
             if (
                 !StateField.value ||
@@ -93,80 +96,26 @@ export default function Second_CorrectData() {
                 StateField.value === null
             ) {
                 isValid = false;
-                toast.error(`Please fill in the field ${StateField.name}`);
+                MissingFields.push(StateField.name);
             }
         });
 
         if (isValid) {
-            // Reset the process
-            dispatch(
-                setProcess({
-                    isLoading: true,
-                    name: "Generating PDF",
-                    description: "Generating your PDF...",
-                })
-            );
-
-            const RequestData = {
-                SessionID: Session["Session Id"],
-                DocumentType: Doctype.name,
-                Fields: Doctype.fields,
-            };
-
-            // Check that the Request Data has all the required fields
-            for (const [key, value] of Object.entries(RequestData)) {
-                if (value === null || value === undefined) {
-                    console.log(
-                        `The field ${key} is missing in the request data.`
-                    );
-                    return toast.error(
-                        `The field ${key} is missing in the request data.`
-                    );
-                }
-            }
-
-            console.log("Request Data: ", RequestData);
-
-            const API_URL = getApiServerUrl();
-
-            const url = API_URL + "/api/generate";
-
             try {
-                const Response = await axios.post(url, RequestData);
+                toast.loading("Generating PDF...", {
+                    id: "Generating",
+                });
 
-                if (Response.status === 200) {
-                    console.log("Generated PDF successfully: ", Response.data);
+                // Set the process
+                dispatch(
+                    setProcess({
+                        isLoading: true,
+                    })
+                );
+
+                // Check Session ID
+                if (!Session["Session Id"]) {
                     // Reset the process
-                    dispatch(
-                        setProcess({
-                            isLoading: false,
-                            name: "Success",
-                            description: "Your PDF has been generated.",
-                        })
-                    );
-
-                    const Res = Response.data;
-
-                    const SessionData: SessionType = {
-                        "Session Id": Res["Session ID"],
-                        "Document Type": Res["Document Type"],
-                        Uploads: Res["Uploads"],
-                        Extraction: Res["Extraction"],
-                        Generation: Res["Generation"],
-                        Status: Res["Status"],
-                        Error: Res["Error"],
-                    };
-
-                    dispatch(setSession(SessionData));
-
-                    dispatch(nextStep());
-
-                    toast.success(Response.data.message);
-                } else {
-                    console.log("Error while generating PDF: ", Response.data);
-
-                    // Reset the process
-
                     dispatch(
                         setProcess({
                             isLoading: false,
@@ -174,14 +123,58 @@ export default function Second_CorrectData() {
                             description: "An error has occured.",
                         })
                     );
+                    toast.dismiss("Generating");
 
-                    toast.error(
-                        Response.data.message ||
-                            "An error has occured on the server !"
-                    );
+                    return toast.error("Session ID not found.");
                 }
-            } catch (err: any) {
-                console.log("Error while sending request: ", err);
+
+                // Start the Process
+                const GENERATION_URL = `${getApiServerUrl()}/api/v1/generate?Session_Id=${
+                    Session["Session Id"]
+                }`;
+
+                const Response = await axios.post(GENERATION_URL, {
+                    Values: Session.Extraction?.Corrected,
+                });
+
+                console.log(
+                    "Given Values to Generation URL: ",
+                    Session.Extraction?.Corrected
+                );
+
+                console.log("Response from Generation URL: ", Response);
+
+                if (Response.status === 200 && Response.data?.Session != null) {
+                    toast.dismiss("Generating");
+                    toast.success("PDF Generated Successfully.");
+
+                    // Set the process
+                    dispatch(
+                        setProcess({
+                            isLoading: false,
+                        })
+                    );
+
+                    // Set the session
+                    dispatch(setSession(Response.data?.Session as SessionType));
+
+                    // Set the step
+                    dispatch(setStep(Steps.Finish));
+                } else {
+                    // Reset the process
+                    dispatch(
+                        setProcess({
+                            isLoading: false,
+                            name: "Error",
+                            description: "An error has occured.",
+                        })
+                    );
+                    toast.dismiss("Generating");
+
+                    return toast.error("Error while generating PDF.");
+                }
+            } catch (Error) {
+                console.log("Error while sending request: ", Error);
                 // Reset the process
                 dispatch(
                     setProcess({
@@ -190,8 +183,7 @@ export default function Second_CorrectData() {
                         description: "An error has occured.",
                     })
                 );
-
-                toast.error(err.message);
+                toast.error(`${Error}`);
             }
         }
     };
