@@ -2,15 +2,56 @@ import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import { Doctype, Field } from "@/redux/types/states/Document Type";
+import { setSession } from "@/redux/actions/sessionActions";
 
 export default function Fields() {
     const dispatch = useAppDispatch();
     const Doctype: Doctype | null = useAppSelector(
         (state) => state.documentType
     );
+    const Session = useAppSelector((state) => state.session);
+
+    const Values = Session.Extraction?.Corrected;
+
+    useEffect(() => {
+        if (Doctype && Doctype.fields) {
+            // If there are values in the session, set them to the fields
+            if (Values && Object.keys(Values).length > 0) {
+                const newFields = Doctype.fields.map((field) => {
+                    // Make a copy
+                    const copiedField = { ...field };
+
+                    if (Values[copiedField.name]) {
+                        copiedField.value = Values[copiedField.name];
+                    }
+
+                    return copiedField;
+                });
+
+                dispatch(setDocumentType({ ...Doctype, fields: newFields }));
+            }
+        }
+    }, [Values]);
 
     const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
+
+        // Set the value in the session
+        if (Session.Extraction?.Corrected) {
+            // Disptach
+            dispatch(
+                setSession({
+                    ...Session,
+                    Extraction: {
+                        ...Session.Extraction,
+                        Corrected: {
+                            ...Session.Extraction.Corrected,
+                            [name]: value,
+                        },
+                    },
+                })
+            );
+        }
 
         // Update the field in the document type
         if (Doctype && Doctype.fields) {

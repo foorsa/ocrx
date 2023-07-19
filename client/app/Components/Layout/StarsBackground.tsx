@@ -97,7 +97,7 @@ const StarsBackground = () => {
                             enable: true,
                             area: 1000,
                         },
-                        value: 40,
+                        value: 20,
                     },
                     opacity: {
                         value: 1,

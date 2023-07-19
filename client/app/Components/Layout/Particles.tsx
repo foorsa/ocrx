@@ -108,8 +108,8 @@ export default function Particles({
         const y = Math.floor(Math.random() * canvasSize.current.h);
         const translateX = 0;
         const translateY = 0;
-        const size = Math.floor(Math.random() * 3) + 0.1;
-        const alpha = 0;
+        const size = Math.floor(Math.random() * 4) + 0.1;
+        const alpha = 0.5;
         const targetAlpha = parseFloat((Math.random() * 0.6 + 0.1).toFixed(1));
         const dx = (Math.random() - 0.5) * 0.2;
         const dy = (Math.random() - 0.5) * 0.2;
@@ -135,7 +135,7 @@ export default function Particles({
             context.current.beginPath();
             context.current.arc(x, y, size, 0, 2 * Math.PI);
             context.current.fillStyle = `rgba(${hexToRgb(
-                theme === "dark" ? "#ffffff" : Colors.purple[500]
+                theme === "dark" ? Colors.purple[500] : Colors.purple[500]
             )}, ${alpha})`;
             context.current.fill();
             context.current.setTransform(dpr, 0, 0, dpr, 0, 0);

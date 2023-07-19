@@ -12,7 +12,9 @@ interface Session {
         };
     }[];
     "Extraction"?: {
-        "Corrected"?: string;
+        "Corrected"?: {
+            [key: string]: string;
+        };
         "RAW"?: string;
         "Description": string;
     },

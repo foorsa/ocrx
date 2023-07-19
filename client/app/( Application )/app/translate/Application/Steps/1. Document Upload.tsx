@@ -11,6 +11,7 @@ import {
     CloseSquare,
     Code,
     Document,
+    DocumentDownload,
     DocumentText,
     DocumentUpload,
     Google,
@@ -199,11 +200,11 @@ export default function First_DocumentUpload() {
                 toast.dismiss("Extracting");
 
                 return toast.error(
-                    "An error occurred. Please try again later."
+                    "[SERVER] An error occurred. Please try again later."
                 );
             }
         } catch (error: any) {
-            console.log("Error while Trnaslating Data: ", error);
+            console.log("[SERVER] Error while Trnaslating Data: ", error);
 
             Dispatch(
                 setProcess({
@@ -219,18 +220,20 @@ export default function First_DocumentUpload() {
                 switch (status) {
                     case 400:
                         return toast.error(
-                            "Please reset the current file and try again."
+                            "[SERVER] Please reset the current file and try again."
                         );
                     case 500:
-                        return toast.error("The server is not responding.");
+                        return toast.error(
+                            "[SERVER] The server is not responding."
+                        );
                     default:
-                        return toast.error("Unknown error occurred.");
+                        return toast.error("[SERVER] Unknown error occurred.");
                 }
             } else {
                 // Handle other types of errors (e.g., network errors, timeout)
                 return toast.error(
                     error.message ||
-                        "An error occurred, please try again later."
+                        "[SERVER] An error occurred, please try again later."
                 );
             }
         }
@@ -287,11 +290,11 @@ export default function First_DocumentUpload() {
                 toast.dismiss("Translating");
 
                 return toast.error(
-                    "An error occurred. Please try again later."
+                    "[AI] An error occurred. Please try again later."
                 );
             }
         } catch (Error: any) {
-            console.log("Error while Trnaslating Data: ", Error);
+            console.log("Error while Translating Data: ", Error);
 
             Dispatch(
                 setProcess({
@@ -299,7 +302,7 @@ export default function First_DocumentUpload() {
                 })
             );
 
-            toast.dismiss("Extracting");
+            toast.dismiss("Translating");
 
             // Check if the error contains a response
             if (Error.response) {
@@ -307,18 +310,20 @@ export default function First_DocumentUpload() {
                 switch (status) {
                     case 400:
                         return toast.error(
-                            "Please reset the current file and try again."
+                            "[OCR] Please reset the current file and try again."
                         );
                     case 500:
-                        return toast.error("The server is not responding.");
+                        return toast.error(
+                            "[OCR] The server is not responding."
+                        );
                     default:
-                        return toast.error("Unknown error occurred.");
+                        return toast.error("[OCR] Unknown error occurred.");
                 }
             } else {
                 // Handle other types of errors (e.g., network errors, timeout)
                 return toast.error(
                     Error.message ||
-                        "An error occurred, please try again later."
+                        "[OCR] An error occurred, please try again later."
                 );
             }
         }
@@ -341,7 +346,7 @@ export default function First_DocumentUpload() {
 
                 console.log("Session ID is missing in: ", Session);
 
-                toast.dismiss("Translating");
+                toast.dismiss("Generating");
                 return toast.error(
                     "Session Identifier is missing, please restart the process."
                 );
@@ -365,7 +370,7 @@ export default function First_DocumentUpload() {
                     })
                 );
 
-                toast.dismiss("Translating");
+                toast.dismiss("Generating");
 
                 Dispatch(setSession(data.Session));
             } else {
@@ -375,14 +380,17 @@ export default function First_DocumentUpload() {
                     })
                 );
 
-                toast.dismiss("Translating");
+                toast.dismiss("Generating");
 
                 return toast.error(
-                    "An error occurred. Please try again later."
+                    "[CLOUD] An error occurred. Please try again later."
                 );
             }
         } catch (Error: any) {
-            console.log("Error while Generating Google Docs File: ", Error);
+            console.log(
+                "[CLOUD] Error while Generating Google Docs File: ",
+                Error
+            );
 
             Dispatch(
                 setProcess({
@@ -398,23 +406,30 @@ export default function First_DocumentUpload() {
                 switch (status) {
                     case 400:
                         return toast.error(
-                            "Please reset the current file and try again."
+                            "[CLOUD] Please reset the current file and try again."
                         );
                     case 500:
-                        return toast.error("The server is not responding.");
+                        return toast.error(
+                            "[CLOUD] The server is not responding."
+                        );
                     default:
-                        return toast.error("Unknown error occurred.");
+                        return toast.error("[CLOUD] Unknown error occurred.");
                 }
             } else {
                 // Handle other types of errors (e.g., network errors, timeout)
                 return toast.error(
                     Error.message ||
-                        "An error occurred, please try again later."
+                        "[CLOUD] An error occurred, please try again later."
                 );
             }
         }
 
         // [STEP 5] Change the Step
+        if (!Session.Generation) {
+            return toast.error(
+                "[CLOUD] Oops! Something went wrong, please try again later."
+            );
+        }
 
         Dispatch(
             setProcess({
@@ -426,12 +441,86 @@ export default function First_DocumentUpload() {
 
         toast.custom((t) => (
             <div
-                id="toast-simple"
-                className="flex items-center w-full max-w-xs p-4 space-x-4 text-zinc-500 bg-white divide-x divide-zinc-200 rounded-lg shadow dark:text-zinc-400 dark:divide-zinc-700 space-x dark:bg-zinc-800"
+                id="toast-interactive"
+                className={`relative z-10 w-full max-w-xs p-4 text-zinc-500 bg-white rounded-lg shadow-2xl dark:bg-zinc-900 dark:text-zinc-400`}
                 role="alert"
             >
-                <div className="pl-4 text-sm font-normal">
-                    Message sent successfully.
+                <div className="flex">
+                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-purple-500 bg-purple-100 rounded-lg dark:text-purple-300 dark:bg-purple-900">
+                        <DocumentDownload
+                            className="w-4 h-4"
+                            aria-hidden="true"
+                            variant="Bulk"
+                        />
+                        <span className="sr-only">
+                            File is Ready to Download !
+                        </span>
+                    </div>
+                    <div className="ml-3 text-sm font-normal">
+                        <span className="mb-1 text-sm font-semibold text-zinc-900 dark:text-white">
+                            File is Ready to Download !
+                        </span>
+                        <div className="mb-2 text-sm font-normal">
+                            <span className="text-zinc-500 dark:text-zinc-400">
+                                Click on the buttons below to download the file
+                                or edit it on Google Docs.
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <a
+                                    href={
+                                        Session?.Generation
+                                            ? Session.Generation[
+                                                  "Google Docs Link"
+                                              ]
+                                            : "#"
+                                    }
+                                    target="_blank"
+                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none dark:bg-purple-500 dark:hover:bg-purple-600"
+                                >
+                                    Google Docs
+                                </a>
+                            </div>
+                            <div>
+                                <a
+                                    href={
+                                        Session?.Generation
+                                            ? Session.Generation["PDF Link"]
+                                            : "#"
+                                    }
+                                    target="_blank"
+                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-zinc-900 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-100 focus:outline-none dark:bg-zinc-600 dark:text-white dark:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:border-zinc-700"
+                                >
+                                    Download
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => toast.remove(t.id)}
+                        className="ml-auto -mx-1.5 -my-1.5 bg-white items-center justify-center flex-shrink-0 text-zinc-400 hover:text-zinc-900 rounded-lg p-1.5 hover:bg-zinc-100 inline-flex h-8 w-8 dark:text-zinc-500 dark:hover:text-white dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                        data-dismiss-target="#toast-interactive"
+                        aria-label="Close"
+                    >
+                        <span className="sr-only">Close</span>
+                        <svg
+                            className="w-3 h-3"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 14 14"
+                        >
+                            <path
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                            />
+                        </svg>
+                    </button>
                 </div>
             </div>
         ));
@@ -472,92 +561,7 @@ export default function First_DocumentUpload() {
             {/* Next Step */}
             {!Process.isLoading && (
                 <button
-                    onClick={() => {
-                        toast.custom((t) => (
-                            <div
-                                id="toast-interactive"
-                                className="w-full max-w-xs p-4 text-zinc-500 bg-white rounded-lg shadow dark:bg-zinc-800 dark:text-zinc-400"
-                                role="alert"
-                            >
-                                <div className="flex">
-                                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-purple-500 bg-purple-100 rounded-lg dark:text-purple-300 dark:bg-purple-900">
-                                        <svg
-                                            className="w-4 h-4"
-                                            aria-hidden="true"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 18 20"
-                                        >
-                                            <path
-                                                stroke="currentColor"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M16 1v5h-5M2 19v-5h5m10-4a8 8 0 0 1-14.947 3.97M1 10a8 8 0 0 1 14.947-3.97"
-                                            />
-                                        </svg>
-                                        <span className="sr-only">
-                                            File is Ready to Download !
-                                        </span>
-                                    </div>
-                                    <div className="ml-3 text-sm font-normal">
-                                        <span className="mb-1 text-sm font-semibold text-zinc-900 dark:text-white">
-                                            File is Ready to Download !
-                                        </span>
-                                        <div className="mb-2 text-sm font-normal">
-                                            <span className="text-zinc-500 dark:text-zinc-400">
-                                                Click on the buttons below to
-                                                download the file or edit it on
-                                                Google Docs.
-                                            </span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <a
-                                                    href="#"
-                                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none dark:bg-purple-500 dark:hover:bg-purple-600"
-                                                >
-                                                    Google Docs
-                                                </a>
-                                            </div>
-                                            <div>
-                                                <a
-                                                    href="#"
-                                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-zinc-900 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-100 focus:outline-none dark:bg-zinc-600 dark:text-white dark:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:border-zinc-700"
-                                                >
-                                                    Download
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => toast.dismiss(t.id)}
-                                        className="ml-auto -mx-1.5 -my-1.5 bg-white items-center justify-center flex-shrink-0 text-zinc-400 hover:text-zinc-900 rounded-lg focus:ring-2 focus:ring-zinc-300 p-1.5 hover:bg-zinc-100 inline-flex h-8 w-8 dark:text-zinc-500 dark:hover:text-white dark:bg-zinc-800 dark:hover:bg-zinc-700"
-                                        data-dismiss-target="#toast-interactive"
-                                        aria-label="Close"
-                                    >
-                                        <span className="sr-only">Close</span>
-                                        <svg
-                                            className="w-3 h-3"
-                                            aria-hidden="true"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 14 14"
-                                        >
-                                            <path
-                                                stroke="currentColor"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                                            />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        ));
-                    }}
+                    onClick={handleNextStep}
                     className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-700 rounded-lg hover:bg-purple-800 focus:outline-none dark:bg-purple-600 dark:hover:bg-purple-700 focus:bg-purple-500 active:bg-purple-900 transition duration-150 ease-in-out"
                 >
                     Process

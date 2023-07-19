@@ -121,7 +121,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         </ToastBar>
                     )}
                 </Toaster>
-                <AnimatedCursor
+                {/* <AnimatedCursor
                     // Cursor Configuration
                     innerSize={8}
                     outerSize={8}
@@ -142,7 +142,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         "button",
                         ".link",
                     ]}
-                />
+                /> */}
                 {children}
             </main>
         </ThemeProvider>
