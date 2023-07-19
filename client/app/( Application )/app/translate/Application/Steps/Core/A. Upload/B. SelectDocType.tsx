@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Fragment, useCallback, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowDown2, BoxTick, Code, TableDocument } from "iconsax-react";
 
@@ -29,25 +29,24 @@ const SelectDocType = () => {
         setDropdownOpen(!dropdownOpen);
     };
 
-    // searchParams with a provided key/value pair
-    const createQueryString = useCallback(
-        (name: string, value: string) => {
-            const params = new URLSearchParams(SearchParams.toString());
-            params.set(name, value);
+    const createQueryString = (name: string, value: string) => {
+        const params = new URLSearchParams(SearchParams.toString());
+        params.set(name, value);
 
-            return params.toString();
-        },
-        [SearchParams]
-    );
+        return params.toString();
+    };
+
+    useEffect(() => {
+        setDropdownOpen(false);
+    }, [SearchParams]);
 
     const handleSelectType = (type: DocumentType) => {
         setDropdownOpen(false);
         dispatch(setDocumentType(type));
-        // Change URL Search Parameter to the selected document type
         const queryString = createQueryString("doc", type.id);
 
-        // <pathname>?doc=doctype
-        Router.replace(Pathname + "?" + queryString, { scroll: false } as any);
+        // Update the URL without reloading the page and without history
+        Router.replace(`${Pathname}?${queryString}`);
     };
 
     return (
@@ -75,14 +74,14 @@ const SelectDocType = () => {
             </Menu.Button>
             <Transition
                 as={Fragment}
-                enter="transition ease-out duration-100"
+                enter="transition ease-out duration-200"
                 enterFrom="transform opacity-0 scale-95"
                 enterTo="transform opacity-100 scale-100"
-                leave="transition ease-in duration-75"
+                leave="transition ease-in duration-100"
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
             >
-                <Menu.Items className="absolute right-0 origin-top-right left-0 mt-2 w-full bg-white divide-y divide-zinc-100 rounded-lg shadow-2xl dark:bg-zinc-900 z-50 border-zinc-300 dark:border-zinc-600">
+                <Menu.Items className="absolute right-0 origin-top-right left-0 mt-2 w-full bg-white divide-y divide-zinc-100 rounded-lg shadow-2xl dark:bg-zinc-900 z-50 border-zinc-300 dark:border-zinc-600 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-300 scrollbar-track-transparent scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
                     <ul
                         className="p-5 text-sm text-zinc-700 dark:text-zinc-200 space-y-2 text-left"
                         aria-labelledby="document-type"
@@ -97,7 +96,9 @@ const SelectDocType = () => {
                                         {Document.documents.map(
                                             (InnerDocument) => {
                                                 return (
-                                                    <Menu.Item>
+                                                    <Menu.Item
+                                                        key={InnerDocument.id}
+                                                    >
                                                         {({ active }) => (
                                                             <>
                                                                 {InnerDocument.state ===
@@ -131,27 +132,27 @@ const SelectDocType = () => {
                                                                         </div>
                                                                     </button>
                                                                 ) : (
-                                                                    <button
-                                                                        type="button"
-                                                                        className={
-                                                                            "inline-flex w-full px-4 py-2 text-sm rounded-md text-zinc-400 cursor-not-allowed dark:text-zinc-600"
-                                                                        }
-                                                                        onClick={() =>
-                                                                            toast.error(
-                                                                                "This document is not supported yet."
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        {" "}
-                                                                        <TableDocument
-                                                                            color="currentColor"
-                                                                            className="mr-2"
-                                                                            variant="Bulk"
-                                                                        />
-                                                                        {
-                                                                            InnerDocument.name
-                                                                        }
-                                                                    </button>
+                                                                    <>
+                                                                        {/* <button
+                                    type="button"
+                                    className={
+                                      "inline-flex w-full px-4 py-2 text-sm rounded-md text-zinc-400 cursor-not-allowed dark:text-zinc-600"
+                                    }
+                                    onClick={() =>
+                                      toast.error(
+                                        "This document is not supported yet."
+                                      )
+                                    }
+                                  >
+                                    {" "}
+                                    <TableDocument
+                                      color="currentColor"
+                                      className="mr-2"
+                                      variant="Bulk"
+                                    />
+                                    {InnerDocument.name}
+                                  </button> */}
+                                                                    </>
                                                                 )}
                                                             </>
                                                         )}

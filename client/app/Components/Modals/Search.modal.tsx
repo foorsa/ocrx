@@ -271,7 +271,7 @@ export default function SearchModal() {
 
                                     {Search.term.length > 0 && (
                                         <>
-                                            <div className="w-full relative h-full overflow-x-hidden overflow-y-auto bg-zinc-100 dark:bg-zinc-950">
+                                            <div className="w-full relative h-full overflow-x-hidden overflow-y-auto bg-zinc-100 dark:bg-zinc-950 p-5 flex flex-col">
                                                 {FilteredDocuments.map(
                                                     (DocumentGroup) => {
                                                         return (
@@ -281,12 +281,12 @@ export default function SearchModal() {
                                                                 }
                                                             >
                                                                 <div className="w-full relative h-auto flex flex-col items-center justify-start"></div>
-                                                                <h3 className="px-5 py-2 relative text-left h-auto w-full bg-zinc-100 dark:bg-zinc-950 text-zinc-700 dark:text-zinc-200 font-bold text-xs">
+                                                                <h3 className="px-5 py-2 relative text-left h-auto w-full bg-zinc-100 dark:bg-zinc-950 text-zinc-700 dark:text-zinc-200 font-bold text-xs mb-2">
                                                                     {
                                                                         DocumentGroup.name
                                                                     }
                                                                 </h3>
-                                                                <div className="relative h-auto w-full flex flex-col items-center justify-start bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white">
+                                                                <div className="relative h-auto w-full flex flex-col items-center justify-start text-zinc-900 dark:text-white">
                                                                     {DocumentGroup.documents.map(
                                                                         (
                                                                             DocumentGroupElement,
@@ -323,14 +323,15 @@ export default function SearchModal() {
                                                                                         }
                                                                                     }}
                                                                                     href={`/app/translate?doc=${DocumentGroupElement.id}`}
-                                                                                    className={`group text-sm px-5 py-2 w-full relative h-auto max-h-full bg-none flex gap-2 justify-start items-center
+                                                                                    className={`group text-sm px-5 py-5 w-full relative h-auto max-h-full bg-none flex gap-2 justify-start items-center rounded-md
+                                                                                        mb-1
                                                                                     ${
                                                                                         SelectedDocument !==
                                                                                             null &&
                                                                                         SelectedDocument.id ===
                                                                                             DocumentGroupElement.id
                                                                                             ? "bg-purple-500 dark:bg-purple-600 text-purple-50 dark:text-purple-100 hover:bg-purple-500 dark:hover:bg-purple-600 hover:text-purple-50 dark:hover:text-purple-100"
-                                                                                            : "odd:bg-white even:bg-zinc-100 odd:dark:bg-zinc-900 even:dark:bg-zinc-950"
+                                                                                            : "bg-white odd:dark:bg-zinc-900 even:dark:bg-zinc-950 text-bold"
                                                                                     }
                                                                                     `}
                                                                                 >
@@ -374,12 +375,12 @@ export default function SearchModal() {
                                                     Search Engine credits to
                                                     <span className="text-purple-500 ml-1 dark:text-purple-600 hover:text-purple-400 dark:hover:text-purple-100">
                                                         <a
-                                                            href="https://github.com/yassine-ct"
+                                                            href="https://github.com/eldevyas"
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                         >
                                                             {" "}
-                                                            Developer{" "}
+                                                            Eldevyas{" "}
                                                         </a>
                                                     </span>
                                                     .
