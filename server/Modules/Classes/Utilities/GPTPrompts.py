@@ -89,7 +89,13 @@ def GeneratePrompt(Doctype):
 
                 # Loop through the fields and append them to the PromptOptions list
                 for Field in Fields:
-                    PromptOptions.append(f"{Field['name']}: {Field['description']}")
+                    FieldInformation = f'{Field["name"]}: {Field["description"]}'
+
+                    # Check if the field has a Property named "example"
+                    if "example" in Field:
+                        FieldInformation += f' Example: {Field["example"]}'
+
+                    PromptOptions.append(FieldInformation)
 
     AvailableDoctypes = "\n \n".join(AvailableDoctypes)
     PromptOptions = "\n \n".join(PromptOptions)
