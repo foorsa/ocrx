@@ -14,6 +14,7 @@ export type DocumentType = {
         description: string;
         required: boolean;
         value: string;
+        example?: string;
     }[];
 }
 

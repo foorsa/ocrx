@@ -12,6 +12,9 @@ import { Documents } from "@/redux/data/Documents";
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import BaccalaureateDegree from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
 import { setSearch } from "@/redux/slices/searchSlice";
+import { clearSession } from "@/redux/actions/sessionActions";
+import { resetFile } from "@/redux/actions/fileActions";
+import { resetStep } from "@/redux/actions/stepActions";
 
 const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     return (
@@ -46,14 +49,23 @@ export default function Container({
             Doc.documents.map((Doc) => {
                 if (Doc.id === DocId && !isFound) {
                     isFound = true;
-                    // Check if the Doctype in the store already has values
-                    const hasValues = Doctype?.fields.some(
-                        (field) => field.value !== ""
-                    );
-                    // Only dispatch the action if the Doctype doesn't have values
-                    if (!hasValues) {
-                        return Dispatch(setDocumentType(Doc));
+
+                    // If the Current Document Type is not the same as the one in the URL, then change it
+                    if (Doctype?.id !== Doc.id) {
+                        // Clear the state of all things
+                        Dispatch(setSearch(""));
+
+                        // Clear the Session
+                        Dispatch(clearSession());
+
+                        // Clear the uploaded Files
+                        Dispatch(resetFile());
+
+                        // Clear the Step
+                        Dispatch(resetStep());
                     }
+
+                    return Dispatch(setDocumentType(Doc));
                 }
             });
         });

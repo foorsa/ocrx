@@ -8,46 +8,36 @@ export const SchoolCertificate: DocumentType = {
     "templateId": "18HyzaYEH9JPbseo_SXebTBZ-O8gjAIP_x-m6XDRVbAU",
     "fields": [
         {
-            "name": "Number",
+            "name": "Province",
             "type": "text",
-            "description": "Number of the School Certificate",
+            "description": "Name of the Provincial Leadership",
             "required": true,
             "value": "",
+            "example": `"Rabat", "Casablanca-Settat", etc.`
         },
         {
-            "name": "Candidate",
+            "name": "Region",
             "type": "text",
-            "description": "Candidate Name",
+            "description": "Name of the Regional Leadership",
             "required": true,
             "value": "",
+            "example": `"Rabat Sale Kenitra", "Grand Casablanca", etc.`
         },
         {
-            "name": "Date of birth",
+            "name": "Year",
             "type": "text",
-            "description": "Candidate Date of Birth",
+            "description": "School Year of the Student",
             "required": true,
             "value": "",
+            "example": `"2020/2021", "2021/2022", etc.`
         },
         {
-            "name": "City of birth",
+            "name": "Commune",
             "type": "text",
-            "description": "City of the Candidate",
+            "description": "Name of the Commune",
             "required": true,
             "value": "",
-        },
-        {
-            "name": "Candidate Number",
-            "type": "text",
-            "description": "Candidate Number",
-            "required": true,
-            "value": "",
-        },
-        {
-            "name": "Secondary Language",
-            "type": "text",
-            "description": "Secondary Language",
-            "required": true,
-            "value": "",
+            "example": `"Rabat", "Casablanca", etc.`
         },
         {
             "name": "Institute",
@@ -55,20 +45,47 @@ export const SchoolCertificate: DocumentType = {
             "description": "Institute of the Candidate",
             "required": true,
             "value": "",
+            "example": `"Mohamed V", "Hassan II", etc.`
         },
         {
-            "name": "Province",
+            "name": "Student Name",
             "type": "text",
-            "description": "Name of the Provincial Leadership",
+            "description": "Name of the Candidate",
             "required": true,
             "value": "",
+            "example": `"Mohamed Ali", "Yassine Chettouch", etc.`
         },
         {
-            "name": "Level",
+            "name": "Student Code",
             "type": "text",
-            "description": "Current level of the Candidate at the institution",
+            "description": "Code of the Candidate",
             "required": true,
             "value": "",
+            "example": `"R131240282", "J105020120", etc.`
+        },
+        {
+            "name": "Date of birth",
+            "type": "text",
+            "description": "Candidate Date of Birth",
+            "required": true,
+            "value": "",
+            "example": `"01/01/2000", "01/01/2001", etc.`
+        },
+        {
+            "name": "City of birth",
+            "type": "text",
+            "description": "City of the Candidate",
+            "required": true,
+            "value": "",
+            "example": `"Rabat", "Casablanca", etc.`
+        },
+        {
+            "name": "Option",
+            "type": "text",
+            "description": "Option of the Candidate",
+            "required": true,
+            "value": "",
+            "example": `"Mathematical Sciences", "Physical Sciences", etc.`,
         },
         {
             "name": "Date of issue",

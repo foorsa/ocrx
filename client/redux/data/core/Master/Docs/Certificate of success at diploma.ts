@@ -22,7 +22,7 @@ export const CertificateOfSuccessAtDiploma: DocumentType = {
             value: "",
         },
         {
-            name: "Student",
+            name: "Student Name",
             type: "text",
             description: "Student's Full Name",
             required: true,
@@ -36,6 +36,13 @@ export const CertificateOfSuccessAtDiploma: DocumentType = {
             value: "",
         },
         {
+            name: "City of birth",
+            type: "text",
+            description: "Student's  City of Birth",
+            required: true,
+            value: "",
+        },
+        {
             name: "Date of birth",
             type: "text",
             description: "Student's  Date of Birth",
@@ -45,16 +52,18 @@ export const CertificateOfSuccessAtDiploma: DocumentType = {
         {
             name: "Option",
             type: "text",
-            description: "Option of the Candidate, e.g: Computer Science, etc.",
+            description: "Option of the Candidate",
             required: true,
             value: "",
+            example: "Mathematical Sciences, Physical Sciences, etc.",
         },
         {
             name: "Grade",
             type: "text",
-            description: "Grade of the Candidate, e.g: Pass, Very Good, etc.",
+            description: "Grade of the Candidate",
             required: true,
             value: "",
+            example: "Good Enough, Good, Very Good, etc.",
         },
         {
             name: "Year",
@@ -66,14 +75,14 @@ export const CertificateOfSuccessAtDiploma: DocumentType = {
         {
             name: "Certificate City",
             type: "text",
-            description: "Year of the Certificate, e.g: 2019, etc.",
+            description: "City of the Certificate",
             required: true,
             value: "",
         },
         {
             name: "Certificate Date",
             type: "text",
-            description: "Year of the Certificate, e.g: 2019, etc.",
+            description: "Year of the Certificate",
             required: true,
             value: "",
         },

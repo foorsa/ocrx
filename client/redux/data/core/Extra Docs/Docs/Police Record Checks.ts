@@ -8,6 +8,14 @@ export const PoliceRecordChecks: DocumentType = {
     templateId: "18JiMZbk2qHXnhi0ecqHKq3L4Hu4GLNWnirx2PXKAoi0",
     fields: [
         {
+            name: "Province",
+            type: "text",
+            description: "Name of the Provincial Leadership",
+            required: true,
+            value: "",
+            example: "Fes, Rabat, Casablanca, etc.",
+        },
+        {
             name: "Start Date",
             type: "text",
             description: "Start Date of the Police Record Checks",
@@ -27,6 +35,7 @@ export const PoliceRecordChecks: DocumentType = {
             description: "Identity Card Number of the Candidate",
             required: true,
             value: "",
+            example: "EE123456, AS23244, AE22424, EL23244",
         },
         {
             name: "First Name",

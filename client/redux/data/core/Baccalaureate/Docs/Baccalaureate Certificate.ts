@@ -8,11 +8,20 @@ export const BaccalaureateCertificate: DocumentType = {
     templateId: "1X3rr9TPPR7egAZLvDalNBAnkOYizgAmezHwFgRw1rzE",
     fields: [
         {
+            name: "Province",
+            type: "text",
+            description: "Name of the Provincial Leadership",
+            required: true,
+            value: "",
+            example: `"Rabat", "Casablanca-Settat", etc.`
+        },
+        {
             name: "Serial Number",
             type: "text",
             description: "Serial Number of the Baccalaureate Certificate",
             required: true,
             value: "",
+            example: `"C123456789", "K137260939", etc.`
         },
         {
             name: "Candidate",
@@ -20,6 +29,7 @@ export const BaccalaureateCertificate: DocumentType = {
             description: "Candidate Name",
             required: true,
             value: "",
+            example: `"Mohamed Ali", "Yassine Chettouch", etc.`
         },
         {
             name: "Date of birth",
@@ -41,13 +51,7 @@ export const BaccalaureateCertificate: DocumentType = {
             description: "Institute of the Candidate",
             required: true,
             value: "",
-        },
-        {
-            name: "Province",
-            type: "text",
-            description: "Name of the Provincial Leadership",
-            required: true,
-            value: "",
+            example: `"Mohamed V", "Hassan II", etc.`
         },
         {
             name: "Session",
@@ -55,6 +59,15 @@ export const BaccalaureateCertificate: DocumentType = {
             description: "Year and Month, e.g: July 2020, etc.",
             required: true,
             value: "",
+            example: `"July 2020", "June  2023", etc.`
+        },
+        {
+            name: "Series",
+            type: "text",
+            description: "Series of the Baccalaureate Certificate",
+            required: true,
+            value: "",
+            example: `"Economic Sciences", "Mathematics", etc.`
         },
         {
             name: "Option",
@@ -62,6 +75,7 @@ export const BaccalaureateCertificate: DocumentType = {
             description: "Specialty Name",
             required: true,
             value: "",
+            example: `"Economics and Management", "Physical Sciences", etc.`,
         },
         {
             name: "Grade",
@@ -69,6 +83,8 @@ export const BaccalaureateCertificate: DocumentType = {
             description: "Mention of the Candidate",
             required: true,
             value: "",
+            example: `"Excellent", "Very Good", "Good", "Good Enough", 
+            "Passable", "Passable Enough", "Insufficient", etc.`,
         },
         {
             name: "Date of issue",
@@ -76,6 +92,7 @@ export const BaccalaureateCertificate: DocumentType = {
             description: "Date of the Issue of the cerrtificate",
             required: true,
             value: "",
+            example: `"12/03/2002", "01/11/2003", etc.`
         }
     ],
 }
