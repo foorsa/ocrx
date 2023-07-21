@@ -42,38 +42,40 @@ export default function Container({
     const Doctype = useAppSelector((state) => state.documentType); // Add this line
     const Dispatch = useAppDispatch();
 
-    if (DocId !== undefined && DocId != "" && typeof DocId === "string") {
-        const Docs = Documents;
-        let isFound = false;
-        const Doc = Docs.map((Doc) => {
-            Doc.documents.map((Doc) => {
-                if (Doc.id === DocId && !isFound) {
-                    isFound = true;
+    useEffect(() => {
+        if (DocId !== undefined && DocId != "" && typeof DocId === "string") {
+            const Docs = Documents;
+            let isFound = false;
+            const Doc = Docs.map((Doc) => {
+                Doc.documents.map((Doc) => {
+                    if (Doc.id === DocId && !isFound) {
+                        isFound = true;
 
-                    // If the Current Document Type is not the same as the one in the URL, then change it
-                    if (Doctype?.id !== Doc.id) {
-                        // Clear the state of all things
-                        Dispatch(setSearch(""));
+                        // If the Current Document Type is not the same as the one in the URL, then change it
+                        if (Doctype?.id !== Doc.id) {
+                            // Clear the state of all things
+                            Dispatch(setSearch(""));
 
-                        // Clear the Session
-                        Dispatch(clearSession());
+                            // Clear the Session
+                            Dispatch(clearSession());
 
-                        // Clear the uploaded Files
-                        Dispatch(resetFile());
+                            // Clear the uploaded Files
+                            Dispatch(resetFile());
 
-                        // Clear the Step
-                        Dispatch(resetStep());
+                            // Clear the Step
+                            Dispatch(resetStep());
+                        }
+
+                        return Dispatch(setDocumentType(Doc));
                     }
-
-                    return Dispatch(setDocumentType(Doc));
-                }
+                });
             });
-        });
 
-        if (!isFound) {
-            Dispatch(setDocumentType(BaccalaureateDegree));
+            if (!isFound) {
+                Dispatch(setDocumentType(BaccalaureateDegree));
+            }
         }
-    }
+    }, [DocId]);
 
     const SlideToLeft =
         Step === Steps.Upload ? true : Step === Steps.Correct ? true : false;
