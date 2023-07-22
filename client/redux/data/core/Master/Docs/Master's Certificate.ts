@@ -84,7 +84,7 @@ export const MasterCertificate: DocumentType = {
             example: "A199567890, A343556789, E344327890, etc.",
         },
         {
-            name: "Departement",
+            name: "Department",
             type: "text",
             description: "Departement of the Candidate",
             required: true,
@@ -100,9 +100,9 @@ export const MasterCertificate: DocumentType = {
             example: "Computer Science, Mathematics, Physics, etc.",
         },
         {
-            name: "Grade",
+            name: "Mention",
             type: "text",
-            description: "Grade of the Candidate",
+            description: "Mention of the Candidate",
             required: true,
             value: "",
             example: "Very Good, Good, Good Enough, etc.",

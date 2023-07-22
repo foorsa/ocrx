@@ -88,6 +88,13 @@ export const SchoolCertificate: DocumentType = {
             "example": `"Mathematical Sciences", "Physical Sciences", etc.`,
         },
         {
+            "name": "City of issue",
+            "type": "text",
+            "description": "City of issue of the School Certificate",
+            "required": true,
+            "value": "",
+        },
+        {
             "name": "Date of issue",
             "type": "text",
             "description": "Date of issue of the School Certificate",
