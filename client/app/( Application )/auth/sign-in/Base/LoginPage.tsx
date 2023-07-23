@@ -29,11 +29,32 @@ export default function LoginPage() {
         <section className="w-full h-auto">
             <div className="flex flex-col items-center justify-center p-5 mx-auto md:h-screen lg:py-0">
                 <OCRX_ICON isLoading={false} />
-                <div className="p-5 flex flex-col justify-center items-center w-full max-w-lg overflow-hidden">
+                <div className="flex flex-col justify-center items-center w-full max-w-lg overflow-hidden">
                     <div className="p-6 space-y-4 md:space-y-6 sm:p-8 w-full">
-                        <h1 className="text-2xl text-center font-bold leading-tight tracking-tight text-zinc-900 md:text-2xl dark:text-white">
+                        <h1 className="text-center text-xl font-bold leading-tight tracking-tight text-zinc-900 md:text-4xl dark:text-white">
                             Sign in to your account
                         </h1>
+                        {/* Social Buttons */}
+                        <div className="flex flex-row gap-2">
+                            <button
+                                type="button"
+                                className="inline-flex justify-center items-center gap-2 focus:outline-none w-full text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900"
+                            >
+                                <Login
+                                    color="currentColor"
+                                    variant="Bulk"
+                                    className="w-4 h-4"
+                                />
+                                <span>Sign in with Google</span>
+                            </button>
+                        </div>
+
+                        <div className="inline-flex items-center justify-center w-full">
+                            <hr className="w-64 h-px my-8 bg-zinc-300 border-0 dark:bg-zinc-600" />
+                            <span className="absolute px-3 font-medium text-zinc-900 -translate-x-1/2 bg-white left-1/2 dark:text-white dark:bg-zinc-950 transition-all duration-500">
+                                or
+                            </span>
+                        </div>
                         <form
                             className="space-y-4 md:space-y-6"
                             action="#"
@@ -91,7 +112,7 @@ export default function LoginPage() {
                                             id="remember"
                                             aria-describedby="remember"
                                             type="checkbox"
-                                            className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                            className="w-4 h-4 text-purple-600 bg-zinc-100 border-zinc-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-zinc-950 focus:ring-2 dark:bg-zinc-900 dark:border-zinc-950"
                                             required={false}
                                         />
                                     </div>
@@ -105,7 +126,7 @@ export default function LoginPage() {
                                         </label>
                                     </div>
                                 </div>
-                                <a className="text-sm font-medium text-zinc-500 hover:underline dark:text-zinc-300 cursor-pointer">
+                                <a className="text-sm font-medium text-purple-500 hover:underline dark:text-purple-500 cursor-pointer">
                                     Forgot password?
                                 </a>
                             </div>
@@ -119,7 +140,7 @@ export default function LoginPage() {
                                     variant="Bulk"
                                 />
                             </button>
-                            <p className="text-sm font-light text-zinc-500 dark:text-zinc-400">
+                            <p className="text-sm font-light text-zinc-500 dark:text-zinc-400 text-center">
                                 Don’t have an account yet?{" "}
                                 <Link
                                     href={"/auth/sign-up"}

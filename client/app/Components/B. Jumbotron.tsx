@@ -46,36 +46,40 @@ export default function Jumbotron() {
     return (
         <div className="mx-auto flex max-w-screen-xl flex-col items-center justify-center p-10 text-center lg:py-16">
             {/* <AnimatePresence mode="wait"> */}
-            <div className="hidden sm:mb-8 sm:flex sm:justify-center">
-                <motion.div
-                    initial="Initial"
-                    animate="Enter"
-                    exit="Exit"
-                    variants={Variants}
-                    transition={{ delay: 0, type: "spring", bounce: 0 }}
-                    className="relative rounded-full px-3 py-1 text-sm leading-6 text-zinc-600 ring-1 ring-zinc-900/25 hover:ring-zinc-900/50 dark:text-zinc-100 dark:ring-zinc-100/25 dark:hover:ring-zinc-100/50"
+            <motion.div
+                initial="Initial"
+                animate="Enter"
+                exit="Exit"
+                variants={Variants}
+                transition={{ delay: 0, type: "spring", bounce: 0 }}
+            >
+                <Link
+                    href="/app"
+                    className="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-purple-700 bg-purple-100 rounded-full dark:bg-purple-900 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 bg-opacity-25 backdrop-blur-md dark:bg-opacity-25 dark:backdrop-blur-md"
                 >
-                    {/* Alpha Version */}
-                    Web App is currently in{" "}
-                    <Link
-                        href="/app"
-                        className="font-semibold text-purple-600 
-                            hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-600
-                            "
+                    <span className="text-xs bg-purple-600 rounded-full text-white px-4 py-1.5 mr-3">
+                        New
+                    </span>{" "}
+                    <span className="text-sm font-medium">
+                        Tabular Information Extraction was Launched ! 🚀
+                    </span>
+                    <svg
+                        className="w-2.5 h-2.5 ml-2"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 6 10"
                     >
-                        <span
-                            className="absolute inset-0"
-                            aria-hidden="true"
-                        ></span>
-                        Alpha
-                        <ArrowRight3
-                            className="ml-1 inline-block h-4 w-4"
-                            color="currentColor"
-                            variant="Bulk"
+                        <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m1 9 4-4-4-4"
                         />
-                    </Link>
-                </motion.div>
-            </div>
+                    </svg>
+                </Link>
+            </motion.div>
             <motion.h1
                 initial="Initial"
                 animate="Enter"
