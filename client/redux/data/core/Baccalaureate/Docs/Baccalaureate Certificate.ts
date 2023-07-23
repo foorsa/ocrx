@@ -4,6 +4,7 @@ export const BaccalaureateCertificate: DocumentType = {
     id: "Baccalaureate-Certificate",
     name: "Baccalaureate Certificate",
     description: "The Baccalaureate Certificate is a document that certifies that the candidate has passed the Baccalaureate Examination.",
+    "tags": ["Regular"],
     state: "Available",
     templateId: "1X3rr9TPPR7egAZLvDalNBAnkOYizgAmezHwFgRw1rzE",
     fields: [

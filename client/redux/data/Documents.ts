@@ -2,10 +2,14 @@ import { Baccalaureate } from "./core/Baccalaureate/Baccalaureate";
 import { Master } from "./core/Master/Master";
 import { ExtraDocs } from "./core/Extra Docs/ExtraDocs";
 
+type TagType = "Regular" | "Tabular";
+
+
 export type DocumentType = {
     name: string;
     id: string;
     description: string;
+    tags?: TagType[];
     state: "Available" | "Unavailable";
     templateId: string;
     fields: {

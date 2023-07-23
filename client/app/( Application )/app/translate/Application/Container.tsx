@@ -15,8 +15,11 @@ import { setSearch } from "@/redux/slices/searchSlice";
 import { clearSession } from "@/redux/actions/sessionActions";
 import { resetFile } from "@/redux/actions/fileActions";
 import { resetStep } from "@/redux/actions/stepActions";
+import { useRouter } from "next/navigation";
 
 const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
+    const Router = useRouter();
+
     return (
         <div
             className={`${
@@ -27,6 +30,7 @@ const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
                 src="/Logo/Black.png"
                 className="h-2/3 w-2/3 object-contain"
                 alt="Foorsa Logo"
+                onClick={() => Router.push("/")}
             />
         </div>
     );

@@ -1,6 +1,14 @@
 "use client";
 import { Button } from "flowbite-react";
-import { Airplane, Flash, Moon, Sun1 } from "iconsax-react";
+import {
+    Airplane,
+    Flash,
+    Lock,
+    Login,
+    LoginCurve,
+    Moon,
+    Sun1,
+} from "iconsax-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import React from "react";
@@ -48,15 +56,26 @@ export default function Header() {
                 </Link>
                 <div className="flex gap-2 md:order-2">
                     <ThemeToggle />
-                    <Link href="/app" className="flex items-center">
+                    <Link href="/auth/sign-up" className="flex items-center">
                         <button
                             type="button"
-                            className="mr-3 inline-flex items-center rounded-lg bg-black px-4 py-2 text-center text-sm font-medium text-white ring-0 hover:bg-purple-800 focus:outline-none dark:bg-purple-600 dark:hover:bg-purple-700 md:mr-0"
+                            className="inline-flex text-center justify-center items-center gap-2 rounded-lg p-2.5 text-sm text-zinc-500 ring-0 hover:bg-zinc-100 focus:outline-none dark:text-zinc-400 dark:hover:bg-zinc-700"
                         >
-                            <span className="mr-2 hidden text-sm font-semibold md:block">
-                                Launch App
+                            <LoginCurve variant="Bulk" color="currentColor" />
+                            <span className="hidden text-sm font-semibold md:block">
+                                Sign up
                             </span>
-                            <Flash variant="Bulk" color="currentColor" />
+                        </button>
+                    </Link>
+                    <Link href="/auth/sign-in" className="flex items-center">
+                        <button
+                            type="button"
+                            className="inline-flex text-center justify-center items-center gap-2 text-white bg-zinc-800 hover:bg-zinc-900 focus:outline-none focus:ring-4 focus:ring-zinc-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:focus:ring-zinc-700 dark:border-zinc-700"
+                        >
+                            <Lock variant="Bulk" color="currentColor" />
+                            <span className="hidden text-sm font-semibold md:block">
+                                Sign in
+                            </span>
                         </button>
                     </Link>
                 </div>

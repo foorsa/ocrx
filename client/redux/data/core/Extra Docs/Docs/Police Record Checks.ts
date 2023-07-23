@@ -4,6 +4,7 @@ export const PoliceRecordChecks: DocumentType = {
     id: "ExtraDocs-Police-Record-Checks",
     name: "Police Record Checks",
     description: "Police Record Checks is a document that certifies that the candidate has no criminal record. It is issued by the National Center for Examinations and Evaluations of the Ministry of National Education and Vocational Training of Morocco. It is issued in Arabic and French.",
+    "tags": ["Regular"],
     state: "Available",
     templateId: "18JiMZbk2qHXnhi0ecqHKq3L4Hu4GLNWnirx2PXKAoi0",
     fields: [

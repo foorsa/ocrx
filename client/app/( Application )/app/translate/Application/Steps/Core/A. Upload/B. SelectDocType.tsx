@@ -120,10 +120,10 @@ const SelectDocType = () => {
                                                                             );
                                                                         }}
                                                                     >
-                                                                        <div className="inline-flex items-left justify-center text-left">
+                                                                        <div className="inline-flex items-center justify-start text-left gap-2">
                                                                             <TableDocument
                                                                                 color="currentColor"
-                                                                                className="mr-2"
+                                                                                className="text-purple-600 text-9xl"
                                                                                 variant="Bulk"
                                                                             />
                                                                             {

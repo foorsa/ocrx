@@ -4,6 +4,7 @@ export const CertificateOfSuccessAtDiploma: DocumentType = {
     id: "Certificate-of-success-at-diploma",
     name: "Certificate of success at diploma",
     description: "Certificate of success at diploma is a document that certifies that the candidate has successfully completed his studies at a particular institute and has obtained a diploma.",
+    "tags": ["Regular"],
     state: "Available",
     templateId: "1TFocZylhyKTNXlvZ8Bz-sKJAPOdpIdx1w37-Kyw7rJk",
     fields: [

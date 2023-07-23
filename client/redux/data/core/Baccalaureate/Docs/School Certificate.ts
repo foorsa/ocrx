@@ -4,6 +4,7 @@ export const SchoolCertificate: DocumentType = {
     "id": "Baccalaureate-School-Certificate",
     "name": "School Certificate",
     "description": "The School Certificate is a document that certifies that the candidate is continuing his studies at a particular institute.",
+    "tags": ["Regular"],
     "state": "Available",
     "templateId": "18HyzaYEH9JPbseo_SXebTBZ-O8gjAIP_x-m6XDRVbAU",
     "fields": [
@@ -101,7 +102,7 @@ export const SchoolCertificate: DocumentType = {
             "required": true,
             "value": "",
         },
-    ]
+    ],
 }
 
 export default SchoolCertificate;
