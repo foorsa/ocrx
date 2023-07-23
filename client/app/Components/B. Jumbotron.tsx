@@ -61,7 +61,7 @@ export default function Jumbotron() {
                         New
                     </span>{" "}
                     <span className="text-sm font-medium">
-                        Tabular Information Extraction was Launched ! 🚀
+                        Tabular Documents Extraction was Launched ! 🚀
                     </span>
                     <svg
                         className="w-2.5 h-2.5 ml-2"
