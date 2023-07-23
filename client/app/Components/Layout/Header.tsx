@@ -70,7 +70,7 @@ export default function Header() {
                     <Link href="/auth/sign-in" className="flex items-center">
                         <button
                             type="button"
-                            className="inline-flex text-center justify-center items-center gap-2 text-white bg-zinc-800 hover:bg-zinc-900 focus:outline-none focus:ring-4 focus:ring-zinc-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:focus:ring-zinc-700 dark:border-zinc-700"
+                            className="inline-flex text-center justify-center items-center gap-2 text-white dark:text-zinc-900 bg-zinc-950 hover:bg-zinc-900 focus:outline-none focus:ring-zinc-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-zinc-50 dark:hover:bg-zinc-200 dark:border-zinc-100"
                         >
                             <Lock variant="Bulk" color="currentColor" />
                             <span className="hidden text-sm font-semibold md:block">
