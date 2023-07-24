@@ -53,14 +53,14 @@ export const PoliceRecordChecks: DocumentType = {
 
         },
         {
-            name: "Date of Birth",
+            name: "Date of birth",
             type: "text",
             description: "Date of Birth of the Candidate",
             required: true,
 
         },
         {
-            name: "Place of Birth",
+            name: "Place of birth",
             type: "text",
             description: "Place of Birth of the Candidate",
             required: true,
