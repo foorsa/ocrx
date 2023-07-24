@@ -78,26 +78,22 @@ export default function Second_CorrectData() {
         }
 
         // Verify the presence of all the fields in the document type
-        const StateFields = Doctype?.fields;
+        const StateFields:
+            | {
+                  [key: string]: string;
+              }
+            | undefined = Session?.Extraction?.Corrected;
 
-        const RequiredFields: Field[] = [];
-
-        StateFields?.forEach((StateField) => {
-            if (StateField.required === true) {
-                RequiredFields.push(StateField);
-            }
-        });
+        const RequiredFields = Doctype?.fields?.filter(
+            (Field) => Field.required
+        );
 
         let MissingFields: string[] = [];
 
         RequiredFields?.forEach((StateField) => {
-            if (
-                !StateField.value ||
-                StateField.value === "" ||
-                StateField.value === null
-            ) {
-                isValid = false;
+            if (!StateFields?.[StateField.name]) {
                 MissingFields.push(StateField.name);
+                isValid = false;
             }
         });
 
