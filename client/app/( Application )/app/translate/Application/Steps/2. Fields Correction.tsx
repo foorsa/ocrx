@@ -8,6 +8,7 @@ import {
     CloseSquare,
     Link,
     LinkSquare,
+    Warning2,
 } from "iconsax-react";
 import Heading from "./Core/B. Correct/A. Heading";
 import Fields from "./Core/B. Correct/C. Fields";
@@ -87,7 +88,7 @@ export default function Second_CorrectData() {
             }
         });
 
-        let MissingFields = [];
+        let MissingFields: string[] = [];
 
         RequiredFields?.forEach((StateField) => {
             if (
@@ -185,6 +186,14 @@ export default function Second_CorrectData() {
                 );
                 toast.error(`${Error}`);
             }
+        } else {
+            toast.error(
+                `Please fill the required fields: ${MissingFields.join(", ")}.`,
+                {
+                    id: "MissingFields",
+                    icon: <Warning2 color="currentColor" variant="Bulk" />,
+                }
+            );
         }
     };
 
