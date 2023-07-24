@@ -1,6 +1,7 @@
 // Creeate Slice for Search Functionality
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Documents, DocumentsGroupType } from '@/redux/data/Documents';
+import { Documents } from '@/redux/data/Documents';
+import { DocumentsGroupType } from "@/redux/types/states/Document Type";
 import Fuse from 'fuse.js';
 
 
