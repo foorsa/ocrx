@@ -1,12 +1,12 @@
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import React, { useEffect, useState } from "react";
 
-type ProcessStep = {
+type ProcessingStep = {
     name: string;
     description: string;
 };
 
-const ProcessSteps: ProcessStep[] = [
+const ProcessingSteps: ProcessingStep[] = [
     {
         name: "Translating at warp speed... Prepare for linguistic liftoff!",
         description:
@@ -60,29 +60,28 @@ const ProcessSteps: ProcessStep[] = [
     // Add more phrases as needed...
 ];
 
-export default function Processing() {
+export default function Generating() {
     const dispatch = useAppDispatch();
     const Processing = useAppSelector((state) => state.process);
-    const [fakeProcess, setFakeProcess] = useState(0);
+    const [FakeProcess, setFakeProcess] = useState(0);
 
     useEffect(() => {
         if (Processing.isLoading) {
             const timer = setTimeout(() => {
-                setFakeProcess((prev) => prev + 1);
-            }, Math.max(1000, Math.random() * 5000));
+                setFakeProcess((prev) => (prev + 1) % ProcessingSteps.length);
+            }, Math.max(1000, Math.random() * 4000 + 1000)); // Random interval between 1 second and 5 seconds
 
             return () => clearTimeout(timer);
         }
-    }, [Processing.isLoading, fakeProcess]);
+    }, [Processing.isLoading, FakeProcess]);
 
     return (
         <div className="relative w-full">
             <h5 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                {ProcessSteps[fakeProcess]?.name}
+                {ProcessingSteps[FakeProcess]?.name}
             </h5>
-
             <p className="mb-6 text-xs font-normal text-zinc-700 dark:text-zinc-400">
-                {ProcessSteps[fakeProcess]?.description}
+                {ProcessingSteps[FakeProcess]?.description}
             </p>
         </div>
     );
