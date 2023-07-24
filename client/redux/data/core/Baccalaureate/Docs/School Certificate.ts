@@ -1,4 +1,7 @@
-import { DocumentType } from "@/redux/data/Documents";
+import {
+    DocumentType,
+    DocumentsGroupType,
+} from "@/redux/types/states/Document Type";
 
 export const SchoolCertificate: DocumentType = {
     "id": "Baccalaureate-School-Certificate",
@@ -13,7 +16,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "Name of the Provincial Leadership",
             "required": true,
-            "value": "",
             "example": `"Rabat", "Casablanca-Settat", etc.`
         },
         {
@@ -21,7 +23,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "Name of the Regional Leadership",
             "required": true,
-            "value": "",
             "example": `"Rabat Sale Kenitra", "Grand Casablanca", etc.`
         },
         {
@@ -29,7 +30,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "School Year of the Student",
             "required": true,
-            "value": "",
             "example": `"2020/2021", "2021/2022", etc.`
         },
         {
@@ -37,7 +37,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "Name of the Commune",
             "required": true,
-            "value": "",
             "example": `"Rabat", "Casablanca", etc.`
         },
         {
@@ -45,7 +44,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "Institute of the Candidate",
             "required": true,
-            "value": "",
             "example": `"Mohamed V", "Hassan II", etc.`
         },
         {
@@ -53,7 +51,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "Name of the Candidate",
             "required": true,
-            "value": "",
             "example": `"Mohamed Ali", "Yassine Chettouch", etc.`
         },
         {
@@ -61,7 +58,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "Code of the Candidate",
             "required": true,
-            "value": "",
             "example": `"R131240282", "J105020120", etc.`
         },
         {
@@ -69,7 +65,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "Candidate Date of Birth",
             "required": true,
-            "value": "",
             "example": `"01/01/2000", "01/01/2001", etc.`
         },
         {
@@ -77,7 +72,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "City of the Candidate",
             "required": true,
-            "value": "",
             "example": `"Rabat", "Casablanca", etc.`
         },
         {
@@ -85,7 +79,6 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "Option of the Candidate",
             "required": true,
-            "value": "",
             "example": `"Mathematical Sciences", "Physical Sciences", etc.`,
         },
         {
@@ -93,14 +86,12 @@ export const SchoolCertificate: DocumentType = {
             "type": "text",
             "description": "City of issue of the School Certificate",
             "required": true,
-            "value": "",
         },
         {
             "name": "Date of issue",
             "type": "text",
             "description": "Date of issue of the School Certificate",
             "required": true,
-            "value": "",
         },
     ],
 }

@@ -1,4 +1,7 @@
-import { DocumentType } from "@/redux/data/Documents";
+import {
+    DocumentType,
+    DocumentsGroupType,
+} from "@/redux/types/states/Document Type";
 
 export const MasterCertificate: DocumentType = {
     id: "Master-Certificate",

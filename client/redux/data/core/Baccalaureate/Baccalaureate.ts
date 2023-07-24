@@ -1,5 +1,7 @@
-import { DocumentType, DocumentsGroupType } from "../../Documents";
-import { BaccalaureateCertificate } from "./Docs/Baccalaureate Certificate";
+import {
+    DocumentType,
+    DocumentsGroupType,
+} from "@/redux/types/states/Document Type"; import { BaccalaureateCertificate } from "./Docs/Baccalaureate Certificate";
 import { SchoolCertificate } from "./Docs/School Certificate";
 import { TranscriptOfNotes } from "./Docs/Transcript of notes";
 

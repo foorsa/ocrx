@@ -1,4 +1,7 @@
-import { DocumentType } from "@/redux/data/Documents";
+import {
+    DocumentType,
+    DocumentsGroupType,
+} from "@/redux/types/states/Document Type";
 
 export const PoliceRecordChecks: DocumentType = {
     id: "ExtraDocs-Police-Record-Checks",
@@ -53,14 +56,14 @@ export const PoliceRecordChecks: DocumentType = {
 
         },
         {
-            name: "Date of Birth",
+            name: "Date of birth",
             type: "text",
             description: "Date of Birth of the Candidate",
             required: true,
 
         },
         {
-            name: "Place of Birth",
+            name: "Place of birth",
             type: "text",
             description: "Place of Birth of the Candidate",
             required: true,

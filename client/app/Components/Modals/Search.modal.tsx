@@ -9,7 +9,10 @@ import { setModal, setSearch } from "@/redux/slices/searchSlice";
 import { Hashtag, SearchNormal, TableDocument } from "iconsax-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DocumentType, DocumentsGroupType } from "@/redux/data/Documents";
+import {
+    DocumentType,
+    DocumentsGroupType,
+} from "@/redux/types/states/Document Type";
 import { toast } from "react-hot-toast";
 
 const SearchBar = () => {
@@ -289,8 +292,8 @@ export default function SearchModal() {
                                                                 <div className="relative h-auto w-full flex flex-col items-center justify-start text-zinc-900 dark:text-white">
                                                                     {DocumentGroup.documents.map(
                                                                         (
-                                                                            DocumentGroupElement,
-                                                                            index
+                                                                            DocumentGroupElement: DocumentType,
+                                                                            index: number
                                                                         ) => {
                                                                             return (
                                                                                 <Link

@@ -8,7 +8,11 @@ import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { Tooltip } from "flowbite-react";
 import toast from "react-hot-toast";
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
-import { Documents, DocumentType } from "@/redux/data/Documents";
+import { Documents } from "@/redux/data/Documents";
+import {
+    DocumentType,
+    DocumentsGroupType,
+} from "@/redux/types/states/Document Type";
 import { Menu, Transition, Listbox } from "@headlessui/react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
