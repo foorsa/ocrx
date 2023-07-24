@@ -13,7 +13,7 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "University Name (required)",
             required: true,
-            value: "",
+
             example: "Al Kadi Eiyad, Hassan II, Mohammed V, etc.",
         },
         {
@@ -21,7 +21,7 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "University City Name",
             required: true,
-            value: "",
+
             example: "Fes, Rabat, Casablanca, etc.",
         },
         {
@@ -29,7 +29,7 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "Faculty of the Candidate",
             required: true,
-            value: "",
+
             example: "Al Kadi Eiyad, Hassan II, Mohammed V, etc."
         },
         {
@@ -37,7 +37,7 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "Faculty of the Candidate",
             required: true,
-            value: "",
+
             example: "Fes, Rabat, Casablanca, etc.",
         },
         {
@@ -45,35 +45,35 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "Name of the Certificate, e.g: Master's Certificate, Licence Certificate, etc.",
             required: true,
-            value: "",
+
         },
         {
             name: "Student Name",
             type: "text",
             description: "Student's Full Name",
             required: true,
-            value: "",
+
         },
         {
             name: "Date of birth",
             type: "text",
             description: "Student's Date of Birth",
             required: true,
-            value: "",
+
         },
         {
             name: "City of birth",
             type: "text",
             description: "Student's City of Birth",
             required: true,
-            value: "",
+
         },
         {
             name: "National Identity Card Number",
             type: "text",
             description: "CIN of the Student, e.g: J123456, etc.",
             required: true,
-            value: "",
+
             example: "AS19956, AE34355, EL34432, etc.",
         },
         {
@@ -81,7 +81,7 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "CNE of the Student, e.g: J1234567890, etc.",
             required: true,
-            value: "",
+
             example: "A199567890, A343556789, E344327890, etc.",
         },
         {
@@ -89,7 +89,7 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "Departement of the Candidate",
             required: true,
-            value: "",
+
             example: "Computer Science, Mathematics, Physics, etc.",
         },
         {
@@ -97,7 +97,7 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "Option of the Candidate",
             required: true,
-            value: "",
+
             example: "Computer Science, Mathematics, Physics, etc.",
         },
         {
@@ -105,7 +105,7 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "Mention of the Candidate",
             required: true,
-            value: "",
+
             example: "Very Good, Good, Good Enough, etc.",
         },
         {
@@ -113,14 +113,14 @@ export const MasterCertificate: DocumentType = {
             type: "text",
             description: "City of Issue of the Certificate.",
             required: true,
-            value: "",
+
         },
         {
             name: "Date of Issue",
             type: "text",
             description: "Date of Issue of the Certificate.",
             required: true,
-            value: "",
+
         },
     ],
 }

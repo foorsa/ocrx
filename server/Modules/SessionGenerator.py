@@ -68,12 +68,12 @@ def parse_json(data):
 
 class SessionGenerator:
     def __init__(self):
-        self.id = ""
-        self.document_type = ""
+        self.id = "",
+        self.document_type = "",
         self.files = []
         self.session = {
             "Session Id": "",
-            "Document Type": "",
+            "Document Type": {},
             "Uploads": [],
             "Status": "Pending",
             "Error": None,
@@ -121,10 +121,14 @@ class SessionGenerator:
                     "Upload.{}".format(file_path.split(".")[-1]),
                 )
 
+        RegularDocumentTypes = ["*"]
+        TabularDocumentTypes = ["Master-Transcript-of-Marks", "Baccalaureate-Transcript-of-Notes"]
+
         # Create session document
         Session = {
             "Session Id": self.id,
             "Document Type": self.document_type,
+            "Information Type": "Tabular" if self.document_type in TabularDocumentTypes else "Regular", 
             "Uploads": Uploads,
             "Status": "Initialized",
             "Error": None,
@@ -171,6 +175,7 @@ class SessionGenerator:
                 img = Image.open(file_like)
                 # If the File is an Image, Read the Image
                 Content = OCR.Read_Image(self.session["Document Type"], img)
+                
 
             # Check if Content is None
             if Content is None:

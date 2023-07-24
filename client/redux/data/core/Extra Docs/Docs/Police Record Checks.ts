@@ -13,7 +13,7 @@ export const PoliceRecordChecks: DocumentType = {
             type: "text",
             description: "Name of the Provincial Leadership",
             required: true,
-            value: "",
+
             example: "Fes, Rabat, Casablanca, etc.",
         },
         {
@@ -21,21 +21,21 @@ export const PoliceRecordChecks: DocumentType = {
             type: "text",
             description: "Start Date of the Police Record Checks",
             required: true,
-            value: "",
+
         },
         {
             name: "End Date",
             type: "text",
             description: "End Date of the Police Record Checks",
             required: true,
-            value: "",
+
         },
         {
             name: "Identity Card Number",
             type: "text",
             description: "Identity Card Number of the Candidate",
             required: true,
-            value: "",
+
             example: "EE123456, AS23244, AE22424, EL23244",
         },
         {
@@ -43,35 +43,35 @@ export const PoliceRecordChecks: DocumentType = {
             type: "text",
             description: "First Name of the Candidate",
             required: true,
-            value: "",
+
         },
         {
             name: "Last Name",
             type: "text",
             description: "Last Name of the Candidate",
             required: true,
-            value: "",
+
         },
         {
             name: "Date of Birth",
             type: "text",
             description: "Date of Birth of the Candidate",
             required: true,
-            value: "",
+
         },
         {
             name: "Place of Birth",
             type: "text",
             description: "Place of Birth of the Candidate",
             required: true,
-            value: "",
+
         },
         {
             name: "Address",
             type: "text",
             description: "Address of the Candidate",
             required: true,
-            value: "",
+
         },
     ]
 }

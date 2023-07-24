@@ -13,26 +13,6 @@ export default function Fields() {
 
     const Values = Session.Extraction?.Corrected;
 
-    useEffect(() => {
-        if (Doctype && Doctype.fields) {
-            // If there are values in the session, set them to the fields
-            if (Values && Object.keys(Values).length > 0) {
-                const newFields = Doctype.fields.map((field) => {
-                    // Make a copy
-                    const copiedField = { ...field };
-
-                    if (Values[copiedField.name]) {
-                        copiedField.value = Values[copiedField.name];
-                    }
-
-                    return copiedField;
-                });
-
-                dispatch(setDocumentType({ ...Doctype, fields: newFields }));
-            }
-        }
-    }, [Values]);
-
     const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
 
@@ -51,18 +31,6 @@ export default function Fields() {
                     },
                 })
             );
-        }
-
-        // Update the field in the document type
-        if (Doctype && Doctype.fields) {
-            const newFields = Doctype.fields.map((field) => {
-                if (field.name === name) {
-                    field.value = value;
-                }
-                return field;
-            });
-
-            dispatch(setDocumentType({ ...Doctype, fields: newFields }));
         }
     };
 
@@ -84,7 +52,9 @@ export default function Fields() {
                               <input
                                   type={field.type}
                                   placeholder={field.description}
-                                  defaultValue={field.value}
+                                  defaultValue={
+                                      Values ? Values[field.name] : ""
+                                  }
                                   id={field.name}
                                   name={field.name}
                                   required={field.required}
