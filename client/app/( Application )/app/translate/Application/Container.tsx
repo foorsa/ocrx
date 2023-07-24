@@ -9,6 +9,10 @@ import Second_CorrectData from "./Steps/2. Fields Correction";
 import Third_FinishOperation from "./Steps/3. Finish Operation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Documents } from "@/redux/data/Documents";
+import {
+    DocumentsGroupType,
+    DocumentType,
+} from "@/redux/types/states/Document Type";
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import BaccalaureateDegree from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
 import { setSearch } from "@/redux/slices/searchSlice";
@@ -16,7 +20,6 @@ import { clearSession } from "@/redux/actions/sessionActions";
 import { resetFile } from "@/redux/actions/fileActions";
 import { resetStep } from "@/redux/actions/stepActions";
 import { useRouter } from "next/navigation";
-
 const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     const Router = useRouter();
 
@@ -48,10 +51,10 @@ export default function Container({
 
     useEffect(() => {
         if (DocId !== undefined && DocId != "" && typeof DocId === "string") {
-            const Docs = Documents;
+            const Docs: DocumentsGroupType[] = Documents;
             let isFound = false;
             const Doc = Docs.map((Doc) => {
-                Doc.documents.map((Doc) => {
+                Doc.documents.map((Doc: DocumentType) => {
                     if (Doc.id === DocId && !isFound) {
                         isFound = true;
 

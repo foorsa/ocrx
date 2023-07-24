@@ -13,25 +13,42 @@
         "Date of birth": Date
         "City": string
         "Insitute": string
-        "Cycle": string
+        "Cycle": string 
         "Speciality": string
         "Mention": string
 
     // Other document types will be added later
 */
 
-export interface Field {
-    name: string,
-    type: string,
-    description: string,
-    required: boolean,
-    value: string,
+
+export type Field = {
+    name: string;
+    type: string;
+    description: string;
+    example?: string;
+    required: boolean;
 }
 
-// Document Type
-export interface Doctype {
-    name: string,
-    id: string,
-    description: string,
-    fields: Field[],
+
+type TagType = "Regular" | "Tabular";
+type StateType = "Available" | "Unavailable";
+
+
+export type DocumentType = {
+    name: string;
+    id: string;
+    description: string;
+    tags?: TagType[];
+    state: StateType;
+    templateId: string;
+    fields: Field[];
 }
+
+export type DocumentsGroupType = {
+    name: string;
+    description: string;
+    id: string;
+    documents: DocumentType[]
+}
+
+export type Doctype = DocumentType | null;
