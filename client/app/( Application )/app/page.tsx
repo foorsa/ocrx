@@ -148,7 +148,7 @@ export default function Page() {
                                                 {!!document.tags &&
                                                     document.tags.map((tag) => {
                                                         return (
-                                                            <span className="bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-zinc-900 dark:text-zinc-400 border border-rose-400 dark:border-zinc-400 group-hover:bg-white group-hover:text-rose-600 group-hover:border-white">
+                                                            <span className="bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-zinc-900 dark:text-zinc-400 border border-rose-400 dark:border-zinc-400 group-hover:bg-white group-hover:text-rose-600 group-hover:border-white z-30">
                                                                 {tag}
                                                             </span>
                                                         );
