@@ -22,7 +22,7 @@ import {
 import Baccalaureate from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
 import { toast } from "react-hot-toast";
 import { Field } from "@/redux/types/states/Document Type";
-import Processing from "./Core/B. Correct/D. Processing";
+import Generating from "./Core/B. Correct/D. Generating";
 import axios from "axios";
 import { clearSession, setSession } from "@/redux/actions/sessionActions";
 import { resetFile } from "@/redux/actions/fileActions";
@@ -205,7 +205,7 @@ export default function Second_CorrectData() {
                     <Fields />
                 </>
             )}
-            {Process.isLoading && <Processing />}
+            {Process.isLoading && <Generating />}
             {/* Next Step */}
 
             {!Process.isLoading && (

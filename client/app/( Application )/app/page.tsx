@@ -123,7 +123,7 @@ export default function Page() {
                                                 <BoxTime
                                                     color="currentColor"
                                                     variant="Bulk"
-                                                    className="h-6 w-6 text-rose-500  z-30
+                                                    className="h-6 w-6 text-rose-zinc  z-30
                                             dark:text-zinc-50 
                                             "
                                                 />
@@ -148,7 +148,7 @@ export default function Page() {
                                                 {!!document.tags &&
                                                     document.tags.map((tag) => {
                                                         return (
-                                                            <span className="bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-zinc-900 dark:text-zinc-400 border border-rose-400 dark:border-zinc-400 group-hover:bg-white group-hover:text-rose-600 group-hover:border-white z-30">
+                                                            <span className="bg-zinc-100 text-zinc-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-zinc-900 dark:text-zinc-400 border border-zinc-400 dark:border-zinc-400 group-hover:bg-white group-hover:text-zinc-600 group-hover:border-white z-30">
                                                                 {tag}
                                                             </span>
                                                         );
