@@ -59,6 +59,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <ThemeProvider attribute="class">
             <main className="relative flex min-h-screen flex-col items-center justify-between">
                 <Background Variant={BackgroundVariant} />
+                <Analytics />
                 <Toaster
                     position="bottom-center"
                     toastOptions={{
