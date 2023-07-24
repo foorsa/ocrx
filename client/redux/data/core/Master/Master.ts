@@ -1,4 +1,4 @@
-import { DocumentsGroupType } from "../../Documents";
+import { DocumentsGroupType } from "@/redux/types/states/Document Type";
 import { CertificateOfSchooling } from "./Docs/Certificate of schooling";
 import { CertificateOfSuccessAtDiploma } from "./Docs/Certificate of success at diploma";
 import { MasterCertificate } from "./Docs/Master's Certificate";

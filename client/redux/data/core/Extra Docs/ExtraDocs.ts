@@ -1,4 +1,4 @@
-import { DocumentsGroupType } from "../../Documents"
+import { DocumentsGroupType } from "@/redux/types/states/Document Type";
 import { PoliceRecordChecks } from "./Docs/Police Record Checks"
 import { SOPIBDOL } from "./Docs/SOPIBDOL"
 
