@@ -24,7 +24,7 @@ import { useTheme } from "next-themes";
 export default function Page() {
     const { theme } = useTheme();
     const Search = useAppSelector((state) => state.search);
-    const FilteredDocuments = Search.modal.isOpen
+    const FilteredDocuments: DocumentsGroupType[] = Search.modal.isOpen
         ? Data
         : Search.filteredDocuments;
 
