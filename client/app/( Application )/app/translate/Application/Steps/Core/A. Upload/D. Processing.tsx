@@ -1,82 +1,88 @@
-import { setProcess } from "@/redux/actions/processActions";
-import { nextStep } from "@/redux/actions/stepActions";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import React, { useEffect, useState } from "react";
 
-const ProcessSteps = [
+type ProcessStep = {
+    name: string;
+    description: string;
+};
+
+const ProcessSteps: ProcessStep[] = [
     {
-        isLoading: true,
-        name: "Uploading File",
-        description: "Uploading your file to the server...",
-        duration: 1000, // Duration in milliseconds for this step
+        name: "Translating at warp speed... Prepare for linguistic liftoff!",
+        description:
+            "Let the magic of translation take your documents to new heights!",
     },
     {
-        isLoading: true,
-        name: "Extracting Text",
-        description: "Extracting text from your file...",
-        duration: 1500,
+        name: "Did you hear that? It's the sound of language barriers breaking!",
+        description:
+            "Watch as our AI-powered translators bridge the gap between languages.",
     },
     {
-        isLoading: true,
-        name: "Processing Text",
-        description: "Processing text from your file...",
-        duration: 2000,
+        name: "Get ready for some translation magic! Abra-cadabra-translate!",
+        description:
+            "See your documents transform with the touch of our linguistic wand.",
     },
     {
-        isLoading: true,
-        name: "Translating Text",
-        description: "Translating text from your file to English...",
-        duration: 1000,
+        name: "Hold onto your hats! Document translation in progress!",
+        description:
+            "Our expert translators work tirelessly to deliver accurate results.",
     },
     {
-        isLoading: true,
-        name: "Correcting Output",
-        description: "Correcting output from the OCR with AI...",
-        duration: 1000,
+        name: "Our translators don't need wings to fly through languages! Watch them soar!",
+        description:
+            "Experience the seamless translation process that knows no bounds.",
     },
     {
-        isLoading: true,
-        name: "Converting to JSON",
-        description: "Converting the output to JSON format...",
-        duration: 2500,
+        name: "Unlocking the power of multilingual communication!",
+        description:
+            "Breaking barriers and fostering global connections, one document at a time.",
     },
     {
-        isLoading: true,
-        name: "Formatting JSON",
-        description: "Formatting the JSON output to a readable format...",
-        duration: 1000,
+        name: "Translation mastery in motion!",
+        description:
+            "Witness the art of language conversion performed with precision.",
     },
     {
-        isLoading: true,
-        name: "Hang on!",
-        description: "We are finishing the operation...",
-        duration: 3000,
+        name: "From languages to legibility in a blink of an eye!",
+        description:
+            "Marvel at how our technology turns complexity into clarity effortlessly.",
     },
+    {
+        name: "Words on a journey of transformation!",
+        description:
+            "Accurate translation that retains the essence of your documents.",
+    },
+    {
+        name: "Crafting linguistic bridges for a borderless world!",
+        description:
+            "Join us on a quest to create seamless communication across cultures.",
+    },
+    // Add more phrases as needed...
 ];
 
 export default function Processing() {
     const dispatch = useAppDispatch();
     const Processing = useAppSelector((state) => state.process);
-    const [FakeProcess, setFakeProcess] = useState(0);
+    const [fakeProcess, setFakeProcess] = useState(0);
 
     useEffect(() => {
         if (Processing.isLoading) {
-            if (FakeProcess !== ProcessSteps.length - 1) {
-                setTimeout(() => {
-                    setFakeProcess((prev) => prev + 1);
-                }, ProcessSteps[FakeProcess].duration);
-            }
+            const timer = setTimeout(() => {
+                setFakeProcess((prev) => prev + 1);
+            }, Math.max(1000, Math.random() * 5000));
+
+            return () => clearTimeout(timer);
         }
-    }, [Processing.isLoading, FakeProcess]);
+    }, [Processing.isLoading, fakeProcess]);
 
     return (
         <div className="relative w-full">
             <h5 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                {ProcessSteps[FakeProcess]?.name}
+                {ProcessSteps[fakeProcess]?.name}
             </h5>
 
             <p className="mb-6 text-xs font-normal text-zinc-700 dark:text-zinc-400">
-                {ProcessSteps[FakeProcess]?.description}
+                {ProcessSteps[fakeProcess]?.description}
             </p>
         </div>
     );

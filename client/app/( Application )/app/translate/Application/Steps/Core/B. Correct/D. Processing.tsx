@@ -1,36 +1,63 @@
-import { setProcess } from "@/redux/actions/processActions";
-import { nextStep } from "@/redux/actions/stepActions";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import React, { useEffect, useState } from "react";
 
-const ProcessSteps = [
+type ProcessStep = {
+    name: string;
+    description: string;
+};
+
+const ProcessSteps: ProcessStep[] = [
     {
-        isLoading: true,
-        name: "Finalizing your linguistic masterpiece...",
+        name: "Translating at warp speed... Prepare for linguistic liftoff!",
         description:
-            "We're putting the finishing touches on your translated document. Almost there!",
-        duration: 1000, // Duration in milliseconds for this step
+            "Let the magic of translation take your documents to new heights!",
     },
     {
-        isLoading: true,
-        name: "Polishing the translation gem...",
+        name: "Did you hear that? It's the sound of language barriers breaking!",
         description:
-            "We're in the generation phase, adding the final sparkle to your document!",
-        duration: 1500,
+            "Watch as our AI-powered translators bridge the gap between languages.",
     },
     {
-        isLoading: true,
-        name: "Last stop: Generation Station!",
+        name: "Get ready for some translation magic! Abra-cadabra-translate!",
         description:
-            "We're wrapping up the translation journey and preparing your document for delivery!",
-        duration: 3000,
+            "See your documents transform with the touch of our linguistic wand.",
     },
     {
-        isLoading: true,
-        name: "Hang on!",
-        description: "We are finishing the operation...",
-        duration: 3000,
+        name: "Hold onto your hats! Document translation in progress!",
+        description:
+            "Our expert translators work tirelessly to deliver accurate results.",
     },
+    {
+        name: "Our translators don't need wings to fly through languages! Watch them soar!",
+        description:
+            "Experience the seamless translation process that knows no bounds.",
+    },
+    {
+        name: "Unlocking the power of multilingual communication!",
+        description:
+            "Breaking barriers and fostering global connections, one document at a time.",
+    },
+    {
+        name: "Translation mastery in motion!",
+        description:
+            "Witness the art of language conversion performed with precision.",
+    },
+    {
+        name: "From languages to legibility in a blink of an eye!",
+        description:
+            "Marvel at how our technology turns complexity into clarity effortlessly.",
+    },
+    {
+        name: "Words on a journey of transformation!",
+        description:
+            "Accurate translation that retains the essence of your documents.",
+    },
+    {
+        name: "Crafting linguistic bridges for a borderless world!",
+        description:
+            "Join us on a quest to create seamless communication across cultures.",
+    },
+    // Add more phrases as needed...
 ];
 
 export default function Processing() {
@@ -40,11 +67,11 @@ export default function Processing() {
 
     useEffect(() => {
         if (Processing.isLoading) {
-            if (fakeProcess !== ProcessSteps.length - 1) {
-                setTimeout(() => {
-                    setFakeProcess((prev) => prev + 1);
-                }, ProcessSteps[fakeProcess].duration);
-            }
+            const timer = setTimeout(() => {
+                setFakeProcess((prev) => prev + 1);
+            }, Math.max(1000, Math.random() * 5000));
+
+            return () => clearTimeout(timer);
         }
     }, [Processing.isLoading, fakeProcess]);
 
