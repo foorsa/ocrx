@@ -29,7 +29,7 @@ export default function LoginPage() {
         <section className="w-full h-auto">
             <div className="flex flex-col items-center justify-center p-5 mx-auto h-auto lg:py-0 gap-2">
                 <OCRX_ICON isLoading={false} />
-                <div className="flex flex-col justify-center items-center w-full max-w-lg overflow-hidden gap-5">
+                <div className="flex flex-col justify-center items-center w-full max-w-lg gap-5">
                     <h1 className="my-5 text-center text-xl font-bold leading-tight tracking-tight text-zinc-900 md:text-4xl dark:text-white">
                         Sign in to your account
                     </h1>
@@ -37,23 +37,29 @@ export default function LoginPage() {
                     <div className="flex flex-row gap-2 justify-between w-full flex-wrap">
                         <button
                             type="button"
-                            className="inline-flex justify-center items-center text-center flex-1 py-2.5 px-5 bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+                            className="inline-flex justify-center items-center text-center flex-1 py-2.5 px-5 bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:border-rose-500 w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white hover:bg-zinc-200 dark:hover:border-rose-100 dark:hover:bg-rose-600 dark:hover:text-rose-100"
                         >
                             <Google
                                 color="currentColor"
                                 variant="Bulk"
                                 className="w-6 h-6"
                             />
+                            <span className="ml-2 text-sm font-medium text-zinc-900 dark:text-white whitespace-nowrap">
+                                Sign in with Google
+                            </span>
                         </button>
                         <button
                             type="button"
-                            className="inline-flex justify-center items-center text-center flex-1 py-2.5 px-5 bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+                            className="inline-flex justify-center items-center text-center flex-1 py-2.5 px-5 bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:border-rose-500 w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white hover:bg-zinc-200 dark:hover:border-rose-100 dark:hover:bg-rose-600 dark:hover:text-rose-100"
                         >
                             <Facebook
                                 color="currentColor"
                                 variant="Bulk"
                                 className="w-6 h-6"
                             />
+                            <span className="ml-2 text-sm font-medium text-zinc-900 dark:text-white whitespace-nowrap">
+                                Sign in with Facebook
+                            </span>
                         </button>
                     </div>
 
@@ -73,7 +79,7 @@ export default function LoginPage() {
                             toast.success(
                                 "Hang tight ! You can still use the alpha for now.",
                                 {
-                                    icon: "👋",
+                                    icon: "🤫",
                                     duration: 5000,
                                 }
                             );
@@ -90,7 +96,7 @@ export default function LoginPage() {
                                 type="email"
                                 name="email"
                                 id="email"
-                                className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+                                className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:ring-rose-500 focus:border-rose-500 block w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-rose-500 dark:focus:border-rose-500"
                                 placeholder="name@foorsa.ma"
                                 required={false}
                                 autoComplete={"off"}
@@ -108,7 +114,7 @@ export default function LoginPage() {
                                 name="password"
                                 id="password"
                                 placeholder="••••••••"
-                                className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+                                className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg focus:ring-rose-500 focus:border-rose-500 block w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-rose-500 dark:focus:border-rose-500"
                                 required={false}
                                 autoComplete={"off"}
                             />
@@ -120,7 +126,7 @@ export default function LoginPage() {
                                         id="remember"
                                         aria-describedby="remember"
                                         type="checkbox"
-                                        className="w-4 h-4 text-purple-600 bg-zinc-100 border-zinc-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-zinc-950 focus:ring-2 dark:bg-zinc-900 dark:border-zinc-950"
+                                        className="w-4 h-4 text-rose-600 bg-zinc-100 border-zinc-300 rounded focus:ring-rose-500 dark:focus:ring-rose-600 dark:ring-offset-zinc-950 focus:ring-2 dark:bg-zinc-900 dark:border-zinc-950"
                                         required={false}
                                     />
                                 </div>
@@ -134,13 +140,13 @@ export default function LoginPage() {
                                     </label>
                                 </div>
                             </div>
-                            <a className="text-sm font-medium text-purple-500 hover:underline dark:text-purple-500 cursor-pointer">
+                            <a className="text-sm font-medium text-rose-500 hover:underline dark:text-rose-500 cursor-pointer">
                                 Forgot password?
                             </a>
                         </div>
                         <button
                             type="submit"
-                            className="inline-flex justify-center items-center gap-2  focus:outline-none w-full text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+                            className="inline-flex justify-center items-center gap-2  focus:outline-none w-full text-white bg-rose-700 hover:bg-rose-800 focus:ring-4 focus:ring-rose-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-rose-600 dark:hover:bg-rose-700 dark:focus:ring-rose-900"
                         >
                             Sign in
                             <LoginCurve color="currentColor" variant="Bulk" />
@@ -149,7 +155,7 @@ export default function LoginPage() {
                             Don’t have an account yet?{" "}
                             <Link
                                 href={"/auth/sign-up"}
-                                className="font-medium text-purple-600 hover:underline dark:text-purple-500"
+                                className="font-medium text-rose-600 hover:underline dark:text-rose-500"
                             >
                                 Sign up
                             </Link>

@@ -57,27 +57,17 @@ export default function Jumbotron() {
                     href="/app"
                     className="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-purple-700 bg-purple-100 rounded-full dark:bg-purple-900 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 bg-opacity-25 backdrop-blur-md dark:bg-opacity-25 dark:backdrop-blur-md"
                 >
-                    <span className="text-xs bg-purple-600 rounded-full text-white px-4 py-1.5 mr-3">
+                    <span className="text-xs bg-purple-600 rounded-full text-white px-4 py-1.5 mr-3 h-full">
                         New
                     </span>{" "}
                     <span className="text-sm font-medium">
                         Tabular Documents Extraction was Launched ! 🚀
                     </span>
-                    <svg
-                        className="w-2.5 h-2.5 ml-2"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 6 10"
-                    >
-                        <path
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="m1 9 4-4-4-4"
-                        />
-                    </svg>
+                    <ArrowRight3
+                        className="w-4 h-4"
+                        color="currentColor"
+                        variant="Bulk"
+                    />
                 </Link>
             </motion.div>
             <motion.h1

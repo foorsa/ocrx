@@ -10,7 +10,7 @@ export default function Register() {
     return (
         <main className="grid min-h-full place-items-center w-full px-6 py-24 sm:py-32 lg:px-8">
             <div className="text-center max-w-xs md:max-w-xl">
-                <p className="text-base font-semibold text-purple-600 uppercase">
+                <p className="text-base font-semibold text-rose-600 uppercase">
                     Coming Soon
                 </p>
                 <h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-5xl">
@@ -24,7 +24,7 @@ export default function Register() {
                 <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
                     <Link
                         href="/"
-                        className="flex-1 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-purple-600 hover:bg-purple-800"
+                        className="flex-1 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-rose-600 hover:bg-rose-800"
                     >
                         <span className="mr-2 text-md font-semibold whitespace-nowrap">
                             Go back home
@@ -35,7 +35,7 @@ export default function Register() {
                         onClick={() => {
                             Router.back();
                         }}
-                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-purple-800 bg-purple-600/25 hover:bg-purple-600/50 dark:text-purple-300 dark:bg-purple-600/50 dark:hover:bg-purple-600/75"
+                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-rose-800 bg-rose-600/25 hover:bg-rose-600/50 dark:text-rose-300 dark:bg-rose-600/50 dark:hover:bg-rose-600/75"
                     >
                         <span className="mr-2 text-md font-semibold">
                             Go Back

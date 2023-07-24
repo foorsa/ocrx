@@ -13,6 +13,21 @@ import { hexToRgb } from "@/lib/Color.utilities";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setModal } from "@/redux/slices/searchSlice";
 
+export function Analytics() {
+    const token = process.env.NEXT_PUBLIC_BEAM_TOKEN;
+    if (!token) {
+        console.warn("No Beam token provided, analytics will not be loaded.");
+        return null;
+    }
+    return (
+        <script
+            src="https://beamanalytics.b-cdn.net/beam.min.js"
+            data-token={token}
+            async
+        />
+    );
+}
+
 export default function Providers({ children }: { children: React.ReactNode }) {
     const Pathname = usePathname();
     const Router = useRouter();

@@ -54,8 +54,8 @@ export default function Page() {
                                 <>
                                     {document.state !== "Unavailable" ? (
                                         <Link
-                                            className="relative group mx-auto flex flex-col w-full gap-3 rounded-lg bg-white overflow-hidden p-5 ring-1 ring-zinc-900/5 hover:bg-purple-500 hover:ring-purple-500
-                                    dark:bg-zinc-950 dark:ring-zinc-500/10 dark:hover:bg-purple-500 dark:hover:ring-purple-500 text-purple-500 group-hover:text-white
+                                            className="relative group mx-auto flex flex-col w-full gap-3 rounded-lg bg-white overflow-hidden p-5 ring-1 ring-zinc-900/5 hover:bg-rose-500 hover:ring-rose-500
+                                    dark:bg-zinc-950 dark:ring-zinc-500/10 dark:hover:bg-rose-500 dark:hover:ring-rose-500 text-rose-500 group-hover:text-white
                                             dark:text-zinc-50 dark:group-hover:text-white
                                     "
                                             key={document.id}
@@ -65,7 +65,7 @@ export default function Page() {
                                                 <DocumentText
                                                     color="currentColor"
                                                     variant="Bulk"
-                                                    className="h-6 w-6 text-purple-500 group-hover:text-white
+                                                    className="h-6 w-6 text-rose-500 group-hover:text-white
                                             dark:text-zinc-50 dark:group-hover:text-white
                                             "
                                                 />
@@ -84,6 +84,18 @@ export default function Page() {
                                             >
                                                 {document.description}
                                             </p>
+
+                                            {/* Badges Footer */}
+                                            <div className="relative flex flex-row items-center justify-start gap-2 w-full mt-5">
+                                                {!!document.tags &&
+                                                    document.tags.map((tag) => {
+                                                        return (
+                                                            <span className="bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-zinc-900 dark:text-zinc-400 border border-rose-400 dark:border-zinc-400 group-hover:bg-white group-hover:text-rose-600 group-hover:border-white">
+                                                                {tag}
+                                                            </span>
+                                                        );
+                                                    })}
+                                            </div>
                                         </Link>
                                     ) : (
                                         <div
@@ -111,7 +123,7 @@ export default function Page() {
                                                 <BoxTime
                                                     color="currentColor"
                                                     variant="Bulk"
-                                                    className="h-6 w-6 text-purple-500  z-30
+                                                    className="h-6 w-6 text-rose-500  z-30
                                             dark:text-zinc-50 
                                             "
                                                 />
