@@ -9,7 +9,10 @@ import { setModal, setSearch } from "@/redux/slices/searchSlice";
 import { Hashtag, SearchNormal, TableDocument } from "iconsax-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DocumentType, DocumentsGroupType } from "@/redux/data/Documents";
+import {
+    DocumentType,
+    DocumentsGroupType,
+} from "@/redux/types/states/Document Type";
 import { toast } from "react-hot-toast";
 
 const SearchBar = () => {

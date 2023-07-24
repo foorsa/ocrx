@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import React from "react";
+import { Documents as Data } from "@/redux/data/Documents";
 import {
-    Documents as Data,
     DocumentType,
     DocumentsGroupType,
-} from "@/redux/data/Documents";
+} from "@/redux/types/states/Document Type";
 import PageTitle from "./components/1.Page Title";
 import {
     BoxTime,
