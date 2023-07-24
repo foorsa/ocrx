@@ -2,11 +2,11 @@
 
 import React from "react";
 import { SearchNormal } from "iconsax-react";
+import { Documents as Data } from "@/redux/data/Documents";
 import {
-    Documents as Data,
     DocumentType,
     DocumentsGroupType,
-} from "@/redux/data/Documents";
+} from "@/redux/types/states/Document Type";
 import Fuse from "fuse.js";
 import SearchModal from "@/app/Components/Modals/Search.modal";
 import { setSearch, setModal } from "@/redux/slices/searchSlice";
