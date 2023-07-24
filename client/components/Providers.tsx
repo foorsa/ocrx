@@ -61,7 +61,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 <Background Variant={BackgroundVariant} />
                 <Analytics />
                 <Toaster
-                    position="bottom-center"
+                    position="top-center"
                     toastOptions={{
                         className: "cursor-default",
                         style: {
@@ -94,7 +94,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 >
                     {(t) => (
                         <ToastBar
-                            position="bottom-center" // Used to adapt the animation
+                            position="top-center" // Used to adapt the animation
                             toast={t}
                             key={t.id}
                         >
