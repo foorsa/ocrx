@@ -45,11 +45,6 @@ def CreateFlaskApp():
     # Load the traineddata file for Tesseract - Contains the language models (e.g., English, French, Arabic, etc.)
     os.environ["TESSDATA_PREFIX"] = WindowsTessData
 
-    # TESSDATA_PREFIX for UNIX Systems
-    # os.environ["TESSDATA_PREFIX"] = WindowsTessData.replace("\\", "/").replace(
-    #     "C:", "/mnt/c"
-    # )
-
     # Register the blueprint for API routes
     FlaskApp.register_blueprint(API_BLUEPRINT)
 

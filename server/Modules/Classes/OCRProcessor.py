@@ -6,54 +6,107 @@ from gridfs import GridOut
 from pdf2image import convert_from_path
 import pytesseract
 from pytesseract import Output
+from ExtractTable import ExtractTable
+from dotenv import load_dotenv
+import json
 
-
-# # Check if running on the production server
-# if os.getenv("ENV_MODE") == "production":
-#     # Set the TESSDATA_PREFIX environment variable for production
-#     os.environ[
-#         "TESSDATA_PREFIX"
-#     ] = "./.apt/usr/share/tesseract-ocr/4.00/tessdata/"
+os.environ["ET_API_KEY"] = "iZF4JybeL7C7yTmbenioUEnEkKJH13pKMxVWOHTM"
 
 
 # Define the OCR Processor Class
 class OCRProcessor:
     def __init__(self):
+        self.ET_SESSION = ExtractTable(os.environ.get("ET_API_KEY"))
         pass
 
-    # Read the PDF File
-    def Read_PDF(self, Document_Type, SessionId, PDF_Bytes):
-        Extracted = ""
+    def Read_PDF(self, InformationType, SessionId, PDFBytes):
+        Extracted = {"RAW": None, "TABLE": None}
 
         # Temporary File Path
-        Temporary_PDF_Path = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
+        TemporaryPDFPath = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
 
         # Write the PDF Bytes to a Temporary File
-        with open(Temporary_PDF_Path, "wb") as f:
-            f.write(PDF_Bytes.getbuffer())
+        with open(TemporaryPDFPath, "wb") as f:
+            f.write(PDFBytes.getbuffer())
 
         # Convert each Page to an Image
         try:
-            pages = convert_from_path(Temporary_PDF_Path, 500)
-            Extracted = ""
+            pages = convert_from_path(TemporaryPDFPath, 500)
             for page in pages:
-                Extracted += pytesseract.image_to_string(page, lang="fra")
+                # Add the Extracted Text to the Extracted RAW Key
+                Extracted["RAW"] += self.ReadImage(InformationType, SessionId, page)
+
+                if InformationType == "Tabular":
+                    # Add the Extracted Table to the Extracted Table Key
+                    Extracted["TABLE"] += self.ProcessTable(TemporaryPDFPath)
             return Extracted
         except Exception as e:
             print(f"Error reading PDF file: {str(e)}")
 
     # Read the Image File
-    def Read_Image(self, DocumentType, Image):
+    def Read_Image(self, InformationType, SessionId, Image):
+        Extracted = {}
+
         try:
-            text_content = pytesseract.image_to_string(
+            TextContent = pytesseract.image_to_string(
                 Image,
                 lang="fra+ara",
                 config="",
             )
-            self.file_content = text_content
-            return text_content
+
+            Extracted["RAW"] = TextContent
+
+            if InformationType == "Tabular":
+                # Temporary File Path
+                TEMPORARY_IMAGE_PATH = os.path.join(
+                    tempfile.gettempdir(), f"{SessionId}.jpg"
+                )
+
+                # Write the Image to a Temporary File
+                Image.save(TEMPORARY_IMAGE_PATH, "JPEG")
+
+                PROCESSED_TABLE = self.Process_Table(TEMPORARY_IMAGE_PATH)
+
+                # Add the Extracted Table to the Extracted Table Key
+                Extracted["TABLE"] = PROCESSED_TABLE
+
+            return Extracted
         except Exception as e:
             print(f"Error reading image file: {str(e)}")
 
+    def Process_Table(self, Image_Path):
+        # Process the Table
+        try:
+            print("[...] Processing Table [...]")
+            print(f"[DEBUG] Image Path: {Image_Path}")
+            TABLES = self.ET_SESSION.process_file(Image_Path, output_format="json")
+            print("[OK] Processing Table Finished !")
+
+            # DEBUG PRINT
+            print(f"[COUNT] {len(TABLES)} Table(s) Found !")
+
+            return json.loads(TABLES[0])
+        except Exception as e:
+            print(f"Error processing table: {str(e)}")
+            return f"Error processing table: {str(e)}"
+
+    def Check_API_USAGE(self):
+        return self.ET_SESSION.check_usage()
+
     def Get_File_Content(self):
         return self.file_content
+
+
+# Optical Character Recognition Processor
+OCR = OCRProcessor()
+
+# USAGE
+USAGE = OCR.Check_API_USAGE()
+
+CREDITS = USAGE["credits"]
+USED = USAGE["used"]
+PERCENTAGE = USED / CREDITS * 100
+
+print(
+    f"[Extract Table] API Usage: Credits: {CREDITS}, Used: {USED}, Percentage: {PERCENTAGE}%."
+)
