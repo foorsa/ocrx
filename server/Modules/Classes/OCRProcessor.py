@@ -20,25 +20,29 @@ class OCRProcessor:
         pass
 
     def Read_PDF(self, InformationType, SessionId, PDFBytes):
-        Extracted = {"RAW": None, "TABLE": None}
+        Extracted = {"RAW": "", "TABLES": []}
 
         # Temporary File Path
-        TemporaryPDFPath = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
+        TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
 
         # Write the PDF Bytes to a Temporary File
-        with open(TemporaryPDFPath, "wb") as f:
+        with open(TEMPORARY_PDF_PATH, "wb") as f:
             f.write(PDFBytes.getbuffer())
 
         # Convert each Page to an Image
         try:
-            pages = convert_from_path(TemporaryPDFPath, 500)
-            for page in pages:
+            Pages = convert_from_path(TEMPORARY_PDF_PATH, 500)
+            for Page in Pages:
                 # Add the Extracted Text to the Extracted RAW Key
-                Extracted["RAW"] += self.ReadImage(InformationType, SessionId, page)
+                Extracted["RAW"] += pytesseract.image_to_string(
+                    Page,
+                    lang="fra+ara",
+                    config="",
+                )
 
-                if InformationType == "Tabular":
-                    # Add the Extracted Table to the Extracted Table Key
-                    Extracted["TABLE"] += self.ProcessTable(TemporaryPDFPath)
+            if InformationType == "Tabular":
+                # Add the Extracted Table to the Extracted Table Key
+                Extracted["TABLES"] = self.Process_Table(TEMPORARY_PDF_PATH)
             return Extracted
         except Exception as e:
             print(f"Error reading PDF file: {str(e)}")
@@ -78,7 +82,6 @@ class OCRProcessor:
         # Process the Table
         try:
             print("[...] Processing Table [...]")
-            print(f"[DEBUG] Image Path: {Image_Path}")
             TABLES = self.ET_SESSION.process_file(Image_Path, output_format="json")
             print("[OK] Processing Table Finished !")
 

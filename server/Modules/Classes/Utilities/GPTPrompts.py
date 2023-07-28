@@ -103,3 +103,8 @@ def GeneratePrompt(Doctype):
     Prompt = PromptString(2, AvailableDoctypes, PromptOptions)
 
     return Prompt
+
+
+MasterTranscript = GeneratePrompt("Master-Transcript-of-Marks")
+
+print(MasterTranscript)
