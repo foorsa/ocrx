@@ -28,6 +28,7 @@ def Home():
     return render_template("index.html")
 
 
+# INITIALIZATION API
 @API_BLUEPRINT.route("/api/v1/initialize", methods=["POST"])
 def Intialize():
     print("[STEP 1] Initializing an empty Session")
@@ -104,6 +105,7 @@ def Intialize():
     return jsonify({"Session": Session.Get()}), 200
 
 
+# EXTRACTION API
 @API_BLUEPRINT.route("/api/v1/extract", methods=["POST"])
 def Extract():
     print("[STEP 2] Extracting the Data from the Session File")
@@ -133,7 +135,7 @@ def Extract():
 
 @API_BLUEPRINT.route("/api/v1/translate", methods=["POST"])
 def Translate():
-    print("[STEP 3] Translating the Data from the Session File")
+    print("[STEP 4] Translating the Data from the Session File")
 
     print("[...] Retrieving Session Id...")
     Session_Id = request.args.get("Session_Id")

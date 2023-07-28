@@ -43,6 +43,9 @@ class GPTCorrector:
         Corrected = Response.choices[0].message.content.strip()
         return Corrected
 
+    def CorrectTable(self, text, doctype):
+        return "Not Implemented Yet."
+
     def Describe(self, text, doctype):
         Described = "This Feature is not available yet."
         return Described

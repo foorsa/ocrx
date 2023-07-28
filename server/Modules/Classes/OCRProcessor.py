@@ -85,7 +85,11 @@ class OCRProcessor:
             # DEBUG PRINT
             print(f"[COUNT] {len(TABLES)} Table(s) Found !")
 
-            return json.loads(TABLES[0])
+            JSON_TABLES = []
+            for TABLE in TABLES:
+                JSON_TABLES.append(json.loads(TABLE))
+
+            return JSON_TABLES
         except Exception as e:
             print(f"Error processing table: {str(e)}")
             return f"Error processing table: {str(e)}"

@@ -13,7 +13,7 @@ def PromptString(PromptVersion, AvailableDoctypes, PromptOptions):
 
                 The Document Type could be one of the following: 
                 
-                {AvailableDoctypes}
+                {AvailableDoctypes} 
 
                 This application has already processed the file and the Document with OCR.
 
