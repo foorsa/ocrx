@@ -2,7 +2,9 @@ import { Doctype } from "./Document Type";
 
 interface Session {
     "Session Id": string;
+    "Operation Date": string;
     "Document Type"?: string;
+    "Information Type": "Regular" | "Tabular";
     "Status"?: string;
     "Error"?: any;
     "Uploads"?: {
@@ -12,10 +14,12 @@ interface Session {
         };
     }[];
     "Extraction"?: {
+        "RAW"?: string;
+        "RAW_TABLES": {}[] | any;
         "Corrected"?: {
             [key: string]: string;
         };
-        "RAW"?: string;
+        "CorrectedTable"?: {}[] | any;
         "Description": string;
     },
     "Generation"?: {

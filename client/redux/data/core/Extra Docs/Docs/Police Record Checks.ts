@@ -56,6 +56,12 @@ export const PoliceRecordChecks: DocumentType = {
 
         },
         {
+            name: "Student Name",
+            type: "text",
+            description: "Full Name of the Candidate (First Name + Last Name)",
+            required: true,
+        },
+        {
             name: "Date of birth",
             type: "text",
             description: "Date of Birth of the Candidate",

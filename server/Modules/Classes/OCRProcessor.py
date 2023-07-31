@@ -42,7 +42,7 @@ class OCRProcessor:
 
             if InformationType == "Tabular":
                 # Add the Extracted Table to the Extracted Table Key
-                Extracted["TABLES"] = self.Process_Table(TEMPORARY_PDF_PATH)
+                Extracted["RAW_TABLES"] = self.Process_Table(TEMPORARY_PDF_PATH)
             return Extracted
         except Exception as e:
             print(f"Error reading PDF file: {str(e)}")
@@ -69,10 +69,10 @@ class OCRProcessor:
                 # Write the Image to a Temporary File
                 Image.save(TEMPORARY_IMAGE_PATH, "JPEG")
 
-                PROCESSED_TABLE = self.Process_Table(TEMPORARY_IMAGE_PATH)
+                PROCESSED_TABULAR_DATA = self.Process_Table(TEMPORARY_IMAGE_PATH)
 
                 # Add the Extracted Table to the Extracted Table Key
-                Extracted["TABLE"] = PROCESSED_TABLE
+                Extracted["RAW_TABLES"] = PROCESSED_TABULAR_DATA
 
             return Extracted
         except Exception as e:

@@ -149,7 +149,10 @@ def Translate():
 
     print("[...] Checking Presence of Extracted Data...")
 
-    if not Session.Get()["Status"] == "Extracted":
+    if (
+        not Session.Get()["Status"] == "Extracted"
+        and not Session.Get()["Status"] == "Corrected"
+    ):
         print("[X] No Extracted Data Available.")
         return (
             jsonify(
