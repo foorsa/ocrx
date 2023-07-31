@@ -82,9 +82,6 @@ export default function First_DocumentUpload() {
         } catch (e) {
             console.log("Error while pinging the server: ", e);
             toast.dismiss("Checking");
-            return toast.error(
-                "The server was unconscious, this is due to 30 minutes of inactivity, please try again."
-            );
         }
 
         toast.loading("Uploading your file to the server...", {
