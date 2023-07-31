@@ -210,6 +210,7 @@ class SessionGenerator:
             else:
                 # Add the Content to the Session
                 self.session["Extraction"] = Content
+
                 # Add new Status
                 self.session["Status"] = "Extracted"
         # Update the Session object

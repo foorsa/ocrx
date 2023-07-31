@@ -88,11 +88,34 @@ class OCRProcessor:
             # DEBUG PRINT
             print(f"[COUNT] {len(TABLES)} Table(s) Found !")
 
-            JSON_TABLES = []
-            for TABLE in TABLES:
-                JSON_TABLES.append(json.loads(TABLE))
+            PROCESSED_TABLES = []
 
-            return JSON_TABLES
+            for TABLE in TABLES:
+                print(f"[...] Processing Table {TABLE} [...]")
+
+                JSON_TABLE = json.loads(TABLE)  # Load JSON string to a dictionary
+
+                TABLE_DATA = []
+
+                # Get the Columns Count
+                COL_COUNT = len(JSON_TABLE)
+
+                # Get the Rows Count
+                ROW_COUNT = len(next(iter(JSON_TABLE.values())))
+
+                # Concat Columns to Array of Rows
+                for ROW in range(ROW_COUNT):
+                    ROW_DATA = []
+                    for COL in range(COL_COUNT):
+                        try:
+                            ROW_DATA.append(JSON_TABLE[str(COL)][str(ROW)])
+                        except KeyError:
+                            ROW_DATA.append("")  # Handle missing data as empty string
+                    TABLE_DATA.append(ROW_DATA)
+
+                PROCESSED_TABLES.append(TABLE_DATA)
+
+            return PROCESSED_TABLES
         except Exception as e:
             print(f"Error processing table: {str(e)}")
             return f"Error processing table: {str(e)}"
