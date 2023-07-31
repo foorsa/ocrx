@@ -26,7 +26,7 @@ export const CertificateOfSchooling: DocumentType = {
 
         },
         {
-            name: "Student",
+            name: "Student Name",
             type: "text",
             description: "Student's Full Name",
             required: true,

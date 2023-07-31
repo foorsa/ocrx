@@ -54,10 +54,7 @@ export default function Page() {
                                 <>
                                     {document.state !== "Unavailable" ? (
                                         <Link
-                                            className="relative group mx-auto flex flex-col w-full gap-3 rounded-lg bg-white overflow-hidden p-5 ring-1 ring-zinc-900/5 hover:bg-rose-500 hover:ring-rose-500
-                                    dark:bg-zinc-950 dark:ring-zinc-500/10 dark:hover:bg-rose-500 dark:hover:ring-rose-500 text-rose-500 group-hover:text-white
-                                            dark:text-zinc-50 dark:group-hover:text-white
-                                    "
+                                            className="relative group mx-auto flex flex-col w-full gap-3 rounded-lg bg-white overflow-hidden p-5 ring-1 ring-zinc-900/5 hover:bg-rose-500 hover:ring-rose-500 dark:bg-zinc-950 dark:ring-zinc-500/10 dark:hover:bg-rose-500 dark:hover:ring-rose-500 text-rose-500 group-hover:text-white dark:text-zinc-50 dark:group-hover:text-white"
                                             key={document.id}
                                             href={`/app/translate?doc=${document.id}`}
                                         >
@@ -69,19 +66,11 @@ export default function Page() {
                                             dark:text-zinc-50 dark:group-hover:text-white
                                             "
                                                 />
-                                                <h3
-                                                    className="text-md font-semibold text-zinc-900 group-hover:text-white
-                                        dark:text-zinc-50 dark:group-hover:text-white
-                                        "
-                                                >
+                                                <h3 className="text-md font-semibold text-zinc-900 group-hover:text-white dark:text-zinc-50 dark:group-hover:text-white">
                                                     {document.name}
                                                 </h3>
                                             </div>
-                                            <p
-                                                className="text-sm text-zinc-500 group-hover:text-white
-                                    dark:text-zinc-400 dark:group-hover:text-white
-                                    "
-                                            >
+                                            <p className="text-sm text-zinc-500 group-hover:text-whitedark:text-zinc-400 dark:group-hover:text-white">
                                                 {document.description}
                                             </p>
 

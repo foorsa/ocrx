@@ -60,22 +60,35 @@ client = MongoClient(uri, server_api=ServerApi("1"))
 
 # Load BSON Data from the database
 from bson import json_util
+import base64
+from cryptography.fernet import Fernet
+import secrets
 
 
 def parse_json(data):
     return json.loads(json_util.dumps(data))
 
 
+def GenerateSessionId(Prefix="LLS-", Suffix="-TRS"):
+    ID = Prefix + secrets.token_hex(4) + Suffix
+    # All Upper Case
+    ID = ID.upper()
+
+    return ID
+
+
 class SessionGenerator:
     def __init__(self):
-        self.id = "",
-        self.document_type = "",
+        self.id = ("",)
+        self.document_type = ("",)
         self.files = []
         self.session = {
             "Session Id": "",
+            "Operation Date": "",
             "Document Type": {},
+            "Information Type": "",
             "Uploads": [],
-            "Status": "Pending",
+            "Status": "Inactive",
             "Error": None,
             "Message": "",
         }
@@ -98,8 +111,7 @@ class SessionGenerator:
 
     def Initialize(self, DocumentType, Files):
         # Session ID
-        session_id = str(datetime.datetime.now())
-        self.id = session_id.replace(" ", "").replace(":", "-").replace(".", "-")
+        self.id = GenerateSessionId()
         self.document_type = DocumentType
         self.files = Files
 
@@ -121,14 +133,21 @@ class SessionGenerator:
                     "Upload.{}".format(file_path.split(".")[-1]),
                 )
 
-        RegularDocumentTypes = ["*"]
-        TabularDocumentTypes = ["Master-Transcript-of-Marks", "Baccalaureate-Transcript-of-Notes"]
+        TabularDocumentTypes = [
+            "Master-Transcript-of-Marks",
+            "Baccalaureate-Transcript-of-Notes",
+        ]
 
         # Create session document
         Session = {
             "Session Id": self.id,
+            "Operation Date": datetime.datetime.now().strftime(
+                "%A, %d %B %Y, %I:%M%p" + " UTC"
+            ),
             "Document Type": self.document_type,
-            "Information Type": "Tabular" if self.document_type in TabularDocumentTypes else "Regular", 
+            "Information Type": "Tabular"
+            if self.document_type in TabularDocumentTypes
+            else "Regular",
             "Uploads": Uploads,
             "Status": "Initialized",
             "Error": None,
@@ -165,17 +184,23 @@ class SessionGenerator:
                 PDf_Bytes = io.BytesIO(File.read())
                 # If the File is a PDF, Read the PDF
                 Content = OCR.Read_PDF(
-                    self.session["Document Type"], self.session["Session Id"], PDf_Bytes
+                    self.session["Information Type"],
+                    self.session["Session Id"],
+                    PDf_Bytes,
                 )
             elif FileExtension in {"png", "jpg", "jpeg"}:
                 # convert bytes to a file-like object
-                file_like = io.BytesIO(File.read())
+                FILE_LIKE = io.BytesIO(File.read())
 
-                # create an Image object
-                img = Image.open(file_like)
+                # Create an Image object
+                IMG = Image.open(FILE_LIKE)
+
                 # If the File is an Image, Read the Image
-                Content = OCR.Read_Image(self.session["Document Type"], img)
-                
+                Content = OCR.Read_Image(
+                    self.session["Information Type"],
+                    self.session["Session Id"],
+                    IMG,
+                )
 
             # Check if Content is None
             if Content is None:
@@ -184,7 +209,7 @@ class SessionGenerator:
                 return self.session
             else:
                 # Add the Content to the Session
-                self.session["Extraction"] = {"RAW": Content}
+                self.session["Extraction"] = Content
                 # Add new Status
                 self.session["Status"] = "Extracted"
         # Update the Session object
@@ -204,6 +229,15 @@ class SessionGenerator:
         )
 
         Corrected = GPT.Correct(Content, Doctype)
+
+        if self.session["Information Type"] == "Tabular":
+            RAW_TABLE = self.session["Extraction"]["RAW_TABLES"]
+
+            CorrectedTable = GPT.CorrectTable(RAW_TABLE, Doctype)
+
+            JSON_TABLE = json.loads(CorrectedTable)
+
+            self.session["Extraction"]["CorrectedTable"] = JSON_TABLE
 
         CorrectedObject = json.loads(Corrected)
 
@@ -227,12 +261,10 @@ class SessionGenerator:
         # Method to generate PDF files from Correct Output
         PDF = PDFGenerator()
 
-        Values = self.session["Extraction"]["Corrected"]
+        Session = self.session
 
         # Generate the PDF
-        Links = PDF.Generate(
-            self.session["Document Type"], self.session["Session Id"], Values
-        )
+        Links = PDF.Generate(self.Get())
 
         # Add the Links to the Session
         self.session["Generation"] = Links

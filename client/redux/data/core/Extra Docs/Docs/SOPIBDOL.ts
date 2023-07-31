@@ -41,6 +41,12 @@ export const SOPIBDOL: DocumentType = {
 
         },
         {
+            name: "Student Name",
+            type: "text",
+            description: "Full Name of the Candidate",
+            required: true,
+        },
+        {
             name: "Date of Birth",
             type: "text",
             description: "Date of Birth of the Candidate",
@@ -66,7 +72,6 @@ export const SOPIBDOL: DocumentType = {
             type: "text",
             description: "Occupation of the Candidate",
             required: true,
-
             example: "Mostly Student.",
         },
         {
@@ -81,7 +86,6 @@ export const SOPIBDOL: DocumentType = {
             type: "text",
             description: "Date of issue of the Statement of penalties issued by deprivation of liberty.",
             required: true,
-
         },
     ]
 }
