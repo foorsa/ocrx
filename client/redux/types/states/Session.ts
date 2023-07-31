@@ -2,9 +2,9 @@ import { Doctype } from "./Document Type";
 
 interface Session {
     "Session Id": string;
-    "Operation Date": string;
+    "Operation Date"?: string;
     "Document Type"?: string;
-    "Information Type": "Regular" | "Tabular";
+    "Information Type"?: "Regular" | "Tabular";
     "Status"?: string;
     "Error"?: any;
     "Uploads"?: {
