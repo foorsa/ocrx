@@ -177,10 +177,12 @@ export default function First_DocumentUpload() {
                     })
                 );
 
-                console.log("Session ID is missing in: ", Session);
+                console.log("Session Identifier is missing in: ", Session);
 
                 toast.dismiss("Extracting");
-                return toast.error("Session ID is missing.");
+                return toast.error(
+                    "Session Identifier is missing, the server was probably inactive, please try again in few seconds."
+                );
             }
 
             const EXTRACT_URL =

@@ -17,7 +17,7 @@ from flask import Blueprint, jsonify, request
 
 # Import any other required modules
 from Modules.SessionGenerator import SessionGenerator
-from Config import UPLOAD_FOLDER
+from config import UPLOAD_FOLDER
 
 # Create a Blueprint object for the API routes
 API_BLUEPRINT = Blueprint("API", __name__, template_folder="templates")

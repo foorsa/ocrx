@@ -70,7 +70,7 @@ export default function Page() {
                                                     {document.name}
                                                 </h3>
                                             </div>
-                                            <p className="text-sm text-zinc-500 group-hover:text-whitedark:text-zinc-400 dark:group-hover:text-white">
+                                            <p className="text-sm text-zinc-500 group-hover:text-white dark:text-zinc-400 dark:group-hover:text-white">
                                                 {document.description}
                                             </p>
 
