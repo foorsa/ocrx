@@ -26,6 +26,13 @@ export const TranscriptOfNotes: DocumentType = {
             example: `"Mohamed V", "Hassan II", etc.`,
         },
         {
+            name: "Year",
+            type: "text",
+            description: "Year of the Baccalaureate",
+            required: true,
+            example: `"2002", "2003", etc.`,
+        },
+        {
             name: "Student Name",
             type: "text",
             description: "Student Name",
