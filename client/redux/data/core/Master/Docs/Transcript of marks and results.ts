@@ -24,7 +24,6 @@ export const TranscriptOfMarks: DocumentType = {
             required: true,
             description: "End Semester of the Transcript",
             example: "S1, S2, S3, S4, S5, S6, etc.",
-
         },
         {
             name: "University Name",

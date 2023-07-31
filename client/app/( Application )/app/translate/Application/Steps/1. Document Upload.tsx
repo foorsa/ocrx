@@ -70,6 +70,23 @@ export default function First_DocumentUpload() {
 
         const SERVER_API: string = getApiServerUrl();
 
+        // [STEP 0] Ping the server - Heroku puts the server to sleep after 30 minutes of inactivity
+        toast.loading("Checking the server...", {
+            id: "Checking",
+        });
+
+        try {
+            const PING_URL = SERVER_API + "/api/v1/ping";
+            const response = await axios.get(PING_URL);
+            toast.dismiss("Checking");
+        } catch (e) {
+            console.log("Error while pinging the server: ", e);
+            toast.dismiss("Checking");
+            return toast.error(
+                "The server was unconscious, this is due to 30 minutes of inactivity, please try again."
+            );
+        }
+
         toast.loading("Uploading your file to the server...", {
             id: "Uploading",
         });
@@ -116,7 +133,7 @@ export default function First_DocumentUpload() {
             // All good, continue with the next steps
         } catch (error: any) {
             console.log("Error while Initializing Session: ", error);
-            toast.dismiss("Uploading");
+            toast.dismiss("Uploading...");
 
             Dispatch(
                 setProcess({
