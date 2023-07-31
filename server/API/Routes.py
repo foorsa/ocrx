@@ -28,6 +28,14 @@ def Home():
     return render_template("index.html")
 
 
+# PING API
+@API_BLUEPRINT.route("/api/v1/ping", methods=["GET", "POST"])
+def Ping():
+    # Heroku puts the server to sleep after 30 minutes of inactivity
+    # This endpoint is used to wake the server up
+    return jsonify({"Status": "OK"}), 200
+
+
 # INITIALIZATION API
 @API_BLUEPRINT.route("/api/v1/initialize", methods=["POST"])
 def Intialize():
