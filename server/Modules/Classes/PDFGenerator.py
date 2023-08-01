@@ -11,7 +11,7 @@ TemplateIDs = {
     # Baccalaureate
     "Baccalaureate-Certificate": "1X3rr9TPPR7egAZLvDalNBAnkOYizgAmezHwFgRw1rzE",
     "Baccalaureate-School-Certificate": "18HyzaYEH9JPbseo_SXebTBZ-O8gjAIP_x-m6XDRVbAU",
-    "Baccalaureate-Transcript-of-Notes": "19XxnsnQxSbWdWKkcUf7kuu7U5DMb056YKZqbI_KYImI"
+    "Baccalaureate-Transcript-of-Notes": "19XxnsnQxSbWdWKkcUf7kuu7U5DMb056YKZqbI_KYImI",
     # Master
     "Master-Certificate": "1gBQowrWKrdR98okjfY8s7rRL3vteY64f6sM3Wx8TzR8",
     "Master-Transcript-of-Marks": "16s73p8NUPIcUFkv-VB4i8GSCDRXPtQOb5qJTKzF7xpo",
