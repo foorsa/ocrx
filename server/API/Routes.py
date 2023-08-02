@@ -223,7 +223,7 @@ def TranslateText():
     return jsonify({"Session": Session.Get()}), 200
 
 
-@API_BLUEPRINT.route("/api/v1/generate", methods=["POST"])
+@API_BLUEPRINT.route("/api/v1/generate-document", methods=["POST"])
 def Generate():
     print("[STEP 8] Generating a Document from the Session Information.")
 
@@ -304,7 +304,7 @@ def Generate():
 
 
 # Exceptional Routes ----------------------------------------------------------
-@API_BLUEPRINT.route("/api/v1/extract-table", methods=["POST"])
+@API_BLUEPRINT.route("/api/v1/extract-tables", methods=["POST"])
 def ExtractTable():
     # Extract table from Document
     print("[STEP 3] Extracting the Table from the Session File")
@@ -331,7 +331,7 @@ def ExtractTable():
         return jsonify({"Status": "Error", "Error": ErrorMessage}), 500
 
 
-@API_BLUEPRINT.route("/api/v1/correct-table", methods=["POST"])
+@API_BLUEPRINT.route("/api/v1/correct-tables", methods=["POST"])
 def CorrectTable():
     print("[STEP 5] Correcting the Table from the Session File")
 
@@ -377,7 +377,7 @@ def CorrectTable():
     return jsonify({"Session": Session.Get()}), 200
 
 
-@API_BLUEPRINT.route("/api/v1/translate-table", methods=["POST"])
+@API_BLUEPRINT.route("/api/v1/translate-tables", methods=["POST"])
 def TranslateTable():
     print("[STEP 7] Translating the Table from the Session File")
 

@@ -263,6 +263,7 @@ def GenerateTableCorrection(Doctype, Table):
             )
             Response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo-16k-0613",
+                temperature=0.2,
                 messages=[
                     {
                         "role": "system",
@@ -373,6 +374,7 @@ def GenerateTableCorrection(Doctype, Table):
             print("[INFO] Generating AI Correction for: Master Transcript of Marks")
             Response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo-16k-0613",
+                temperature=0.2,
                 messages=[
                     {
                         "role": "system",
@@ -562,7 +564,7 @@ def GenerateTableTranslation(Doctype, Table):
             # Baccalaureate-Transcript-of-Notes Prompt Generation
             TableResponse = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo-16k-0613",
-                temperature=0.9,
+                temperature=0.2,
                 messages=[
                     {
                         "role": "system",
@@ -792,7 +794,7 @@ def GenerateTableTranslation(Doctype, Table):
             # Master-Transcript-of-Marks Prompt Generation
             TableResponse = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo-16k-0613",
-                temperature=0.9,
+                temperature=0.2,
                 messages=[
                     {
                         "role": "system",
