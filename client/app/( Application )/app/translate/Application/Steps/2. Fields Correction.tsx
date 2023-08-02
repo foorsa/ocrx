@@ -82,7 +82,7 @@ export default function Second_CorrectData() {
             | {
                   [key: string]: string;
               }
-            | undefined = Session?.Extraction?.Corrected;
+            | undefined = Session?.Translation?.Text;
 
         const RequiredFields = Doctype?.fields?.filter(
             (Field) => Field.required
@@ -126,17 +126,17 @@ export default function Second_CorrectData() {
                 }
 
                 // Start the Process
-                const GENERATION_URL = `${getApiServerUrl()}/api/v1/generate?Session_Id=${
+                const GENERATION_URL = `${getApiServerUrl()}/api/v1/generate-document?Session_Id=${
                     Session["Session Id"]
                 }`;
 
                 const Response = await axios.post(GENERATION_URL, {
-                    Values: Session.Extraction?.Corrected,
+                    Values: Session.Translation?.Text,
                 });
 
                 console.log(
                     "Given Values to Generation URL: ",
-                    Session.Extraction?.Corrected
+                    Session.Translation?.Text
                 );
 
                 console.log("Response from Generation URL: ", Response);

@@ -14,13 +14,20 @@ interface Session {
         };
     }[];
     "Extraction"?: {
-        "RAW"?: string;
-        "RAW_TABLES": {}[] | any;
-        "Corrected"?: {
+        "Text": string;
+        "Tables"?: [];
+    },
+    "Correction"?: {
+        "Text": {
             [key: string]: string;
         };
-        "CorrectedTable"?: {}[] | any;
-        "Description": string;
+        "Tables"?: [];
+    },
+    "Translation"?: {
+        "Text": {
+            [key: string]: string;
+        };
+        "Tables"?: [];
     },
     "Generation"?: {
         "PDF Link": string;

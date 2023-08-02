@@ -1,5 +1,6 @@
 "use client";
 
+import Particles from "@/app/Components/Layout/Particles";
 import { BackSquare, Home } from "iconsax-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,6 +11,9 @@ export default function Register() {
     return (
         <main className="grid min-h-full place-items-center w-full px-6 py-24 sm:py-32 lg:px-8">
             <div className="text-center max-w-xs md:max-w-xl">
+                <div className="fixed -z-10 top-0 left-0 w-full h-screen pointer-events-none">
+                    <Particles />
+                </div>
                 <p className="text-base font-semibold text-rose-600 uppercase">
                     Coming Soon
                 </p>
@@ -18,7 +22,8 @@ export default function Register() {
                 </h1>
                 {/* <hr className="w-48 h-1 mx-auto my-2 bg-gray-500 border-0 rounded md:my-10 dark:bg-zinc-300/25" /> */}
                 <p className="mt-6 text-base leading-7 text-zinc-600 dark:text-zinc-300">
-                    We are working hard to bring you the best experience.
+                    User registration is not available at the moment, please
+                    check back later.
                 </p>
 
                 <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
@@ -35,7 +40,7 @@ export default function Register() {
                         onClick={() => {
                             Router.back();
                         }}
-                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-rose-800 bg-rose-600/25 hover:bg-rose-600/50 dark:text-rose-300 dark:bg-rose-600/50 dark:hover:bg-rose-600/75"
+                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium whitespace-nowrap text-center rounded-lg text-rose-800 bg-rose-600/25 hover:bg-rose-600/50 dark:text-rose-300 dark:bg-rose-600/50 dark:hover:bg-rose-600/75"
                     >
                         <span className="mr-2 text-md font-semibold">
                             Go Back

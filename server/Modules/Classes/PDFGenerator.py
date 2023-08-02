@@ -11,6 +11,7 @@ TemplateIDs = {
     # Baccalaureate
     "Baccalaureate-Certificate": "1X3rr9TPPR7egAZLvDalNBAnkOYizgAmezHwFgRw1rzE",
     "Baccalaureate-School-Certificate": "18HyzaYEH9JPbseo_SXebTBZ-O8gjAIP_x-m6XDRVbAU",
+    "Baccalaureate-Transcript-of-Notes": "19XxnsnQxSbWdWKkcUf7kuu7U5DMb056YKZqbI_KYImI",
     # Master
     "Master-Certificate": "1gBQowrWKrdR98okjfY8s7rRL3vteY64f6sM3Wx8TzR8",
     "Master-Transcript-of-Marks": "16s73p8NUPIcUFkv-VB4i8GSCDRXPtQOb5qJTKzF7xpo",
@@ -41,7 +42,7 @@ class PDFGenerator:
 
         # [2] Store the Script ID: we execute the Apps Script to Generate the Document.
         print("[...] Getting the Script ID...")
-        URL = "https://script.google.com/macros/s/AKfycbzkhghKJFVFGV4_K70KO8g2b0u55CJU4Qaouy10QV0U16JF8kU_csBkqrdJjG01NQ8/exec"
+        URL = "https://script.google.com/macros/s/AKfycbyg1pMaO7_jNGg7oCizAe5n2aDq1YjhLrAXocbHyLJGf980U0lNAi5T7pFGWsJptq4E/exec"
 
         # [3] Gather the information to fill in the template.
         print("[...] Gathering the information to fill in the template...")

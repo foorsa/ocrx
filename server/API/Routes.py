@@ -17,7 +17,7 @@ from flask import Blueprint, jsonify, request
 
 # Import any other required modules
 from Modules.SessionGenerator import SessionGenerator
-from config import UPLOAD_FOLDER
+from Config import UPLOAD_FOLDER
 
 # Create a Blueprint object for the API routes
 API_BLUEPRINT = Blueprint("API", __name__, template_folder="templates")
@@ -38,7 +38,7 @@ def Ping():
 
 # INITIALIZATION API
 @API_BLUEPRINT.route("/api/v1/initialize", methods=["POST"])
-def Intialize():
+def Initialize():
     print("[STEP 1] Initializing an empty Session")
 
     print("[...] Validating the Request Parameters...")
@@ -47,10 +47,7 @@ def Intialize():
     if "file" not in request.files or "document_type" not in request.form:
         if "file" not in request.files:
             print("[X] File field is required.")
-            return (
-                jsonify({"error": "File field is required."}),
-                400,
-            )
+            return (jsonify({"error": "File field is required."}), 400, 2)
         elif "document_type" not in request.form:
             print("[X] Document Type field is required.")
             return jsonify({"error": "Document Type field is required."}), 400
@@ -87,12 +84,6 @@ def Intialize():
 
         WindowsPath = FilePath
 
-        # UnixPath = WindowsPath.replace("C:", "/mnt/c").replace("\\", "/")
-
-        # print(
-        #     f"The Default Windows Path - {WindowsPath} - is converted to a UNIX Path - {UnixPath}"
-        # )
-
         SavedFiles.append(WindowsPath)
 
     print("[OK] Saving Files to Temporary Directory Finished !")
@@ -114,9 +105,9 @@ def Intialize():
 
 
 # EXTRACTION API
-@API_BLUEPRINT.route("/api/v1/extract", methods=["POST"])
-def Extract():
-    print("[STEP 2] Extracting the Data from the Session File")
+@API_BLUEPRINT.route("/api/v1/extract-text", methods=["POST"])
+def ExtractText():
+    print("[STEP 2] Extracting the Text from the Session File")
 
     print("[...] Retrieving Session Id...")
     Session_Id = request.args.get("Session_Id")
@@ -128,22 +119,21 @@ def Extract():
     Session.Set(Session_Id)
     print("[OK] Retrieving Session from Database Finished !")
 
-    print("[...] Extracting Data from Session File...")
+    print("[...] Extracting Text from Session File...")
     try:
-        Session.Read()
-        print("[OK] Extracting Data from Session File Finished !")
+        Session.ExtractText()
+        print("[OK] Extracting Text from Session File Finished !")
+        return jsonify({"Session": Session.Get()}), 200
     except Exception as e:
         ErrorMessage = str(e)
         Session.Error(ErrorMessage)
         print(f"[ERROR] {ErrorMessage}")
         return jsonify({"Status": "Error", "Error": ErrorMessage}), 500
 
-    return jsonify({"Session": Session.Get()}), 200
 
-
-@API_BLUEPRINT.route("/api/v1/translate", methods=["POST"])
-def Translate():
-    print("[STEP 4] Translating the Data from the Session File")
+@API_BLUEPRINT.route("/api/v1/correct-text", methods=["POST"])
+def CorrectText():
+    print("[STEP 4] Correcting the Text from the Session File")
 
     print("[...] Retrieving Session Id...")
     Session_Id = request.args.get("Session_Id")
@@ -155,7 +145,7 @@ def Translate():
     Session.Set(Session_Id)
     print("[OK] Retrieving Session from Database Finished !")
 
-    print("[...] Checking Presence of Extracted Data...")
+    print("[...] Checking Presence of Extracted Text...")
 
     if (
         not Session.Get()["Status"] == "Extracted"
@@ -172,24 +162,70 @@ def Translate():
             400,
         )
 
-    print("[...] Processing AI Translation [...]")
+    print("[...] Processing AI Text Correction [...]")
 
     try:
-        Session.Correct()
-        print("[OK] Processing AI Translation Finished !")
+        Session.CorrectText()
+        print("[OK] Processing AI Text Correction Finished !")
     except Exception as e:
         ErrorMessage = str(e)
         Session.Error(ErrorMessage)
         print(f"[ERROR] {ErrorMessage}")
         return jsonify({"Session": Session.Get(), "Error": ErrorMessage}), 500
-    print("[OK] Extracting Data from Session File Finished !")
+    print("[OK] Correcting Text from Session File Finished !")
 
     return jsonify({"Session": Session.Get()}), 200
 
 
-@API_BLUEPRINT.route("/api/v1/generate", methods=["POST"])
+@API_BLUEPRINT.route("/api/v1/translate-text", methods=["POST"])
+def TranslateText():
+    print("[STEP 6] Translating the Text from the Session File")
+
+    print("[...] Retrieving Session Id...")
+    Session_Id = request.args.get("Session_Id")
+    print("[OK] Retrieving Session Id Finished !")
+
+    print("[...] Retrieving Session from Database...")
+    Session = SessionGenerator()
+
+    Session.Set(Session_Id)
+    print("[OK] Retrieving Session from Database Finished !")
+
+    print("[...] Checking Presence of Corrected Text...")
+
+    if (
+        not Session.Get()["Status"] == "Corrected"
+        and not Session.Get()["Status"] == "Translated"
+    ):
+        print("[X] No Extracted Text Available.")
+        return (
+            jsonify(
+                {
+                    "Status": "Error",
+                    "Error": "No Extracted Text is Found.",
+                }
+            ),
+            400,
+        )
+
+    print("[...] Processing Text Translation [...]")
+
+    try:
+        Session.TranslateText()
+        print("[OK] Processing Text Translation Finished !")
+    except Exception as e:
+        ErrorMessage = str(e)
+        Session.Error(ErrorMessage)
+        print(f"[ERROR] {ErrorMessage}")
+        return jsonify({"Session": Session.Get(), "Error": ErrorMessage}), 500
+    print("[OK] Translating Text from Session File Finished !")
+
+    return jsonify({"Session": Session.Get()}), 200
+
+
+@API_BLUEPRINT.route("/api/v1/generate-document", methods=["POST"])
 def Generate():
-    print("[STEP 4] Generating a Document from the Session Information.")
+    print("[STEP 8] Generating a Document from the Session Information.")
 
     print("[...] Retrieving Session Identifier...")
     Session_Id = request.args.get("Session_Id")
@@ -216,13 +252,13 @@ def Generate():
 
     print("[...] Checking Session Status...")
 
-    if not Session.Get()["Status"] == "Corrected":
-        print("[X] The Session has not passed the Correction Phase.")
+    if not Session.Get()["Status"] == "Translated":
+        print("[X] The Session has not passed the Translation Phase.")
         return (
             jsonify(
                 {
                     "Status": "Error",
-                    "Error": "No Corrected Data Found.",
+                    "Error": "No Translated Data is Found.",
                 }
             ),
             400,
@@ -239,7 +275,7 @@ def Generate():
         print("[X] No Values Provided.")
 
         # Keep the Values as they are
-        Values = Session.Get()["Extraction"]["Corrected"]
+        Values = Session.Get()["Translation"]["Text"]
     else:
         # TODO: Set the Values to the Corrected Session Values
         Session.SetValues(Values)
@@ -247,7 +283,7 @@ def Generate():
     print("[...] Generating Document from Session Information...")
 
     try:
-        Session.Generate()
+        Session.GenerateDocument()
         print("[OK] Generating Document from Session Information Finished !")
     except Exception as e:
         ErrorMessage = str(e)
@@ -256,6 +292,7 @@ def Generate():
         return jsonify({"Session": Session.Get(), "Error": ErrorMessage}), 500
 
     print("[OK] Document Generation Finished !")
+
     return (
         jsonify(
             {
@@ -264,3 +301,123 @@ def Generate():
         ),
         200,
     )
+
+
+# Exceptional Routes ----------------------------------------------------------
+@API_BLUEPRINT.route("/api/v1/extract-tables", methods=["POST"])
+def ExtractTable():
+    # Extract table from Document
+    print("[STEP 3] Extracting the Table from the Session File")
+
+    print("[...] Retrieving Session Id...")
+    Session_Id = request.args.get("Session_Id")
+    print("[OK] Retrieving Session Id Finished !")
+
+    print("[...] Retrieving Session from Database...")
+    Session = SessionGenerator()
+
+    Session.Set(Session_Id)
+    print("[OK] Retrieving Session from Database Finished !")
+
+    print("[...] Extracting Table from Session File...")
+    try:
+        Session.ExtractTables()
+        print("[OK] Extracting Table from Session File Finished !")
+        return jsonify({"Session": Session.Get()}), 200
+    except Exception as e:
+        ErrorMessage = str(e)
+        Session.Error(ErrorMessage)
+        print(f"[ERROR] {ErrorMessage}")
+        return jsonify({"Status": "Error", "Error": ErrorMessage}), 500
+
+
+@API_BLUEPRINT.route("/api/v1/correct-tables", methods=["POST"])
+def CorrectTable():
+    print("[STEP 5] Correcting the Table from the Session File")
+
+    print("[...] Retrieving Session Id...")
+    Session_Id = request.args.get("Session_Id")
+    print("[OK] Retrieving Session Id Finished !")
+
+    print("[...] Retrieving Session from Database...")
+    Session = SessionGenerator()
+
+    Session.Set(Session_Id)
+    print("[OK] Retrieving Session from Database Finished !")
+
+    print("[...] Checking Presence of Extracted Tables...")
+
+    if (
+        not Session.Get()["Status"] == "Extracted"
+        and not Session.Get()["Status"] == "Corrected"
+    ):
+        print("[X] No Extracted Tables Available.")
+        return (
+            jsonify(
+                {
+                    "Status": "Error",
+                    "Error": "No Extracted Data Found.",
+                }
+            ),
+            400,
+        )
+
+    print("[...] Processing AI Table Correction [...]")
+
+    try:
+        Session.CorrectTables()
+        print("[OK] Processing AI Table Correction Finished !")
+    except Exception as e:
+        ErrorMessage = str(e)
+        Session.Error(ErrorMessage)
+        print(f"[ERROR] {ErrorMessage}")
+        return jsonify({"Session": Session.Get(), "Error": ErrorMessage}), 500
+    print("[OK] Correcting Text from Session File Finished !")
+
+    return jsonify({"Session": Session.Get()}), 200
+
+
+@API_BLUEPRINT.route("/api/v1/translate-tables", methods=["POST"])
+def TranslateTable():
+    print("[STEP 7] Translating the Table from the Session File")
+
+    print("[...] Retrieving Session Id...")
+    Session_Id = request.args.get("Session_Id")
+    print("[OK] Retrieving Session Id Finished !")
+
+    print("[...] Retrieving Session from Database...")
+    Session = SessionGenerator()
+
+    Session.Set(Session_Id)
+    print("[OK] Retrieving Session from Database Finished !")
+
+    print("[...] Checking Presence of Corrected Table...")
+
+    if (
+        not Session.Get()["Status"] == "Corrected"
+        and not Session.Get()["Status"] == "Translated"
+    ):
+        print("[X] No Extracted Tables are Available.")
+        return (
+            jsonify(
+                {
+                    "Status": "Error",
+                    "Error": "No Extracted Table is Found.",
+                }
+            ),
+            400,
+        )
+
+    print("[...] Processing Table Translation [...]")
+
+    try:
+        Session.TranslateTables()
+        print("[OK] Processing Table Translation Finished !")
+    except Exception as e:
+        ErrorMessage = str(e)
+        Session.Error(ErrorMessage)
+        print(f"[ERROR] {ErrorMessage}")
+        return jsonify({"Session": Session.Get(), "Error": ErrorMessage}), 500
+    print("[OK] Translating Table from Session File Finished !")
+
+    return jsonify({"Session": Session.Get()}), 200

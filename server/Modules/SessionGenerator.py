@@ -91,6 +91,23 @@ class SessionGenerator:
             "Status": "Inactive",
             "Error": None,
             "Message": "",
+            "Extraction": {
+                "Text": "",
+                "Tables": [],
+            },
+            "Correction": {
+                "Text": "",
+                "Tables": [],
+            },
+            "Translation": {
+                "Text": "",
+                "Tables": [],
+            },
+            "Generation": {
+                "PDF Link": "",
+                "Google Docs Link": "",
+                "Previw Link": "",
+            },
         }
         self.db = db  # Connect to the 'ocrx-db' database
         self.fs = gridfs.GridFS(self.db)  # Use GridFS for file storage
@@ -152,6 +169,23 @@ class SessionGenerator:
             "Status": "Initialized",
             "Error": None,
             "Message": "",
+            "Extraction": {
+                "Text": "",
+                "Tables": [],
+            },
+            "Correction": {
+                "Text": {},
+                "Tables": [],
+            },
+            "Translation": {
+                "Text": {},
+                "Tables": [],
+            },
+            "Generation": {
+                "PDF Link": "",
+                "Google Docs Link": "",
+                "Previw Link": "",
+            },
         }
 
         self.session = Session
@@ -161,14 +195,81 @@ class SessionGenerator:
 
         return Session
 
-    def Read(self):
+    def ExtractText(self):
         # Process the session document
         print(f"[...] Processing Session: {self.session['Session Id']}")
         print(f"[...] Document Type: {self.session['Document Type']}")
         # Optical Character Recognition
         OCR = OCRProcessor()
 
-        Content = None
+        ExtractedText = ""
+
+        for File in self.session["Uploads"]:
+            # Get the File ID
+            FileId = File["Upload Id"]
+
+            # Get the File
+            File = self.fs.get(FileId)
+
+            # Get the File Extension
+            FileExtension = File.filename.rsplit(".", 1)[1].lower()
+
+            if FileExtension == "pdf":
+                # Create PDF Object
+                PDf_Bytes = io.BytesIO(File.read())
+
+                # If the File is a PDF, Read the PDF
+                ExtractedText = OCR.ExtractTextFromPDF(
+                    self.session["Information Type"],
+                    self.session["Session Id"],
+                    PDf_Bytes,
+                )
+            elif FileExtension in {"png", "jpg", "jpeg"}:
+                # convert bytes to a file-like object
+                FILE_LIKE = io.BytesIO(File.read())
+
+                # Create an Image object
+                IMG = Image.open(FILE_LIKE)
+
+                # If the File is an Image, Read the Image
+                ExtractedText += OCR.ExtractTextFromImage(
+                    self.session["Information Type"],
+                    self.session["Session Id"],
+                    IMG,
+                )
+
+            # Check if Content is None
+            if ExtractedText is None or ExtractedText == "":
+                print("[ERROR] OCR file does not contain any content.")
+
+                self.session["Error"] = "Error Reading the File, Please Try Again."
+                self.session["Status"] = "Error"
+                return self.session
+            else:
+                print("[...] OCR file contains content.")
+                print("[...] Extracted Text Length: ", len(ExtractedText))
+                # Add the Content to the Session
+                self.session["Extraction"]["Text"] = ExtractedText
+                # Add new Status
+                self.session["Status"] = "Extracted"
+
+        # Update the Session object
+        self.db.sessions.update_one(
+            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
+
+        return ExtractedText
+
+    def ExtractTables(self):
+        # Extract Table from the session document
+        # Optical Character Recognition
+        OCR = OCRProcessor()
+
+        if self.session["Information Type"] != "Tabular":
+            print("[WARNING] The Document is not Tabular.")
+            return self.session
+
+        Tables = None
         for File in self.session["Uploads"]:
             # Get the File ID
             FileId = File["Upload Id"]
@@ -183,7 +284,7 @@ class SessionGenerator:
                 # Create PDF Object
                 PDf_Bytes = io.BytesIO(File.read())
                 # If the File is a PDF, Read the PDF
-                Content = OCR.Read_PDF(
+                Tables = OCR.ExtractTableFromPDF(
                     self.session["Information Type"],
                     self.session["Session Id"],
                     PDf_Bytes,
@@ -196,23 +297,24 @@ class SessionGenerator:
                 IMG = Image.open(FILE_LIKE)
 
                 # If the File is an Image, Read the Image
-                Content = OCR.Read_Image(
+                Tables = OCR.ExtractTableFromImage(
                     self.session["Information Type"],
                     self.session["Session Id"],
                     IMG,
                 )
 
             # Check if Content is None
-            if Content is None:
+            if Tables is None:
                 self.session["Error"] = "Error Reading the File, Please Try Again."
                 self.session["Status"] = "Error"
                 return self.session
             else:
                 # Add the Content to the Session
-                self.session["Extraction"] = Content
+                self.session["Extraction"]["Tables"] = Tables
 
                 # Add new Status
                 self.session["Status"] = "Extracted"
+
         # Update the Session object
         self.db.sessions.update_one(
             {"Session Id": self.session["Session Id"]}, {"$set": self.session}
@@ -220,33 +322,20 @@ class SessionGenerator:
 
         return self.session
 
-    def Correct(self):
+    def CorrectText(self):
         # GPT to Correct the Output of the OCR
         GPT = GPTCorrector()
 
-        (Content, Doctype) = (
-            self.session["Extraction"]["RAW"],
+        (Text, Doctype) = (
+            self.session["Extraction"]["Text"],
             self.session["Document Type"],
         )
 
-        Corrected = GPT.Correct(Content, Doctype)
+        CorrectedText = GPT.CorrectText(Text, Doctype)
 
-        if self.session["Information Type"] == "Tabular":
-            RAW_TABLE = self.session["Extraction"]["RAW_TABLES"]
+        CorrectedText = json.loads(CorrectedText)
 
-            CorrectedTable = GPT.CorrectTable(RAW_TABLE, Doctype)
-
-            JSON_TABLE = json.loads(CorrectedTable)
-
-            self.session["Extraction"]["CorrectedTable"] = JSON_TABLE
-
-        CorrectedObject = json.loads(Corrected)
-
-        Description = GPT.Describe(Corrected, Doctype)
-
-        self.session["Extraction"]["Corrected"] = CorrectedObject
-
-        self.session["Extraction"]["Description"] = Description
+        self.session["Correction"]["Text"] = CorrectedText
 
         # Update the Status of the Session
         self.session["Status"] = "Corrected"
@@ -258,7 +347,90 @@ class SessionGenerator:
 
         return self.session
 
-    def Generate(self):
+    def CorrectTables(self):
+        # GPT to Correct the Output of the OCR
+        GPT = GPTCorrector()
+
+        (Tables, Doctype) = (
+            self.session["Extraction"]["Tables"],
+            self.session["Document Type"],
+        )
+
+        if self.session["Information Type"] == "Tabular":
+            Tables = self.session["Extraction"]["Tables"]
+
+            CorrectedTable = GPT.CorrectTable(Tables, Doctype)
+
+            JSON_TABLES = json.loads(CorrectedTable)
+
+            self.session["Correction"]["Tables"] = JSON_TABLES
+
+        # Update the Status of the Session
+        self.session["Status"] = "Corrected"
+
+        # Update the Session object
+        self.db.sessions.update_one(
+            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
+
+        return self.session
+
+    def TranslateText(self):
+        # GPT to Correct the Output of the OCR
+        GPT = GPTCorrector()
+
+        (Text, Doctype) = (
+            self.session["Correction"]["Text"],
+            self.session["Document Type"],
+        )
+
+        Translated = GPT.TranslateText(Text, Doctype)
+
+        TranslatedObject = json.loads(Translated)
+
+        self.session["Translation"]["Text"] = TranslatedObject
+
+        # Update the Status of the Session
+        self.session["Status"] = "Translated"
+
+        # Update the Session object
+        self.db.sessions.update_one(
+            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
+
+        return self.session
+
+    def TranslateTables(self):
+        # GPT to Correct the Output of the OCR
+        GPT = GPTCorrector()
+
+        (Tables, Doctype) = (
+            self.session["Correction"]["Tables"],
+            self.session["Document Type"],
+        )
+
+        if self.session["Information Type"] == "Tabular":
+            TABLES = self.session["Correction"]["Tables"]
+
+            # TranslatedTables = GPT.TranslateTable(TABLES, Doctype)
+
+            # JSON_TABLE = json.loads(TranslatedTables)
+
+            # self.session["Translation"]["Tables"] = JSON_TABLE
+
+            self.session["Translation"]["Tables"] = self.session["Correction"]["Tables"]
+
+        # Update the Status of the Session
+        self.session["Status"] = "Translated"
+
+        # Update the Session object
+        self.db.sessions.update_one(
+            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
+
+        return self.session
+
+    def GenerateDocument(self):
         # Method to generate PDF files from Correct Output
         PDF = PDFGenerator()
 
@@ -321,12 +493,12 @@ class SessionGenerator:
 
     # Method to set Values for Corrected Fields
     def SetValues(self, NewValues):
-        OldValues = self.session["Extraction"]["Corrected"]
+        OldValues = self.session["Translation"]["Text"]
 
         for Field in NewValues:
             OldValues[Field] = NewValues[Field]
 
-        self.session["Extraction"]["Corrected"] = OldValues
+        self.session["Translation"]["Text"] = OldValues
 
         return self.session
 

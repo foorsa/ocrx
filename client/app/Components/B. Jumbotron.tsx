@@ -1,6 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
 import {
     ArrowRight3,
     SearchNormal,
@@ -9,15 +10,24 @@ import {
 } from "iconsax-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useRef } from "react";
 import { TypeAnimation } from "react-type-animation";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setModal } from "@/redux/slices/searchSlice";
+import Marquee from "react-fast-marquee";
 
 export default function Jumbotron() {
     const Pathname = usePathname();
     const Dispatch = useAppDispatch();
     const Search = useAppSelector((state) => state.search);
+
+    const textContainerRef = useRef<HTMLDivElement>(null);
+    const [textContainerWidth, setTextContainerWidth] = useState(0);
+
+    useEffect(() => {
+        if (textContainerRef?.current != null) {
+            setTextContainerWidth(textContainerRef?.current?.offsetWidth);
+        }
+    }, []);
 
     const Variants = {
         Initial: {
@@ -55,14 +65,20 @@ export default function Jumbotron() {
             >
                 <Link
                     href="/app"
-                    className="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-purple-700 bg-purple-100 rounded-full dark:bg-purple-900 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 bg-opacity-25 backdrop-blur-md dark:bg-opacity-25 dark:backdrop-blur-md"
+                    className="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-purple-700 bg-purple-100 rounded-full dark:bg-purple-900 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 bg-opacity-25 backdrop-blur-md dark:bg-opacity-25 dark:backdrop-blur-md max-w-full overflow-hidden"
                 >
                     <span className="text-xs bg-purple-600 rounded-full text-white px-4 py-1.5 mr-3 h-full">
                         New
                     </span>{" "}
-                    <span className="text-sm font-medium">
-                        Tabular Documents Extraction was Launched ! 🚀
-                    </span>
+                    <Marquee
+                        autoFill={false}
+                        gradient={false}
+                        speed={10}
+                        delay={0.5}
+                        className="flex-1 overflow-hidden relative inline-flex justify-start items-center max-w-[150px] md:max-w-[250px] text-sm font-medium whitespace-nowrap"
+                    >
+                        Tabular Documents Extraction was Launched! 🚀
+                    </Marquee>
                     <ArrowRight3
                         className="w-4 h-4"
                         color="currentColor"

@@ -31,7 +31,7 @@ import { Documents } from "@/redux/data/Documents";
 import SelectDocType from "./Core/A. Upload/B. SelectDocType";
 import Heading from "./Core/A. Upload/A. Heading";
 import { nextStep, resetStep, setStep } from "@/redux/actions/stepActions";
-import axios, { AxiosError } from "axios";
+import axios, { AxiosResponse, AxiosError } from "axios";
 import { Doctype } from "@/redux/types/states/Document Type";
 import Processing from "./Core/A. Upload/D. Processing";
 import { setProcess } from "@/redux/actions/processActions";
@@ -60,6 +60,9 @@ export default function First_DocumentUpload() {
             return toast.error("Please select a document type");
         }
 
+        // Clear the session
+        Dispatch(clearSession());
+
         Dispatch(
             setProcess({
                 isLoading: true,
@@ -71,18 +74,24 @@ export default function First_DocumentUpload() {
         const SERVER_API: string = getApiServerUrl();
 
         // [STEP 0] Ping the server - Heroku puts the server to sleep after 30 minutes of inactivity
-        toast.loading("Checking the server...", {
+        toast.loading("Connecting to the server...", {
             id: "Checking",
         });
 
         try {
             const PING_URL = SERVER_API + "/api/v1/ping";
-            const response = await axios.get(PING_URL);
-            toast.dismiss("Checking");
+            await axios.get(PING_URL);
         } catch (e) {
             console.log("Error while pinging the server: ", e);
-            toast.dismiss("Checking");
         }
+
+        // Wait for 1 second before executing next commands
+        await new Promise((resolve) =>
+            setTimeout(() => {
+                resolve(true);
+                return toast.dismiss("Checking");
+            }, 1000)
+        );
 
         toast.loading("Uploading your file to the server...", {
             id: "Uploading",
@@ -163,8 +172,8 @@ export default function First_DocumentUpload() {
         }
 
         // [STEP 2] Extract the Data from the file
-        toast.loading("Extracting data from your file...", {
-            id: "Extracting",
+        toast.loading("Extracting Text from your file...", {
+            id: "Extracting Text",
         });
 
         try {
@@ -179,14 +188,14 @@ export default function First_DocumentUpload() {
 
                 console.log("Session Identifier is missing in: ", Session);
 
-                toast.dismiss("Extracting");
+                toast.dismiss("Extracting Text");
                 return toast.error(
                     "Session Identifier is missing, the server was probably inactive, please try again in few seconds."
                 );
             }
 
             const EXTRACT_URL =
-                SERVER_API + `/api/v1/extract?Session_Id=${SESSION_ID}`;
+                SERVER_API + `/api/v1/extract-text?Session_Id=${SESSION_ID}`;
 
             const response = await axios.post(EXTRACT_URL, {
                 headers: {
@@ -200,12 +209,12 @@ export default function First_DocumentUpload() {
                 Dispatch(
                     setProcess({
                         isLoading: true,
-                        name: "Translating",
-                        description: "Translating your file...",
+                        name: "Correcting",
+                        description: "Correcting your file...",
                     })
                 );
 
-                toast.dismiss("Extracting");
+                toast.dismiss("Extracting Text");
 
                 Dispatch(setSession(data.Session));
             } else {
@@ -215,14 +224,14 @@ export default function First_DocumentUpload() {
                     })
                 );
 
-                toast.dismiss("Extracting");
+                toast.dismiss("Extracting Text");
 
                 return toast.error(
                     "An error occurred while extracting the data. Please try again later."
                 );
             }
         } catch (error: any) {
-            console.log("[SERVER] Error while Translating Data: ", error);
+            console.log("[SERVER] Error while Extracting Data: ", error);
 
             Dispatch(
                 setProcess({
@@ -230,7 +239,7 @@ export default function First_DocumentUpload() {
                 })
             );
 
-            toast.dismiss("Extracting");
+            toast.dismiss("Extracting Text");
 
             // Check if the error contains a response
             if (error.response) {
@@ -257,10 +266,106 @@ export default function First_DocumentUpload() {
                 );
             }
         }
+        // [STEP 3] Presence of Tabular Data - Extract Tables from the file
+        if (Session["Information Type"] == "Tabular") {
+            toast.loading("Extracting Tables from your file...", {
+                id: "Extracting Tables",
+            });
 
-        // [STEP 3] Process the Data with AI (Correction)
-        toast.loading("Translating your file...", {
-            id: "Translating",
+            try {
+                const SESSION_ID = Session["Session Id"];
+
+                if (!SESSION_ID || SESSION_ID == "") {
+                    Dispatch(
+                        setProcess({
+                            isLoading: false,
+                        })
+                    );
+
+                    console.log("Session Identifier is missing in: ", Session);
+
+                    toast.dismiss("Extracting Text");
+                    return toast.error(
+                        "Session Identifier is missing, the server was probably inactive, please try again in few seconds."
+                    );
+                }
+
+                const EXTRACT_URL =
+                    SERVER_API +
+                    `/api/v1/extract-tables?Session_Id=${SESSION_ID}`;
+
+                const response = await axios.post(EXTRACT_URL, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+
+                const { status, data } = response;
+
+                if (status == 200 && data.Session.Status == "Extracted") {
+                    Dispatch(
+                        setProcess({
+                            isLoading: true,
+                        })
+                    );
+
+                    toast.dismiss("Extracting Tables");
+
+                    Dispatch(setSession(data.Session));
+                } else {
+                    Dispatch(
+                        setProcess({
+                            isLoading: false,
+                        })
+                    );
+
+                    toast.dismiss("Extracting Tables");
+
+                    return toast.error(
+                        "An error occurred while extracting the tables. Please try again later."
+                    );
+                }
+            } catch (error: any) {
+                console.log("[SERVER] Error while Extracting Tables: ", error);
+
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                toast.dismiss("Extracting Tables");
+
+                // Check if the error contains a response
+                if (error.response) {
+                    const { status, data } = error.response;
+                    switch (status) {
+                        case 400:
+                            return toast.error(
+                                "The server got an invalid request. Please try again later."
+                            );
+                        case 500:
+                            return toast.error(
+                                "The server is not responding. Please try again later."
+                            );
+                        default:
+                            return toast.error(
+                                "Server returned an unknown error. Please try again later."
+                            );
+                    }
+                } else {
+                    // Handle other types of errors (e.g., network errors, timeout)
+                    return toast.error(
+                        error.message ||
+                            "Server is not responding, please try again later."
+                    );
+                }
+            }
+        }
+
+        // [STEP 4] Correct the Text with AI (Correction)
+        toast.loading("Processing the extracted Text...", {
+            id: "Correcting Text",
         });
 
         try {
@@ -275,12 +380,12 @@ export default function First_DocumentUpload() {
 
                 console.log("Session ID is missing in: ", Session);
 
-                toast.dismiss("Translating");
+                toast.dismiss("Correcting Text");
                 return toast.error("Session ID is missing.");
             }
 
             const TRANSLATE_URL =
-                SERVER_API + `/api/v1/translate?Session_Id=${SESSION_ID}`;
+                SERVER_API + `/api/v1/correct-text?Session_Id=${SESSION_ID}`;
 
             const response = await axios.post(TRANSLATE_URL, {
                 headers: {
@@ -297,7 +402,7 @@ export default function First_DocumentUpload() {
                     })
                 );
 
-                toast.dismiss("Translating");
+                toast.dismiss("Correcting Text");
 
                 Dispatch(setSession(data.Session));
             } else {
@@ -307,14 +412,14 @@ export default function First_DocumentUpload() {
                     })
                 );
 
-                toast.dismiss("Translating");
+                toast.dismiss("Correcting Text");
 
                 return toast.error(
                     "AI returned an error. Please try again later."
                 );
             }
         } catch (Error: any) {
-            console.log("Error while Translating Data: ", Error);
+            console.log("Error while Correcting Text: ", Error);
 
             Dispatch(
                 setProcess({
@@ -322,7 +427,223 @@ export default function First_DocumentUpload() {
                 })
             );
 
-            toast.dismiss("Translating");
+            toast.dismiss("Correcting Text");
+
+            // Check if the error contains a response
+            if (Error.response) {
+                const { status, data } = Error.response;
+                switch (status) {
+                    case 400:
+                        return toast.error(
+                            "AI got an invalid request. Please try again later."
+                        );
+                    case 500:
+                        return toast.error(
+                            "AI is not responding, please try again later."
+                        );
+                    default:
+                        return toast.error("AI returned an unknown error.");
+                }
+            } else {
+                // Handle other types of errors (e.g., network errors, timeout)
+                return toast.error(
+                    Error.message ||
+                        "AI is not responding, please try again later."
+                );
+            }
+        }
+        // [STEP 5] Tabular Information: AI Correction
+        async function correctTable() {
+            if (Session["Information Type"] === "Tabular") {
+                toast.loading("Processing the Extracted Table....", {
+                    id: "Correcting Table",
+                });
+
+                try {
+                    const SESSION_ID = Session["Session Id"];
+
+                    if (!SESSION_ID || SESSION_ID === "") {
+                        Dispatch(
+                            setProcess({
+                                isLoading: false,
+                            })
+                        );
+
+                        console.log("Session ID is missing in: ", Session);
+
+                        toast.dismiss("Correcting Table");
+                        return toast.error("Session ID is missing.");
+                    }
+
+                    const TRANSLATE_URL =
+                        SERVER_API +
+                        `/api/v1/correct-tables?Session_Id=${SESSION_ID}`;
+
+                    const response = await makeRequestWithRetry(TRANSLATE_URL);
+
+                    const { status, data } = response;
+
+                    if (status === 200 && data.Session.Status === "Corrected") {
+                        Dispatch(
+                            setProcess({
+                                isLoading: true,
+                            })
+                        );
+
+                        toast.dismiss("Correcting Table");
+
+                        Dispatch(setSession(data.Session));
+                    } else {
+                        Dispatch(
+                            setProcess({
+                                isLoading: false,
+                            })
+                        );
+
+                        toast.dismiss("Correcting Table");
+
+                        return toast.error(
+                            "The Transcripts AI returned an error, please try again later."
+                        );
+                    }
+                } catch (error: any) {
+                    console.log("Error while Correcting Text: ", error);
+
+                    Dispatch(
+                        setProcess({
+                            isLoading: false,
+                        })
+                    );
+
+                    toast.dismiss("Correcting Table");
+
+                    // Check if the error contains a response
+                    if (error.response) {
+                        const { status, data } = error.response;
+                        switch (status) {
+                            case 400:
+                                return toast.error(
+                                    "The Transcripts AI got an invalid request. Please try again later."
+                                );
+                            case 500:
+                                return toast.error(
+                                    "The Transcripts AI is not responding, please try again later."
+                                );
+                            default:
+                                return toast.error(
+                                    "The Transcripts AI returned an unknown error."
+                                );
+                        }
+                    } else {
+                        // Handle other types of errors (e.g., network errors, timeout)
+                        return toast.error(
+                            error.message ||
+                                "The Transcripts AI is not responding, please try again later."
+                        );
+                    }
+                }
+            }
+        }
+
+        // Helper function to make the Axios request with retry
+        async function makeRequestWithRetry(
+            url: string,
+            maxRetries = 3,
+            currentRetry = 0
+        ) {
+            try {
+                const response = await axios.post(url, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+
+                return response;
+            } catch (error: any) {
+                if (
+                    currentRetry < maxRetries &&
+                    (axios.isAxiosError(error) || error.code === "ECONNABORTED")
+                ) {
+                    // Retry the request by recursively calling the function after a short delay
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    return makeRequestWithRetry(
+                        url,
+                        maxRetries,
+                        currentRetry + 1
+                    );
+                } else {
+                    throw error; // Reject the promise for non-retryable errors
+                }
+            }
+        }
+
+        await correctTable();
+
+        // [STEP 6] Translate the Text with AI (Correction)
+        toast.loading("Translating the extracted Text...", {
+            id: "Translating Text",
+        });
+
+        try {
+            const SESSION_ID = Session["Session Id"];
+
+            if (!SESSION_ID || SESSION_ID == "") {
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                console.log("Session ID is missing in: ", Session);
+
+                toast.dismiss("Translating Text");
+                return toast.error("Session ID is missing.");
+            }
+
+            const TRANSLATE_URL =
+                SERVER_API + `/api/v1/translate-text?Session_Id=${SESSION_ID}`;
+
+            const response = await axios.post(TRANSLATE_URL, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            const { status, data } = response;
+
+            if (status == 200 && data.Session.Status == "Translated") {
+                Dispatch(
+                    setProcess({
+                        isLoading: true,
+                    })
+                );
+
+                toast.dismiss("Translating Text");
+
+                Dispatch(setSession(data.Session));
+            } else {
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                toast.dismiss("Translating Text");
+
+                return toast.error(
+                    "AI returned an error. Please try again later."
+                );
+            }
+        } catch (Error: any) {
+            console.log("Error while Translating Text: ", Error);
+
+            Dispatch(
+                setProcess({
+                    isLoading: false,
+                })
+            );
+
+            toast.dismiss("Translating Text");
 
             // Check if the error contains a response
             if (Error.response) {
@@ -348,9 +669,102 @@ export default function First_DocumentUpload() {
             }
         }
 
-        // [STEP 4] Generate the Output File
+        // [STEP 7] Tabular Information: AI Translation
+        if (Session["Information Type"] == "Tabular") {
+            toast.loading("Translating the Extracted Table....", {
+                id: "Translating Table",
+            });
 
-        toast.loading("Generating the output file...", {
+            try {
+                const SESSION_ID = Session["Session Id"];
+
+                if (!SESSION_ID || SESSION_ID == "") {
+                    Dispatch(
+                        setProcess({
+                            isLoading: false,
+                        })
+                    );
+
+                    console.log("Session ID is missing in: ", Session);
+
+                    toast.dismiss("Translating Table");
+                    return toast.error("Session ID is missing.");
+                }
+
+                const TRANSLATE_URL =
+                    SERVER_API +
+                    `/api/v1/translate-tables?Session_Id=${SESSION_ID}`;
+
+                const response = await axios.post(TRANSLATE_URL, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+
+                const { status, data } = response;
+
+                if (status == 200 && data.Session.Status == "Translated") {
+                    Dispatch(
+                        setProcess({
+                            isLoading: true,
+                        })
+                    );
+
+                    toast.dismiss("Translating Table");
+
+                    Dispatch(setSession(data.Session));
+                } else {
+                    Dispatch(
+                        setProcess({
+                            isLoading: false,
+                        })
+                    );
+
+                    toast.dismiss("Translating Table");
+
+                    return toast.error(
+                        "The Transcripts AI returned an error, please try again later."
+                    );
+                }
+            } catch (Error: any) {
+                console.log("Error while Correcting Text: ", Error);
+
+                Dispatch(
+                    setProcess({
+                        isLoading: false,
+                    })
+                );
+
+                toast.dismiss("Translating Table");
+
+                // Check if the error contains a response
+                if (Error.response) {
+                    const { status, data } = Error.response;
+                    switch (status) {
+                        case 400:
+                            return toast.error(
+                                "The Transcripts AI  got an invalid request. Please try again later."
+                            );
+                        case 500:
+                            return toast.error(
+                                "The Transcripts AI  is not responding, please try again later."
+                            );
+                        default:
+                            return toast.error(
+                                "The Transcripts AI  returned an unknown error."
+                            );
+                    }
+                } else {
+                    // Handle other types of errors (e.g., network errors, timeout)
+                    return toast.error(
+                        Error.message ||
+                            "The Transcripts AI is not responding, please try again later."
+                    );
+                }
+            }
+        }
+
+        toast.loading("Generating Final Document...", {
             id: "Generating",
         });
 
@@ -373,7 +787,8 @@ export default function First_DocumentUpload() {
             }
 
             const GENERATE_URL =
-                SERVER_API + `/api/v1/generate?Session_Id=${SESSION_ID}`;
+                SERVER_API +
+                `/api/v1/generate-document?Session_Id=${SESSION_ID}`;
 
             const response = await axios.post(GENERATE_URL, {
                 headers: {
@@ -393,6 +808,8 @@ export default function First_DocumentUpload() {
                 toast.dismiss("Generating");
 
                 Dispatch(setSession(data.Session));
+
+                console.log("Final Session Information: ", data.Session);
             } else {
                 Dispatch(
                     setProcess({

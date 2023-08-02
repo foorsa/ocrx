@@ -11,21 +11,21 @@ export default function Fields() {
     );
     const Session = useAppSelector((state) => state.session);
 
-    const Values = Session.Extraction?.Corrected;
+    const Values = Session.Translation?.Text;
 
     const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
 
         // Set the value in the session
-        if (Session.Extraction?.Corrected) {
+        if (Session.Translation?.Text) {
             // Disptach
             dispatch(
                 setSession({
                     ...Session,
-                    Extraction: {
-                        ...Session.Extraction,
-                        Corrected: {
-                            ...Session.Extraction.Corrected,
+                    Translation: {
+                        ...Session.Translation,
+                        Text: {
+                            ...Session.Translation.Text,
                             [name]: value,
                         },
                     },
@@ -33,8 +33,6 @@ export default function Fields() {
             );
         }
     };
-
-    console.log("Second Step Soctype: ", Doctype);
 
     return (
         <div className="relative w-full text-left">
