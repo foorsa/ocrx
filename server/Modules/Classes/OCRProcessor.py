@@ -10,8 +10,6 @@ from ExtractTable import ExtractTable
 from dotenv import load_dotenv
 import json
 
-os.environ["ET_API_KEY"] = "iZF4JybeL7C7yTmbenioUEnEkKJH13pKMxVWOHTM"
-
 
 # Define the OCR Processor Class
 class OCRProcessor:
@@ -19,8 +17,25 @@ class OCRProcessor:
         self.ET_SESSION = ExtractTable(os.environ.get("ET_API_KEY"))
         pass
 
-    def Read_PDF(self, InformationType, SessionId, PDFBytes):
-        Extracted = {"RAW": "", "TABLES": []}
+    # Read the Image File
+    def ExtractTextFromImage(self, InformationType, SessionId, Image):
+        Extracted = ""
+
+        try:
+            TextContent = pytesseract.image_to_string(
+                Image,
+                lang="fra+ara",
+                config="",
+            )
+
+            Extracted = TextContent
+        except Exception as e:
+            print(f"[OCR ERROR] Error reading image file: {str(e)}")
+
+        return Extracted
+
+    def ExtractTextFromPDF(self, InformationType, SessionId, PDFBytes):
+        Extracted = ""
 
         # Temporary File Path
         TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
@@ -34,56 +49,35 @@ class OCRProcessor:
             Pages = convert_from_path(TEMPORARY_PDF_PATH, 500)
             for Page in Pages:
                 # Add the Extracted Text to the Extracted RAW Key
-                Extracted["RAW"] += pytesseract.image_to_string(
+                Extracted += pytesseract.image_to_string(
                     Page,
                     lang="fra+ara",
                     config="",
                 )
 
-            if InformationType == "Tabular":
-                # Add the Extracted Table to the Extracted Table Key
-                Extracted["RAW_TABLES"] = self.Process_Table(TEMPORARY_PDF_PATH)
             return Extracted
         except Exception as e:
             print(f"Error reading PDF file: {str(e)}")
 
-    # Read the Image File
-    def Read_Image(self, InformationType, SessionId, Image):
-        Extracted = {}
-
+    def ExtractTableFromImage(self, InformationType, SessionId, Image):
+        print("[...] Extracting Table from Image ...")
         try:
-            TextContent = pytesseract.image_to_string(
-                Image,
-                lang="fra+ara",
-                config="",
+            # Save Image to a temporary file - this will be used by the ExtractTable library
+
+            # Temporary File Path
+            TEMPORARY_IMAGE_PATH = os.path.join(
+                tempfile.gettempdir(), f"{SessionId}.png"
             )
 
-            Extracted["RAW"] = TextContent
+            # Write the Image to a Temporary File
+            Image.save(TEMPORARY_IMAGE_PATH, "PNG")
 
-            if InformationType == "Tabular":
-                # Temporary File Path
-                TEMPORARY_IMAGE_PATH = os.path.join(
-                    tempfile.gettempdir(), f"{SessionId}.jpg"
-                )
+            # Process the Table
+            TABLES = self.ET_SESSION.process_file(
+                TEMPORARY_IMAGE_PATH, output_format="json"
+            )
 
-                # Write the Image to a Temporary File
-                Image.save(TEMPORARY_IMAGE_PATH, "JPEG")
-
-                PROCESSED_TABULAR_DATA = self.Process_Table(TEMPORARY_IMAGE_PATH)
-
-                # Add the Extracted Table to the Extracted Table Key
-                Extracted["RAW_TABLES"] = PROCESSED_TABULAR_DATA
-
-            return Extracted
-        except Exception as e:
-            print(f"Error reading image file: {str(e)}")
-
-    def Process_Table(self, Image_Path):
-        # Process the Table
-        try:
-            print("[...] Processing Table [...]")
-            TABLES = self.ET_SESSION.process_file(Image_Path, output_format="json")
-            print("[OK] Processing Table Finished !")
+            print("[OK] Extracting Table from Image Finished !")
 
             # DEBUG PRINT
             print(f"[COUNT] {len(TABLES)} Table(s) Found !")
@@ -91,7 +85,7 @@ class OCRProcessor:
             PROCESSED_TABLES = []
 
             for TABLE in TABLES:
-                print(f"[...] Processing Table {TABLE} [...]")
+                print(f"[...] Processing Table No. {TABLES.index(TABLE) + 1}.")
 
                 JSON_TABLE = json.loads(TABLE)  # Load JSON string to a dictionary
 
@@ -120,6 +114,58 @@ class OCRProcessor:
             print(f"Error processing table: {str(e)}")
             return f"Error processing table: {str(e)}"
 
+    def ExtractTableFromPDF(self, InformationType, SessionId, PDFBytes):
+        # Extract information from PDF (Table Information)
+        try:
+            print("[...] Extracting Table from PDF ...")
+
+            # Temporary File Path
+            TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
+
+            # Write the PDF Bytes to a Temporary File
+            with open(TEMPORARY_PDF_PATH, "wb") as f:
+                f.write(PDFBytes.getbuffer())
+
+            # Process the Table
+            TABLES = self.ET_SESSION.process_file(
+                TEMPORARY_PDF_PATH, output_format="json"
+            )
+
+            print("[OK] Extracting Table from PDF Finished !")
+
+            # DEBUG PRINT
+            print(f"[COUNT] {len(TABLES)} Table(s) Found !")
+
+            PROCESSED_TABLES = []
+
+            for TABLE in TABLES:
+                print(f"[...] Processing Table No. {TABLES.index(TABLE) + 1}.")
+
+                JSON_TABLE = json.loads(TABLE)
+
+                TABLE_DATA = []
+
+                # Get the Columns Count
+                COL_COUNT = len(JSON_TABLE)
+
+                # Get the Rows Count
+                ROW_COUNT = len(next(iter(JSON_TABLE.values())))
+
+                # Concat Columns to Array of Rows
+                for ROW in range(ROW_COUNT):
+                    ROW_DATA = []
+                    for COL in range(COL_COUNT):
+                        try:
+                            ROW_DATA.append(JSON_TABLE[str(COL)][str(ROW)])
+                        except KeyError:
+                            ROW_DATA.append("")  # Handle missing data as empty string
+                    TABLE_DATA.append(ROW_DATA)
+
+                PROCESSED_TABLES.append(TABLE_DATA)
+        except Exception as e:
+            print(f"[ERROR] Error processing table: {str(e)}")
+            return f"Error processing table: {str(e)}"
+
     def Check_API_USAGE(self):
         return self.ET_SESSION.check_usage()
 
@@ -129,6 +175,8 @@ class OCRProcessor:
 
 # Optical Character Recognition Processor
 OCR = OCRProcessor()
+
+print("API Key: " + str(os.environ.get("ET_API_KEY")))
 
 # USAGE
 USAGE = OCR.Check_API_USAGE()

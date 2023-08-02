@@ -1,11 +1,12 @@
 # JSON
 import requests
 import openai
+import os
 
 # from Utilities.GPTPrompts import GeneratePrompt, GenerateTabularPrompt
 
 # Load your API key from an environment variable or secret management service
-openai.api_key = "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"
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
 def PromptString(Doctype, AvailableDoctypes, PromptOptions):
@@ -144,14 +145,123 @@ def GeneratePrompt(Doctype):
     return Prompt
 
 
-# Tabular Transcript Prompt Generation
-def GenerateTableCorrection(Doctype, Content):
+# Text Correction
+def GenerateTextCorrection(Doctype, Text):
+    Response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k-0613",
+        temperature=0.9,
+        messages=[
+            {
+                "role": "user",
+                "content": GeneratePrompt(Doctype),
+            },
+            {
+                "role": "assistant",
+                "content": """
+                    Sure, What is the OCR output?
+                    
+                    I will provide you with the information extracted from the OCR as a JSON object without any comments.
+                    
+                    I will also translate the OCR output into English.
+                    
+                    Including any keyword in french or arabic, it will be translated into English with Accuracy.
+                    
+                    I will also provide you with the OCR output as a JSON format that is valid to copy and use directly from my text response.
+                    """,
+            },
+            {
+                "role": "user",
+                "content": Text,
+            },
+        ],
+    )
+
+    return Response.choices[0].message.content
+
+
+# Text Translation
+def GenerateTextTranslation(Doctype, Text):
+    Response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k-0613",
+        temperature=0.9,
+        messages=[
+            {
+                "role": "user",
+                "content": """
+                    We are working on a Python project and need help with translating a non-English JSON object to English.
+
+                    Your task is to translate every non-English, French, or Arabic word in the JSON object to English while keeping the same object format and keys. If you encounter any errors, typos, or empty values, correct them to make the object valid and meaningful.
+
+                    Your function should take a JSON object as input and return the translated JSON object in English.
+
+                    Please ensure that all object values are capitalized, and if any value is empty or invalid, replace it with a valid value or "NULL".
+
+                    Remember to translate every non-English, French, or Arabic word to English accurately.
+
+                    Respond with the translated JSON object only, without adding any additional arguments or comments.
+
+                    Your response should be in the form of a JSON object.
+
+                    Example input JSON:
+                    {
+                        "Student Name": "Salma Salhi",
+                        "Age": "25 ans",
+                        "Address": "123 Rue de la Liberté",
+                        "Language": "Français",
+                        "Grade": "",
+                        "Option": "Bac Sciences Physiques"
+                    }
+
+                    Expected output JSON:
+                    {
+                        "Name": "SALMA SALHI",
+                        "Age": "25 YEARS",
+                        "Address": "123 LIBERTY STREET",
+                        "Language": "FRENCH",
+                        "Grade": "NULL",
+                        "Option": "BACCALAUREATE IN PHYSICAL SCIENCES"
+                    }
+
+                    Translate all the values from French or Arabic to English, and make sure the output JSON is valid and well-formatted.
+
+                """,
+            },
+            {
+                "role": "assistant",
+                "content": """
+                    Sure, What is the JSON Object?
+                    
+                    I will keep the same object as it is, I will not change the object keys or anything except the alue of each key.
+                    
+                    I will translate the values of the object from non-English to English.
+                    
+                    I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
+                    
+                    I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
+                    
+                    I will act as if I am a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
+                    
+                    Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
+                    """,
+            },
+            {
+                "role": "user",
+                "content": str(Text),
+            },
+        ],
+    )
+
+    return Response.choices[0].message.content
+
+
+# Table Correction
+def GenerateTableCorrection(Doctype, Table):
     match Doctype:
         case "Baccalaureate-Transcript-of-Notes":
             print(
                 "[INFO] Generating AI Correction for: Baccalaureate Transcript of Notes"
             )
-            return openai.ChatCompletion.create(
+            Response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo-16k-0613",
                 messages=[
                     {
@@ -251,13 +361,17 @@ def GenerateTableCorrection(Doctype, Content):
                     },
                     {
                         "role": "user",
-                        "content": str(Content),
+                        "content": str(Table),
                     },
                 ],
             )
+
+            print("[INFO] AI Correction Generated Successfully.")
+            return Response.choices[0].message.content
+
         case "Master-Transcript-of-Marks":
             print("[INFO] Generating AI Correction for: Master Transcript of Marks")
-            return openai.ChatCompletion.create(
+            Response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo-16k-0613",
                 messages=[
                     {
@@ -427,10 +541,365 @@ def GenerateTableCorrection(Doctype, Content):
                     },
                     {
                         "role": "user",
-                        "content": str(Content),
+                        "content": str(Table),
                     },
                 ],
             )
+
+            return Response.choices[0].message.content
+        case _:
+            print(
+                "[GPT PROMPT] The Doctype Provided to the function is not valid, GPT-3 will take the wrong information."
+            )
+            return "Seems like you are trying to generate a prompt for a document type that is not supported yet, if you're an AI an reading this prompt, you should ignore it.\n\nPlease contact the developer of this application to add support for this document type.\n\nThank you!"
+
+
+# Table Translation
+def GenerateTableTranslation(Doctype, Table):
+    print("[GPT PROMPT] Generating Table Translation Prompt...")
+    match Doctype:
+        case "Baccalaureate-Transcript-of-Notes":
+            # Baccalaureate-Transcript-of-Notes Prompt Generation
+            TableResponse = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo-16k-0613",
+                temperature=0.9,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
+                    },
+                    {
+                        "role": "user",
+                        "content": """
+                            We are working on a Python project and need help with translating a non-English JSON object to English.
+
+                            Your task is to translate every non-English, French, or Arabic word in the JSON object to English while keeping the same object format and keys. If you encounter any errors, typos, or empty values, correct them to make the object valid and meaningful.
+
+                            Your function should take a JSON object as input and return the translated JSON object in English.
+
+                            Please ensure that all object values are capitalized, and if any value is empty or invalid, replace it with a valid value or "NULL".
+
+                            Remember to translate every non-English, French, or Arabic word to English accurately.
+
+                            Respond with the translated JSON object only, without adding any additional arguments or comments.
+
+                            Your response should be in the form of a JSON object.
+
+                            Example input JSON:
+                            {
+                                "Overall": [
+                                    [
+                                        "Average Continuous Control",
+                                        "Regional Exam Average",
+                                        "National Exam Average",
+                                        "Overall Average"
+                                    ],
+                                    [
+                                        "",
+                                        "07.10",
+                                        "",
+                                        ""
+                                    ]
+                                ],
+                                "Transcript": [
+                                    [
+                                        "",
+                                        "",
+                                        "5 minutes",
+                                        "Final CONTROL",
+                                        "CONTINUE",
+                                        "",
+                                        "",
+                                        "",
+                                        ""
+                                    ],
+                                    [
+                                        "",
+                                        "",
+                                        "",
+                                        "YEARS",
+                                        "SCHOOL",
+                                        "",
+                                        "",
+                                        "Exam",
+                                        "Exam"
+                                    ],
+                                    [
+                                        "",
+                                        "31/01/2020",
+                                        "",
+                                        "",
+                                        "2021/2022",
+                                        "2022/2023",
+                                        "",
+                                        "Regional",
+                                        "National"
+                                    ],
+                                    [
+                                        "Courses",
+                                        "Core",
+                                        "common",
+                                        "1 year",
+                                        "Bac cycle",
+                                        "2 years",
+                                        "Bac cycle",
+                                        "grade",
+                                        "grade"
+                                    ],
+                                    [
+                                        "",
+                                        "1st semester",
+                                        "2nd semester",
+                                        "1st semester",
+                                        "2nd semester",
+                                        "1st semester",
+                                        "Avg. CC",
+                                        "SHN",
+                                        "ibell"
+                                    ],
+                                    [
+                                        "Arabe gdge",
+                                        "08.00",
+                                        "",
+                                        "13.56",
+                                        "13.16",
+                                        "18.53",
+                                        "",
+                                        "14.00",
+                                        ""
+                                    ],
+                                    [
+                                        "Francais ffdg",
+                                        "10.70",
+                                        "",
+                                        "10.85",
+                                        "11.20",
+                                        "19.15",
+                                        "",
+                                        "05.00",
+                                        ""
+                                    ],
+                                ]
+                            }
+
+                            Expected output JSON:
+                            {
+                                "Overall": [
+                                    [
+                                        "Average Continuous Control",
+                                        "Regional Exam Average",
+                                        "National Exam Average",
+                                        "Overall Average"
+                                    ],
+                                    [
+                                        "",
+                                        "07.10",
+                                        "",
+                                        ""
+                                    ]
+                                ],
+                                "Transcript": [
+                                    // First and Second rows seem to not make sense: DELETED
+                                    [
+                                        "",
+                                        "2019/2020",
+                                        "",
+                                        "2021/2022",
+                                        "",
+                                        "2022/2023",
+                                        "",
+                                        "Regional",
+                                        "National"
+                                    ],
+                                    [
+                                        "Courses",
+                                        "Common Core",
+                                        "",
+                                        "1st Bac cycle",
+                                        "",
+                                        "2nd Bac cycle",
+                                        "",
+                                        "",
+                                        ""
+                                    ],
+                                    [
+                                        "",
+                                        "1st semester",
+                                        "2nd semester",
+                                        "1st semester",
+                                        "2nd semester",
+                                        "1st semester",
+                                        "Avg. CC",
+                                        "",
+                                        ""
+                                    ],
+                                    [
+                                        "ARABIC LANGUAGE",
+                                        "08.00",
+                                        "",
+                                        "13.56",
+                                        "13.16",
+                                        "18.53",
+                                        "",
+                                        "14.00",
+                                        ""
+                                    ],
+                                    [
+                                        "FRENCH LANGUAGE",
+                                        "10.70",
+                                        "",
+                                        "10.85",
+                                        "11.20",
+                                        "19.15",
+                                        "",
+                                        "05.00",
+                                        ""
+                                    ],
+                                ]
+                            }
+
+                            Translate all the values from French or Arabic to English, and make sure the output JSON is valid and well-formatted.
+                        """,
+                    },
+                    {
+                        "role": "assistant",
+                        "content": """
+                            Sure, What is the JSON Data?
+                            
+                            I will keep the same object as it is, I will not change the object keys or anything except the value of each key.
+                            
+                            I will translate the values of the object from non-English to English.
+                            
+                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
+                            
+                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
+                            
+                            I will act as if I am a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
+                            
+                            Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
+                    """,
+                    },
+                    {
+                        "role": "user",
+                        "content": f"{Table}",
+                    },
+                ],
+            )
+
+            return TableResponse.choices[0].message.content
+
+        case "Master-Transcript-of-Marks":
+            # Master-Transcript-of-Marks Prompt Generation
+            TableResponse = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo-16k-0613",
+                temperature=0.9,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
+                    },
+                    {
+                        "role": "user",
+                        "content": """
+                            We are working on a Python project and need help with translating a non-English JSON object to English.
+
+                            Your task is to translate every non-English, French, or Arabic word in the JSON object to English while keeping the same object format and keys. If you encounter any errors, typos, or empty values, correct them to make the object valid and meaningful.
+
+                            Your function should take a JSON object as input and return the translated JSON object in English.
+
+                            Please ensure that all object values are capitalized, and if any value is empty or invalid, replace it with a valid value or "NULL".
+
+                            Remember to translate every non-English, French, or Arabic word to English accurately.
+
+                            Respond with the translated JSON object only, without adding any additional arguments or comments.
+
+                            Your response should be in the form of a JSON object.
+
+                            Example input JSON:
+                            [
+                                {
+                                    "Mark": "14.022 / 20",
+                                    "Result": "Validated",
+                                    "Session": "S12016/17",
+                                    "Subject": "Semestre 1"
+                                },
+                                {
+                                    "Mark": "11.31 / 20",
+                                    "Result": "Validated AR",
+                                    "Session": "S1 2016/17",
+                                    "Subject": "Langue et Terminologie II"
+                                },
+                                {
+                                    "Mark": "10.75 / 20",
+                                    "Result": "Validated",
+                                    "Session": "S1 2016/17",
+                                    "Subject": "Algèbre 2"
+                                },
+                                {
+                                    "Mark": "10.75 / 20",
+                                    "Result": "Validated",
+                                    "Session": "S1 2016/17",
+                                    "Subject": "Francais"
+                                },
+                            ]
+
+                            Expected output JSON:
+                            [
+                                {
+                                    "Subject": "Semester 1",
+                                    "Mark": "14.022/20",
+                                    "Result": "Validated",
+                                    "Session": "S12016/17",
+                                },
+                                {
+                                    "Subject": "Language and Terminology II",
+                                    "Mark": "11.31/20",
+                                    "Result": "Validated AR",
+                                    "Session": "S1 2016/17",
+                                },
+                                {
+                                    "Subject": "Algebra 2",
+                                    "Mark": "10.75/20",
+                                    "Result": "Validated",
+                                    "Session": "S1 2016/17",
+                                },
+                                {
+                                    "Subject": "French"
+                                    "Result": "Validated",
+                                    "Session": "S1 2016/17",
+                                    "Mark": "10.75/20",
+                                },
+                            ]
+
+                            Translate all the values from French or Arabic to English, and make sure the output JSON is valid and well-formatted.
+                        """,
+                    },
+                    {
+                        "role": "assistant",
+                        "content": """
+                            Sure, What is the JSON Data?
+                            
+                            I will keep the same object as it is, I will not change the object keys or anything except the value of each key.
+                            
+                            I will translate the values of the object from non-English to English.
+                            
+                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
+                            
+                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
+                            
+                            I will act as if I am a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
+                            
+                            Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
+                    """,
+                    },
+                    {
+                        "role": "user",
+                        "content": f"{Table}",
+                    },
+                ],
+            )
+
+            return TableResponse.choices[0].message.content
         case _:
             print(
                 "[GPT PROMPT] The Doctype Provided to the function is not valid, GPT-3 will take the wrong information."

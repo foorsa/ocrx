@@ -42,7 +42,7 @@ class PDFGenerator:
 
         # [2] Store the Script ID: we execute the Apps Script to Generate the Document.
         print("[...] Getting the Script ID...")
-        URL = "https://script.google.com/macros/s/AKfycbyzMyi87GDQHxEUA99fvir78p3F2iUzQddJqziXdxhNSPwP69r5Lp2H-YTzr6Fa1ISP/exec"
+        URL = "https://script.google.com/macros/s/AKfycbw31140BW3CzPTiIgwaiLxUTYp70V3n8umFazixOzO0EHwQobdOotf14T8o8hwo4fAX/exec"
 
         # [3] Gather the information to fill in the template.
         print("[...] Gathering the information to fill in the template...")
