@@ -13,7 +13,7 @@ interface Props {
 export default function Background({ Variant }: Props) {
     return (
         <div
-            className="absolute h-full w-screen min-h-screen top-0 left-0 right-0 bottom-0 bg-white dark:bg-black bg-opacity-0 dark:bg-opacity-60 -z-50  overflow-hidden"
+            className="absolute h-full w-screen min-h-screen top-0 left-0 right-0 bottom-0 bg-white dark:bg-black bg-opacity-0 dark:bg-opacity-60 -z-50 max-h-screen"
             id="Background"
         >
             {Variant == "Home" ? (
