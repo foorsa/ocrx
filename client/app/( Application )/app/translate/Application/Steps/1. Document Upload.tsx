@@ -880,7 +880,7 @@ export default function First_DocumentUpload() {
                 role="alert"
             >
                 <div className="flex">
-                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-purple-500 bg-purple-100 rounded-lg dark:text-purple-300 dark:bg-purple-900">
+                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-blue-500 bg-blue-100 rounded-lg dark:text-blue-300 dark:bg-blue-900">
                         <DocumentDownload
                             className="w-4 h-4"
                             aria-hidden="true"
@@ -911,7 +911,7 @@ export default function First_DocumentUpload() {
                                             : "#"
                                     }
                                     target="_blank"
-                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none dark:bg-purple-500 dark:hover:bg-purple-600"
+                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none dark:bg-blue-500 dark:hover:bg-blue-600"
                                 >
                                     Google Docs
                                 </a>
@@ -996,7 +996,7 @@ export default function First_DocumentUpload() {
             {!Process.isLoading && (
                 <button
                     onClick={handleNextStep}
-                    className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-700 rounded-lg hover:bg-purple-800 focus:outline-none dark:bg-purple-600 dark:hover:bg-purple-700 focus:bg-purple-500 active:bg-purple-900 transition duration-150 ease-in-out"
+                    className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:outline-none dark:bg-blue-600 dark:hover:bg-blue-700 focus:bg-blue-500 active:bg-blue-900 transition duration-150 ease-in-out"
                 >
                     Process
                     <ArrowRight3 color="currentColor" variant="Bulk" />
@@ -1008,7 +1008,7 @@ export default function First_DocumentUpload() {
                     <button
                         disabled
                         type="button"
-                        className="text-white w-full bg-black hover:bg-purple-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 inline-flex items-center justify-center"
+                        className="text-white w-full bg-black hover:bg-blue-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 inline-flex items-center justify-center"
                     >
                         <svg
                             aria-hidden="true"
@@ -1031,7 +1031,7 @@ export default function First_DocumentUpload() {
                     </button>
                     <button
                         type="button"
-                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-purple-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
+                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-blue-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
                         onClick={handleCancelOperation}
                     >
                         <CloseSquare

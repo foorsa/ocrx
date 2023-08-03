@@ -333,7 +333,7 @@ export default function SearchModal() {
                                                                                             null &&
                                                                                         SelectedDocument.id ===
                                                                                             DocumentGroupElement.id
-                                                                                            ? "bg-purple-500 dark:bg-purple-600 text-purple-50 dark:text-purple-100 hover:bg-purple-500 dark:hover:bg-purple-600 hover:text-purple-50 dark:hover:text-purple-100"
+                                                                                            ? "bg-blue-500 dark:bg-blue-600 text-blue-50 dark:text-blue-100 hover:bg-blue-500 dark:hover:bg-blue-600 hover:text-blue-50 dark:hover:text-blue-100"
                                                                                             : "bg-white odd:dark:bg-zinc-900 even:dark:bg-zinc-950 text-bold"
                                                                                     }
                                                                                     `}
@@ -376,7 +376,7 @@ export default function SearchModal() {
                                                 >
                                                     {/* Credits to Developer Yassine Chettouch */}
                                                     Search Engine credits to
-                                                    <span className="text-purple-500 ml-1 dark:text-purple-600 hover:text-purple-400 dark:hover:text-purple-100">
+                                                    <span className="text-blue-500 ml-1 dark:text-blue-600 hover:text-blue-400 dark:hover:text-blue-100">
                                                         <a
                                                             href="https://github.com/eldevyas"
                                                             target="_blank"

@@ -55,7 +55,7 @@ export default function RootLayout({
             <body className={prombt.className}>
                 <ReduxProvider>
                     <NextTopLoader
-                        color={Colors.purple[500]}
+                        color={Colors.blue[500]}
                         initialPosition={0.08}
                         crawlSpeed={200}
                         height={5}
@@ -63,7 +63,7 @@ export default function RootLayout({
                         showSpinner={false}
                         easing="ease"
                         speed={200}
-                        shadow={`0 0 10px ${Colors.purple["500"]},0 0 5px ${Colors.rose["500"]}`}
+                        shadow={`0 0 10px ${Colors.blue["500"]},0 0 5px ${Colors.lime["500"]}`}
                     />
                     <Providers>
                         {/* Page content */}

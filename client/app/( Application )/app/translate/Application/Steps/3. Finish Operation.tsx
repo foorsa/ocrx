@@ -85,7 +85,7 @@ export default function Third_FinishOperation() {
             <div className="flex flex-col items-center justify-center w-full">
                 <button
                     type="button"
-                    className="inline-flex text-center gap-3 w-full mb-2 items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-purple-700 rounded-lg hover:bg-purple-800 focus:outline-none dark:bg-purple-600 dark:hover:bg-purple-700 focus:bg-purple-500 active:bg-purple-900 transition duration-150 ease-in-out"
+                    className="inline-flex text-center gap-3 w-full mb-2 items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:outline-none dark:bg-blue-600 dark:hover:bg-blue-700 focus:bg-blue-500 active:bg-blue-900 transition duration-150 ease-in-out"
                     onClick={handleDownloadPDF}
                 >
                     Download PDF
@@ -97,7 +97,7 @@ export default function Third_FinishOperation() {
                 </button>
                 <button
                     type="button"
-                    className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-purple-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
+                    className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-blue-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
                     onClick={handleEditDocument}
                 >
                     Edit in Google Docs
@@ -109,7 +109,7 @@ export default function Third_FinishOperation() {
                 </button>
                 <button
                     type="button"
-                    className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-purple-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
+                    className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-blue-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
                     onClick={handleCorrectDocument}
                 >
                     Correct Document
@@ -121,7 +121,7 @@ export default function Third_FinishOperation() {
                 </button>
                 <button
                     type="button"
-                    className="inline-flex w-full gap-3 justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-purple-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
+                    className="inline-flex w-full gap-3 justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-blue-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
                     onClick={handleFinishOperation}
                 >
                     Finish Operation
