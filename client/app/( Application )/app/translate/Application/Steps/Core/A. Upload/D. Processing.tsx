@@ -1,12 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import React, { useEffect, useState } from "react";
-import Spline from "@splinetool/react-spline";
-
-export function Animation() {
-    return (
-        <Spline scene="https://prod.spline.design/qDo3grwNY8Y3uBm2/scene.splinecode" />
-    );
-}
 
 type ProcessingStep = {
     name: string;
@@ -84,7 +77,6 @@ export default function Generating() {
 
     return (
         <div className="relative w-full">
-            <Animation />
             <h5 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
                 {ProcessingSteps[FakeProcess]?.name}
             </h5>
