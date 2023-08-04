@@ -45,7 +45,7 @@ import { DocumentCheckIcon } from "@heroicons/react/20/solid";
 // Selection for Document Type
 
 export default function First_DocumentUpload() {
-    const Dispatch = useAppDispatch();
+    const Dispatch = useAppDispatch() as any;
     const Doctype = useAppSelector((state) => state.documentType);
     const UploadedFile = useAppSelector((state) => state.file);
     const Process = useAppSelector((state) => state.process);
@@ -124,7 +124,7 @@ export default function First_DocumentUpload() {
 
                 toast.dismiss("Uploading");
 
-                Dispatch(setSession(data.Session));
+                await Dispatch(setSession(data.Session));
             } else {
                 Dispatch(
                     setProcess({
@@ -216,7 +216,8 @@ export default function First_DocumentUpload() {
 
                 toast.dismiss("Extracting Text");
 
-                Dispatch(setSession(data.Session));
+                // Wait for the session state to be updated
+                await Dispatch(setSession(data.Session));
             } else {
                 Dispatch(
                     setProcess({
@@ -311,7 +312,7 @@ export default function First_DocumentUpload() {
 
                     toast.dismiss("Extracting Tables");
 
-                    Dispatch(setSession(data.Session));
+                    await Dispatch(setSession(data.Session));
                 } else {
                     Dispatch(
                         setProcess({
@@ -404,7 +405,7 @@ export default function First_DocumentUpload() {
 
                 toast.dismiss("Correcting Text");
 
-                Dispatch(setSession(data.Session));
+                await Dispatch(setSession(data.Session));
             } else {
                 Dispatch(
                     setProcess({
@@ -879,7 +880,7 @@ export default function First_DocumentUpload() {
                 role="alert"
             >
                 <div className="flex">
-                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-purple-500 bg-purple-100 rounded-lg dark:text-purple-300 dark:bg-purple-900">
+                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-blue-500 bg-blue-100 rounded-lg dark:text-blue-300 dark:bg-blue-900">
                         <DocumentDownload
                             className="w-4 h-4"
                             aria-hidden="true"
@@ -910,7 +911,7 @@ export default function First_DocumentUpload() {
                                             : "#"
                                     }
                                     target="_blank"
-                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none dark:bg-purple-500 dark:hover:bg-purple-600"
+                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none dark:bg-blue-500 dark:hover:bg-blue-600"
                                 >
                                     Google Docs
                                 </a>
@@ -995,7 +996,7 @@ export default function First_DocumentUpload() {
             {!Process.isLoading && (
                 <button
                     onClick={handleNextStep}
-                    className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-700 rounded-lg hover:bg-purple-800 focus:outline-none dark:bg-purple-600 dark:hover:bg-purple-700 focus:bg-purple-500 active:bg-purple-900 transition duration-150 ease-in-out"
+                    className="inline-flex text-center w-full items-center justify-center px-3 py-2 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:outline-none dark:bg-blue-600 dark:hover:bg-blue-700 focus:bg-blue-500 active:bg-blue-900 transition duration-150 ease-in-out"
                 >
                     Process
                     <ArrowRight3 color="currentColor" variant="Bulk" />
@@ -1007,7 +1008,7 @@ export default function First_DocumentUpload() {
                     <button
                         disabled
                         type="button"
-                        className="text-white w-full bg-black hover:bg-purple-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 inline-flex items-center justify-center"
+                        className="text-white w-full bg-black hover:bg-blue-800 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 inline-flex items-center justify-center"
                     >
                         <svg
                             aria-hidden="true"
@@ -1030,7 +1031,7 @@ export default function First_DocumentUpload() {
                     </button>
                     <button
                         type="button"
-                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-purple-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
+                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-blue-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
                         onClick={handleCancelOperation}
                     >
                         <CloseSquare
@@ -1045,3 +1046,323 @@ export default function First_DocumentUpload() {
         </div>
     );
 }
+
+async function makeRequestWithRetry(
+    url: string,
+    maxRetries = 3,
+    currentRetry = 0
+) {
+    try {
+        const response = await axios.post(url, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        return response;
+    } catch (error: any) {
+        if (
+            currentRetry < maxRetries &&
+            (axios.isAxiosError(error) || error.code === "ECONNABORTED")
+        ) {
+            // Retry the request by recursively calling the function after a short delay
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return makeRequestWithRetry(url, maxRetries, currentRetry + 1);
+        } else {
+            throw error; // Reject the promise for non-retryable errors
+        }
+    }
+}
+
+// const handleNextStep = async () => {
+//     try {
+//         if (!UploadedFile) {
+//             return toast.error("Please upload a file");
+//         }
+
+//         if (!Doctype?.name) {
+//             return toast.error("Please select a document type");
+//         }
+
+//         Dispatch(
+//             setProcess({
+//                 isLoading: true,
+//                 name: "Extracting",
+//                 description: "Extracting your file's data...",
+//             })
+//         );
+
+//         const SERVER_API = getApiServerUrl();
+
+//         // [STEP 0] Ping the server - Heroku puts the server to sleep after 30 minutes of inactivity
+//         toast.loading("Connecting to the server...", {
+//             id: "Checking",
+//         });
+
+//         await axios.get(`${SERVER_API}/api/v1/ping`);
+
+//         await new Promise((resolve) =>
+//             setTimeout(() => {
+//                 resolve(true);
+//                 toast.dismiss("Checking");
+//             }, 1000)
+//         );
+
+//         toast.loading("Uploading your file to the server...", {
+//             id: "Uploading",
+//         });
+
+//         // [STEP 1] Initialize the session
+//         const initializeFormData = new FormData();
+//         initializeFormData.append("file", UploadedFile.file);
+//         initializeFormData.append("document_type", Doctype.id);
+
+//         const initializeResponse = await axios.post(
+//             `${SERVER_API}/api/v1/initialize`,
+//             initializeFormData,
+//             {
+//                 headers: {
+//                     "Content-Type": "multipart/form-data",
+//                 },
+//             }
+//         );
+
+//         var { status, data } = initializeResponse;
+
+//         if (status !== 200 || data.Session.Status !== "Initialized") {
+//             toast.dismiss("Uploading");
+//             return toast.error(
+//                 "An error occurred. Please try again later."
+//             );
+//         }
+
+//         toast.dismiss("Uploading");
+//         await Dispatch(setSession(data.Session));
+
+//         // [STEP 2] Extract the Data from the file
+//         toast.loading("Extracting Text from your file...", {
+//             id: "Extracting Text",
+//         });
+
+//         const SESSION_ID = Session["Session Id"];
+//         if (!SESSION_ID || SESSION_ID === "") {
+//             Dispatch(setProcess({ isLoading: false }));
+//             toast.dismiss("Extracting Text");
+//             return toast.error(
+//                 "Session Identifier is missing, please try again later."
+//             );
+//         }
+
+//         const extractResponse = await axios.post(
+//             `${SERVER_API}/api/v1/extract-text?Session_Id=${SESSION_ID}`,
+//             {
+//                 headers: {
+//                     "Content-Type": "multipart/form-data",
+//                 },
+//             }
+//         );
+
+//         if (
+//             extractResponse.status !== 200 ||
+//             data.Session.Status !== "Extracted"
+//         ) {
+//             Dispatch(setProcess({ isLoading: false }));
+//             toast.dismiss("Extracting Text");
+//             return toast.error(
+//                 "An error occurred while extracting the data. Please try again later."
+//             );
+//         }
+
+//         Dispatch(
+//             setProcess({
+//                 isLoading: true,
+//                 name: "Correcting",
+//                 description: "Correcting your file...",
+//             })
+//         );
+
+//         toast.dismiss("Extracting Text");
+//         await Dispatch(setSession(extractResponse.data.Session));
+
+//         // [STEP 3] Presence of Tabular Data - Extract Tables from the file
+//         if (Session["Information Type"] === "Tabular") {
+//             toast.loading("Extracting Tables from your file...", {
+//                 id: "Extracting Tables",
+//             });
+
+//             const extractTableResponse = await axios.post(
+//                 `${SERVER_API}/api/v1/extract-tables?Session_Id=${SESSION_ID}`,
+//                 {},
+//                 {
+//                     headers: {
+//                         "Content-Type": "multipart/form-data",
+//                     },
+//                 }
+//             );
+
+//             if (
+//                 extractTableResponse.status !== 200 ||
+//                 data.Session.Status !== "Extracted"
+//             ) {
+//                 Dispatch(setProcess({ isLoading: false }));
+//                 toast.dismiss("Extracting Tables");
+//                 return toast.error(
+//                     "An error occurred while extracting the tables. Please try again later."
+//                 );
+//             }
+
+//             Dispatch(setProcess({ isLoading: true }));
+//             toast.dismiss("Extracting Tables");
+//             await Dispatch(setSession(extractTableResponse.data.Session));
+//         }
+
+//         // [STEP 4] Correct the Text with AI (Correction)
+//         toast.loading("Processing the extracted Text...", {
+//             id: "Correcting Text",
+//         });
+
+//         const correctTextResponse = await axios.post(
+//             `${SERVER_API}/api/v1/correct-text?Session_Id=${SESSION_ID}`,
+//             {},
+//             {
+//                 headers: {
+//                     "Content-Type": "multipart/form-data",
+//                 },
+//             }
+//         );
+
+//         if (
+//             correctTextResponse.status !== 200 ||
+//             data.Session.Status !== "Corrected"
+//         ) {
+//             Dispatch(setProcess({ isLoading: false }));
+//             toast.dismiss("Correcting Text");
+//             return toast.error(
+//                 "AI returned an error. Please try again later."
+//             );
+//         }
+
+//         Dispatch(setProcess({ isLoading: true }));
+//         toast.dismiss("Correcting Text");
+//         await Dispatch(setSession(correctTextResponse.data.Session));
+
+//         // [STEP 5] Tabular Information: AI Correction
+//         if (Session["Information Type"] === "Tabular") {
+//             toast.loading("Processing the Extracted Table....", {
+//                 id: "Correcting Table",
+//             });
+
+//             const correctTableResponse = await makeRequestWithRetry(
+//                 `${SERVER_API}/api/v1/correct-tables?Session_Id=${SESSION_ID}`
+//             );
+
+//             if (
+//                 correctTableResponse.status !== 200 ||
+//                 data.Session.Status !== "Corrected"
+//             ) {
+//                 Dispatch(setProcess({ isLoading: false }));
+//                 toast.dismiss("Correcting Table");
+//                 return toast.error(
+//                     "The Transcripts AI returned an error, please try again later."
+//                 );
+//             }
+
+//             Dispatch(setProcess({ isLoading: true }));
+//             toast.dismiss("Correcting Table");
+//             await Dispatch(setSession(correctTableResponse.data.Session));
+//         }
+
+//         // [STEP 6] Translate the Text with AI (Correction)
+//         toast.loading("Translating the extracted Text...", {
+//             id: "Translating Text",
+//         });
+
+//         const translateTextResponse = await axios.post(
+//             `${SERVER_API}/api/v1/translate-text?Session_Id=${SESSION_ID}`,
+//             {},
+//             {
+//                 headers: {
+//                     "Content-Type": "multipart/form-data",
+//                 },
+//             }
+//         );
+
+//         if (
+//             translateTextResponse.status !== 200 ||
+//             data.Session.Status !== "Translated"
+//         ) {
+//             Dispatch(setProcess({ isLoading: false }));
+//             toast.dismiss("Translating Text");
+//             return toast.error(
+//                 "AI returned an error. Please try again later."
+//             );
+//         }
+
+//         Dispatch(setProcess({ isLoading: true }));
+//         toast.dismiss("Translating Text");
+//         await Dispatch(setSession(translateTextResponse.data.Session));
+
+//         // [STEP 7] Tabular Information: AI Translation
+//         if (Session["Information Type"] === "Tabular") {
+//             toast.loading("Translating the Extracted Table....", {
+//                 id: "Translating Table",
+//             });
+
+//             const translateTableResponse = await makeRequestWithRetry(
+//                 `${SERVER_API}/api/v1/translate-tables?Session_Id=${SESSION_ID}`
+//             );
+
+//             if (
+//                 translateTableResponse.status !== 200 ||
+//                 data.Session.Status !== "Translated"
+//             ) {
+//                 Dispatch(setProcess({ isLoading: false }));
+//                 toast.dismiss("Translating Table");
+//                 return toast.error(
+//                     "The Transcripts AI returned an error, please try again later."
+//                 );
+//             }
+
+//             Dispatch(setProcess({ isLoading: true }));
+//             toast.dismiss("Translating Table");
+//             await Dispatch(setSession(translateTableResponse.data.Session));
+//         }
+
+//         // [STEP 8] Generate the Final Document
+//         toast.loading("Generating Final Document...", {
+//             id: "Generating",
+//         });
+
+//         const generateResponse = await axios.post(
+//             `${SERVER_API}/api/v1/generate-document?Session_Id=${SESSION_ID}`,
+//             {},
+//             {
+//                 headers: {
+//                     "Content-Type": "multipart/form-data",
+//                 },
+//             }
+//         );
+
+//         if (generateResponse.status !== 200) {
+//             Dispatch(setProcess({ isLoading: false }));
+//             toast.dismiss("Generating");
+//             return toast.error(
+//                 "Google Cloud returned an error. Please try again later."
+//             );
+//         }
+
+//         Dispatch(setProcess({ isLoading: true }));
+//         toast.dismiss("Generating");
+//         await Dispatch(setSession(generateResponse.data.Session));
+
+//         console.log(
+//             "Final Session Information: ",
+//             generateResponse.data.Session
+//         );
+//     } catch (error) {
+//         console.error("An error occurred: ", error);
+//         toast.error(
+//             "An unexpected error occurred. Please try again later."
+//         );
+//     }
+// };

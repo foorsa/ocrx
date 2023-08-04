@@ -48,7 +48,7 @@ export default function Error({
     return (
         <main className="grid min-h-full place-items-center w-full px-6 py-24 sm:py-32 lg:px-8">
             <div className="text-center max-w-xs md:max-w-xl">
-                <p className="text-base font-semibold text-purple-600">500</p>
+                <p className="text-base font-semibold text-blue-600">500</p>
                 <h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-5xl">
                     Something went wrong!
                 </h1>
@@ -63,7 +63,7 @@ export default function Error({
                     overflow-ellipsis whitespace-prewrap break-words
                     "
                     >
-                        <span className="text-rose-500">{error.name}:</span>{" "}
+                        <span className="text-lime-500">{error.name}:</span>{" "}
                         {error.message}
                         {"."}
                     </code>
@@ -71,7 +71,7 @@ export default function Error({
                 <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
                     <Link
                         href="/"
-                        className="flex-1 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-purple-600 hover:bg-purple-800"
+                        className="flex-1 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-600 hover:bg-blue-800"
                     >
                         <span className="mr-2 text-md font-semibold whitespace-nowrap">
                             Go back home
@@ -82,7 +82,7 @@ export default function Error({
                         onClick={() => {
                             reset();
                         }}
-                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-purple-800 bg-purple-600/25 hover:bg-purple-600/50 dark:text-purple-300 dark:bg-purple-600/50 dark:hover:bg-purple-600/75"
+                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-blue-800 bg-blue-600/25 hover:bg-blue-600/50 dark:text-blue-300 dark:bg-blue-600/50 dark:hover:bg-blue-600/75"
                     >
                         <span className="mr-2 text-md font-semibold">
                             Retry
@@ -91,7 +91,7 @@ export default function Error({
                     </div>
                     <div
                         onClick={() => handleClearredux()}
-                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-purple-800 bg-purple-600/25 hover:bg-purple-600/50 dark:text-purple-300 dark:bg-purple-600/50 dark:hover:bg-purple-600/75"
+                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-blue-800 bg-blue-600/25 hover:bg-blue-600/50 dark:text-blue-300 dark:bg-blue-600/50 dark:hover:bg-blue-600/75"
                     >
                         <span className="mr-2 text-md font-semibold">
                             Clear Data

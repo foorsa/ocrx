@@ -185,7 +185,7 @@ const FileUploadService = () => {
                                     </div>
                                 </div>
                                 <button
-                                    className="p-2 text-zinc-500 hover:text-purple-500"
+                                    className="p-2 text-zinc-500 hover:text-blue-500"
                                     onClick={() => handleDeleteFile()}
                                     type="button"
                                     title="Remove"

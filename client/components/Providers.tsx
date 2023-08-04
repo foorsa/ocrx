@@ -141,7 +141,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                     // Cursor Configuration
                     innerSize={8}
                     outerSize={8}
-                    color={hexToRgb(colors.rose[500])}
+                    color={hexToRgb(colors.lime[500])}
                     outerAlpha={0.2}
                     innerScale={0.7}
                     outerScale={5}

@@ -14,7 +14,7 @@ export default function Register() {
                 <div className="fixed -z-10 top-0 left-0 w-full h-screen pointer-events-none">
                     <Particles />
                 </div>
-                <p className="text-base font-semibold text-rose-600 uppercase">
+                <p className="text-base font-semibold text-lime-600 uppercase">
                     Coming Soon
                 </p>
                 <h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-5xl">
@@ -29,7 +29,7 @@ export default function Register() {
                 <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
                     <Link
                         href="/"
-                        className="flex-1 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-rose-600 hover:bg-rose-800"
+                        className="flex-1 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-lime-600 hover:bg-lime-800"
                     >
                         <span className="mr-2 text-md font-semibold whitespace-nowrap">
                             Go back home
@@ -40,7 +40,7 @@ export default function Register() {
                         onClick={() => {
                             Router.back();
                         }}
-                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium whitespace-nowrap text-center rounded-lg text-rose-800 bg-rose-600/25 hover:bg-rose-600/50 dark:text-rose-300 dark:bg-rose-600/50 dark:hover:bg-rose-600/75"
+                        className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium whitespace-nowrap text-center rounded-lg text-lime-800 bg-lime-600/25 hover:bg-lime-600/50 dark:text-lime-300 dark:bg-lime-600/50 dark:hover:bg-lime-600/75"
                     >
                         <span className="mr-2 text-md font-semibold">
                             Go Back

@@ -65,9 +65,9 @@ export default function Jumbotron() {
             >
                 <Link
                     href="/app"
-                    className="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-purple-700 bg-purple-100 rounded-full dark:bg-purple-900 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 bg-opacity-25 backdrop-blur-md dark:bg-opacity-25 dark:backdrop-blur-md max-w-full overflow-hidden"
+                    className="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 bg-opacity-25 backdrop-blur-md dark:bg-opacity-25 dark:backdrop-blur-md max-w-full overflow-hidden"
                 >
-                    <span className="text-xs bg-purple-600 rounded-full text-white px-4 py-1.5 mr-3 h-full">
+                    <span className="text-xs bg-blue-600 rounded-full text-white px-4 py-1.5 mr-3 h-full">
                         New
                     </span>{" "}
                     <Marquee
@@ -95,7 +95,7 @@ export default function Jumbotron() {
                 className="mb-4 text-4xl font-bold leading-none tracking-tight text-zinc-900 dark:text-white sm:text-6xl md:text-6xl lg:text-6xl"
             >
                 The AI-powered successor to <br />
-                <span className="relative inline-block bg-gradient-to-r from-purple-500 to-rose-500 bg-clip-text px-2 py-px text-transparent dark:from-purple-400 dark:to-rose-400">
+                <span className="relative inline-block bg-gradient-to-r from-blue-500 to-lime-500 bg-clip-text px-2 py-px text-transparent dark:from-blue-400 dark:to-lime-400">
                     Document{" "}
                 </span>
                 <TypeAnimation
@@ -103,7 +103,7 @@ export default function Jumbotron() {
                     wrapper="span"
                     cursor={true}
                     repeat={Infinity}
-                    // className="relative inline-block px-2 py-px text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-rose-500 dark:from-purple-400 dark:to-rose-400"
+                    // className="relative inline-block px-2 py-px text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-lime-500 dark:from-blue-400 dark:to-lime-400"
                 />
             </motion.h1>
             <motion.p
@@ -112,7 +112,7 @@ export default function Jumbotron() {
                 exit="Exit"
                 variants={Variants}
                 transition={{ delay: 0.25, type: "spring", bounce: 0 }}
-                className="text-md mb-10 max-w-4xl leading-6 text-zinc-800 text-opacity-75 dark:text-purple-100 dark:text-opacity-75"
+                className="text-md mb-10 max-w-4xl leading-6 text-zinc-800 text-opacity-75 dark:text-blue-100 dark:text-opacity-75"
             >
                 Experience seamless translations and document generation with
                 OCRX. Our AI-driven solution streamlines language conversion and
@@ -129,7 +129,7 @@ export default function Jumbotron() {
             >
                 <Link
                     href="/app"
-                    className="inline-flex w-full items-center justify-center rounded-lg bg-purple-600 px-5 py-3 text-center text-base font-medium text-white hover:bg-purple-800 md:w-auto"
+                    className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-center text-base font-medium text-white hover:bg-blue-800 md:w-auto"
                 >
                     <span className="text-md mr-2 font-semibold">
                         Translate
@@ -154,8 +154,8 @@ export default function Jumbotron() {
                         </div>
                         <input
                             type="text"
-                            className="text-md block w-full rounded-lg border border-zinc-300 bg-zinc-50/75 px-5 py-3 pl-14 text-zinc-900 hover:bg-zinc-50 focus:border-purple-500  focus:ring-purple-500 dark:border-zinc-600 dark:bg-zinc-950/75 dark:text-white dark:placeholder-zinc-400 dark:hover:bg-zinc-950
-                                    dark:focus:border-purple-500 dark:focus:ring-purple-500
+                            className="text-md block w-full rounded-lg border border-zinc-300 bg-zinc-50/75 px-5 py-3 pl-14 text-zinc-900 hover:bg-zinc-50 focus:border-blue-500  focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-950/75 dark:text-white dark:placeholder-zinc-400 dark:hover:bg-zinc-950
+                                    dark:focus:border-blue-500 dark:focus:ring-blue-500
                                 "
                             placeholder="Quick search..."
                             required

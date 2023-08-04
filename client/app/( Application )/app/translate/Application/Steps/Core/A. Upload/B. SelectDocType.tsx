@@ -111,7 +111,7 @@ const SelectDocType = () => {
                                                                         type="button"
                                                                         className={classNames(
                                                                             active
-                                                                                ? "bg-purple-500 text-white"
+                                                                                ? "bg-blue-500 text-white"
                                                                                 : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-600 dark:hover:text-white",
                                                                             "inline-flex w-full px-4 py-2 text-sm rounded-md"
                                                                         )}
@@ -127,7 +127,7 @@ const SelectDocType = () => {
                                                                         <div className="inline-flex items-center justify-start text-left gap-2">
                                                                             <TableDocument
                                                                                 color="currentColor"
-                                                                                className="text-purple-600 text-9xl"
+                                                                                className="text-blue-600 text-9xl"
                                                                                 variant="Bulk"
                                                                             />
                                                                             {

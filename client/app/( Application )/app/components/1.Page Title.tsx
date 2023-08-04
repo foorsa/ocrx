@@ -16,7 +16,7 @@ const Title = () => {
     return (
         <>
             <h1
-                className="text-4xl font-bold text-purple-600 
+                className="text-4xl font-bold text-blue-600 
                 dark:text-zinc-50
                 "
             >
@@ -71,7 +71,7 @@ export default function PageTitle() {
                     </div>
                     <input
                         type="text"
-                        className="block w-full rounded-lg border border-zinc-300 bg-zinc-50 px-5 py-2.5 pl-14 text-sm text-zinc-900 focus:border-purple-500 focus:ring-purple-500  dark:border-zinc-600 dark:bg-zinc-950 dark:text-white dark:placeholder-zinc-400 dark:focus:border-purple-500 dark:focus:ring-purple-500"
+                        className="block w-full rounded-lg border border-zinc-300 bg-zinc-50 px-5 py-2.5 pl-14 text-sm text-zinc-900 focus:border-blue-500 focus:ring-blue-500  dark:border-zinc-600 dark:bg-zinc-950 dark:text-white dark:placeholder-zinc-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
                         placeholder="Quick search..."
                         value={Search.term}
                         onChange={handleSearch}
@@ -83,7 +83,7 @@ export default function PageTitle() {
                 </div>
                 <button
                     onClick={handleClick}
-                    className="ml-2 rounded-lg border border-purple-700 bg-purple-700 p-2.5 text-sm font-medium text-white hover:bg-purple-800 focus:outline-none dark:bg-purple-600 dark:hover:bg-purple-700"
+                    className="ml-2 rounded-lg border border-blue-700 bg-blue-700 p-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none dark:bg-blue-600 dark:hover:bg-blue-700"
                 >
                     <SearchNormal
                         className="h-5 w-5"

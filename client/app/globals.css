@@ -53,7 +53,7 @@ body {
 /* Animate Gradient using CSS Variables */
 
 @property --pc {
-    /* purple/coral */
+    /* blue/coral */
     syntax: "<percentage>";
     inherits: false;
     initial-value: 30%;

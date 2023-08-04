@@ -135,7 +135,7 @@ export default function Particles({
             context.current.beginPath();
             context.current.arc(x, y, size, 0, 2 * Math.PI);
             context.current.fillStyle = `rgba(${hexToRgb(
-                theme === "dark" ? Colors.purple[500] : Colors.purple[500]
+                theme === "dark" ? Colors.blue[500] : Colors.blue[500]
             )}, ${alpha})`;
             context.current.fill();
             context.current.setTransform(dpr, 0, 0, dpr, 0, 0);
