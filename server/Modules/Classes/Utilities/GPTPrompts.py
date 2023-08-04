@@ -145,6 +145,9 @@ def GeneratePrompt(Doctype):
     return Prompt
 
 
+print(GeneratePrompt("Baccalaureate-Certificate"))
+
+
 # Text Correction
 def GenerateTextCorrection(Doctype, Text):
     Response = openai.ChatCompletion.create(
@@ -272,7 +275,6 @@ def GenerateTableCorrection(Doctype, Table):
                     {
                         "role": "user",
                         "content": """
-                            USER:
                             We are working on a Python project and need help with getting precise output from the OCR processor.
 
                             Our app extracts information from student-related documents using OCR, such as Baccalaureate Certificates and Master Certificates.
@@ -296,8 +298,9 @@ def GenerateTableCorrection(Doctype, Table):
                             ```json
                             {
                                 "Transcript":[
+                                    ["...", "...", "...", "...", "...", "...", "...", "...", "..."],
                                     ["...", "...", "...", "...", "...", "...", "...", "...", "..."], // Row Extracted from OCR Table filled with Columns, all english.
-                                            // More Rows from all extracted Information from the first table but every word that is non-English should be translated to English, but corrected and fixed grammarly ...
+                                            // More Rows from all extracted Information from the first table but every word that is non-English should be translated to English, but corrected and fixed grammarly, all rows shall have the same count of columns ...
                                 ],
                                 "Overall":[
                                     ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"],

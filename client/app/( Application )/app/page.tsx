@@ -29,7 +29,7 @@ export default function Page() {
         : Search.filteredDocuments;
 
     return (
-        <div className="relative flex h-full min-h-screen w-full min-w-full flex-1 flex-col items-center justify-start gap-10 p-5 text-center text-zinc-900 dark:text-zinc-100">
+        <div className="relative flex h-full min-h-screen w-full flex-1 flex-col items-center justify-start gap-10 p-5 text-center text-zinc-900 dark:text-zinc-100 max-w-screen-xl mx-auto">
             {/* Title of the App Page */}
             <PageTitle />
 

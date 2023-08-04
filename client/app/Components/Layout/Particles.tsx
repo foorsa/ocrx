@@ -17,7 +17,7 @@ import Colors from "tailwindcss/colors";
 import { hexToRgb } from "@/lib/Color.utilities";
 
 export default function Particles({
-    className = "fixed inset-0 z-0 w-full h-screen",
+    className = "fixed inset-0 z-0 w-full h-full",
     quantity = 30,
     staticity = 50,
     ease = 50,
