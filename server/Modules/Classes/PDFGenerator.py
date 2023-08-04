@@ -9,17 +9,17 @@ import json
 
 TemplateIDs = {
     # Baccalaureate
-    "Baccalaureate-Certificate": "1pQm9boQm33t9Vos9_w9sYqdLY6rG2E9rK09XY7XET4U",
-    "Baccalaureate-School-Certificate": "1zjOzZguCuZPIneqhzPD1z3j32pDpnOElku6_-yd26TA",
-    "Baccalaureate-Transcript-of-Notes": "1e1FxakYQ7VK2cqR9hXCNJl_eKrtdlUVyII3VhqHhB9E",
+    "Baccalaureate-Certificate": "1M5M-Xe3fBOk0zXydJU4_js5N1jXSxtEh0WEcQxUv7b0",
+    "Baccalaureate-School-Certificate": "1hmTI94rg7lNjyLDR6LOwCex7N7mJLzZeTrgQb7isgdY",
+    "Baccalaureate-Transcript-of-Notes": "1Z3iGEgvJ84Ab5oQMN8zkkEKkkdYvjNcrlMv-J7fE0nA",
     # Master
-    "Master-Certificate": "1aHqCujHzXzZXLncpi4j7YdoVc8uJt05ccK4CYqitsrQ",
-    "Master-Transcript-of-Marks": "1PR1wXmKK2MYpexovTaTEJhq1q7zaLVXLIcerrChUhow",
-    "Certificate-of-success-at-diploma": "1OsmDPN2UEc3eibvwUd4WZZEcumoODuEP8_jkIKcLqfA",
-    "Certificate-of-schooling": "1tFeLzcU-8M2ABTFdulBqfJenRUkCw0BrpA91ULZvxQg",
+    "Master-Certificate": "1U2z7kfFQyeAI5ahMd1ClIKN7aI2SAxX81p_rnOa4Qp8",
+    "Master-Transcript-of-Marks": "1p5Sy4TAThedWGTeqpxR9xJYUFj-6FlQEIxN7mDRi41c",
+    "Certificate-of-success-at-diploma": "1In6UYY0FB4hUZiSFYQZ355R9iBrCCe3klY5FAW7m_lw",
+    "Certificate-of-schooling": "15Eha3x9bwVW5fcLHaMwuOIo9fHfRhLzFBENU3bS_elk",
     # Extra Docs
-    "ExtraDocs-Police-Record-Checks": "1qRfpZXG-rZONgOtu5SYX9eage10GudbMmCDLECOwlpY",
-    "SOPIBDOL": "13i4JKIwthVX1Fd7wJrdR8nyuBu2jC6uU8s3f6HFi4O0",
+    "ExtraDocs-Police-Record-Checks": "1sA8WiOhsj8MnEFXen9yg__wa93KgZJAGdoBZrsOvnvk",
+    "SOPIBDOL": "18jxxLVJEGgcXNjP0HLt6OEhCJurCbbzw_qhOem7cy00",
 }
 
 
@@ -43,7 +43,7 @@ class PDFGenerator:
 
         # [2] Store the Script ID: we execute the Apps Script to Generate the Document.
         print("[...] Getting the Script ID...")
-        URL = "https://script.google.com/macros/s/AKfycbxxQCHrWXmwnJFof3wQHflrvHzLfVn-7aNDpQuXJ-Xho__ooyXgsJicHME1-wa-7iBk/exec"
+        URL = "https://script.google.com/macros/s/AKfycbxcAWmmpvM8a_z8k5rYj9FFVmTC34LP1MZLohanWI5BkJ6mvtnIvtAMumwb0HC2Y4Kg/exec"
 
         # [3] Gather the information to fill in the template.
         print("[...] Gathering the information to fill in the template...")
