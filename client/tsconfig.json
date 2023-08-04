@@ -25,6 +25,6 @@
     ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/( Application )/app/translate/Application/Steps/Core/A. Upload", "app/( Application )/app/translate/Application/Steps/Core/B. Correct"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/( Application )/app/translate/Application/Steps/Core/A. Upload", "app/( Application )/app/translate/Application/Steps/Core/B. Correct", "lib/Sphere.js"],
   "exclude": ["node_modules"]
 }

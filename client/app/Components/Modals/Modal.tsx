@@ -35,7 +35,7 @@ export default function Modal({ children }: { children: React.ReactNode }) {
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity backdrop-blur-sm" />
+                    <div className="fixed inset-0 bg-black dark:bg-opacity-50 bg-opacity-10 transition-opacity backdrop-blur-sm" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-10 overflow-y-auto">

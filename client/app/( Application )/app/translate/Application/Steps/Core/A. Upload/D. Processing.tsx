@@ -77,6 +77,11 @@ export default function Generating() {
 
     return (
         <div className="relative w-full">
+            <script
+                type="module"
+                src="https://unpkg.com/@splinetool/viewer@0.9.411/build/spline-viewer.js"
+            ></script>
+            <spline-viewer url="https://prod.spline.design/qDo3grwNY8Y3uBm2/scene.splinecode"></spline-viewer>
             <h5 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
                 {ProcessingSteps[FakeProcess]?.name}
             </h5>
