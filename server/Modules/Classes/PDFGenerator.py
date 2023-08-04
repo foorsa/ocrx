@@ -9,16 +9,17 @@ import json
 
 TemplateIDs = {
     # Baccalaureate
-    "Baccalaureate-Certificate": "1X3rr9TPPR7egAZLvDalNBAnkOYizgAmezHwFgRw1rzE",
-    "Baccalaureate-School-Certificate": "18HyzaYEH9JPbseo_SXebTBZ-O8gjAIP_x-m6XDRVbAU",
-    "Baccalaureate-Transcript-of-Notes": "19XxnsnQxSbWdWKkcUf7kuu7U5DMb056YKZqbI_KYImI",
+    "Baccalaureate-Certificate": "1pQm9boQm33t9Vos9_w9sYqdLY6rG2E9rK09XY7XET4U",
+    "Baccalaureate-School-Certificate": "1zjOzZguCuZPIneqhzPD1z3j32pDpnOElku6_-yd26TA",
+    "Baccalaureate-Transcript-of-Notes": "1e1FxakYQ7VK2cqR9hXCNJl_eKrtdlUVyII3VhqHhB9E",
     # Master
-    "Master-Certificate": "1gBQowrWKrdR98okjfY8s7rRL3vteY64f6sM3Wx8TzR8",
-    "Master-Transcript-of-Marks": "16s73p8NUPIcUFkv-VB4i8GSCDRXPtQOb5qJTKzF7xpo",
-    "Certificate-of-success-at-diploma": "1TFocZylhyKTNXlvZ8Bz-sKJAPOdpIdx1w37-Kyw7rJk",
+    "Master-Certificate": "1aHqCujHzXzZXLncpi4j7YdoVc8uJt05ccK4CYqitsrQ",
+    "Master-Transcript-of-Marks": "1PR1wXmKK2MYpexovTaTEJhq1q7zaLVXLIcerrChUhow",
+    "Certificate-of-success-at-diploma": "1OsmDPN2UEc3eibvwUd4WZZEcumoODuEP8_jkIKcLqfA",
+    "Certificate-of-schooling": "1tFeLzcU-8M2ABTFdulBqfJenRUkCw0BrpA91ULZvxQg",
     # Extra Docs
-    "ExtraDocs-Police-Record-Checks": "18JiMZbk2qHXnhi0ecqHKq3L4Hu4GLNWnirx2PXKAoi0",
-    "SOPIBDOL": "1G42GpqZrapdmjbinaa6JGeKXK0v2V4wkX4Be2K7RvoI",
+    "ExtraDocs-Police-Record-Checks": "1qRfpZXG-rZONgOtu5SYX9eage10GudbMmCDLECOwlpY",
+    "SOPIBDOL": "13i4JKIwthVX1Fd7wJrdR8nyuBu2jC6uU8s3f6HFi4O0",
 }
 
 
@@ -42,7 +43,7 @@ class PDFGenerator:
 
         # [2] Store the Script ID: we execute the Apps Script to Generate the Document.
         print("[...] Getting the Script ID...")
-        URL = "https://script.google.com/macros/s/AKfycbyg1pMaO7_jNGg7oCizAe5n2aDq1YjhLrAXocbHyLJGf980U0lNAi5T7pFGWsJptq4E/exec"
+        URL = "https://script.google.com/macros/s/AKfycbxxQCHrWXmwnJFof3wQHflrvHzLfVn-7aNDpQuXJ-Xho__ooyXgsJicHME1-wa-7iBk/exec"
 
         # [3] Gather the information to fill in the template.
         print("[...] Gathering the information to fill in the template...")

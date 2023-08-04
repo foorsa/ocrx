@@ -113,7 +113,7 @@ export default function Page() {
                                                     color="currentColor"
                                                     variant="Bulk"
                                                     className="h-6 w-6 text-lime-zinc  z-30
-                                            dark:text-zinc-50 
+                                            dark:text-zinc-50
                                             "
                                                 />
                                                 <h3
