@@ -97,6 +97,8 @@ export default function First_DocumentUpload() {
             id: "Uploading",
         });
 
+        var newState = null;
+
         // [STEP 1] Initialize the session
         try {
             const PROCESS_URL = SERVER_API + "/api/v1/initialize";
@@ -122,9 +124,17 @@ export default function First_DocumentUpload() {
                     })
                 );
 
-                toast.dismiss("Uploading");
+                newState = data.Session;
 
-                await Dispatch(setSession(data.Session));
+                await Dispatch(setSession(data.Session)); // Wait for the session state to be updated
+
+                // Pause for 1 second after setting the session in Redux
+                await new Promise((resolve) =>
+                    setTimeout(() => {
+                        resolve(true);
+                        return toast.dismiss("Uploading");
+                    }, 1000)
+                );
             } else {
                 Dispatch(
                     setProcess({
