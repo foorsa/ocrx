@@ -5,7 +5,7 @@ import { fileReducer } from "./reducers/fileReducer";
 import { stepReducer } from "./reducers/stepReducer";
 import { documentTypeReducer } from "./reducers/documentTypeReducer";
 import { processReducer } from "./reducers/processReducer";
-import sessionReducer from "./reducers/sessionReducer";
+import sessionReducer from "./slices/sessionSlice";
 import searchReducer from "./slices/searchSlice";
 
 // Configure Redux Persist

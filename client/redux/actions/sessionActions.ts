@@ -1,13 +1,19 @@
 import { SessionAction, SET_SESSION, CLEAR_SESSION } from '@/redux/types/actions/sessionActionTypes';
 import { Session } from '@/redux/types/states/Session';
 
-// Set session action creator
-export const setSession = (session: Session): SessionAction => ({
-    type: SET_SESSION,
-    payload: session,
+// sessionActions.js
+
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import { initializeSessionAPI, extractTextAPI, extractTableAPI, ... } from '../api'; // Import your API functions
+
+export const initializeSession = createAsyncThunk('session/initialize', async () => {
+    const response = await initializeSessionAPI();
+    return response.Session;
 });
 
-// Clear session action creator
-export const clearSession = (): SessionAction => ({
-    type: CLEAR_SESSION,
+export const extractText = createAsyncThunk('session/extractText', async () => {
+    const response = await extractTextAPI();
+    return response.Session;
 });
+
+// Define similar async actions for the remaining API calls (extractTable, correctText, correctTable, translateText, translateTable, generateDocument)
