@@ -21,6 +21,7 @@ const StarsBackground = () => {
     return (
         <Particles
             id="tsparticles"
+            className = "absolute top-0 left-0 h-full max-h-screen w-full overflow-hidden"
             init={particlesInit}
             loaded={particlesLoaded}
             options={{

@@ -54,7 +54,7 @@ export default function Jumbotron() {
     };
 
     return (
-        <div className="mx-auto flex max-w-screen-xl flex-col items-center justify-center p-10 text-center lg:py-16">
+        <div className="mx-auto flex max-w-screen-xl flex-col items-center justify-center p-10 text-center lg:py-16 h-full flex-1">
             {/* <AnimatePresence mode="wait"> */}
             <motion.div
                 initial="Initial"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
     ArrowDown2,
@@ -41,6 +41,7 @@ import { Session, Session as SessionType } from "@/redux/types/states/Session";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Steps } from "@/redux/types/states/Step";
 import { DocumentCheckIcon } from "@heroicons/react/20/solid";
+import { makeRequestWithRetry } from "@/utils/makeRequestWithRetry";
 
 // Selection for Document Type
 
@@ -50,6 +51,20 @@ export default function First_DocumentUpload() {
     const UploadedFile = useAppSelector((state) => state.file);
     const Process = useAppSelector((state) => state.process);
     const Session = useAppSelector((state) => state.session);
+
+    // useState for Session
+    const [sessionState, setSessionState] = useState<any>({});
+
+    useEffect(() => {
+        // This useEffect will run whenever the sessionState value changes.
+        // You can perform additional operations here that depend on the updated session data.
+        console.log(
+            "[REDUX] Updated Session ID in useEffect: ",
+            Session?.["Session Id"]
+        );
+
+        setSessionState(Session);
+    }, [Session]);
 
     const handleNextStep = async () => {
         if (!UploadedFile) {
@@ -107,15 +122,35 @@ export default function First_DocumentUpload() {
             formData.append("file", UploadedFile.file);
             formData.append("document_type", Doctype.id);
 
-            const response = await axios.post(PROCESS_URL, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            const Response = await axios
+                .post(PROCESS_URL, formData, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                })
+                
+            console.log("API Responded with: ", Response);
 
-            const { status, data } = response;
+            const { status, data } = Response;
+
+            console.log("API Responded with: ", data);
 
             if (status == 200 && data.Session.Status == "Initialized") {
+                console.assert(
+                    data.Session["Session Id"] != null,
+                    "Session ID is null when initialized."
+                );
+
+                console.log(
+                    "Previous Session ID: ",
+                    Session?.["Session Id"]
+                );
+
+                console.log(
+                    "Redux Should Take the Session ID: ",
+                    data.Session["Session Id"]
+                );
+
                 Dispatch(
                     setProcess({
                         isLoading: true,
@@ -127,6 +162,13 @@ export default function First_DocumentUpload() {
                 newState = data.Session;
 
                 await Dispatch(setSession(data.Session)); // Wait for the session state to be updated
+
+                setSessionState(data.Session); // Save the updated session data in the useState variable
+
+                console.log(
+                    "Succesfully Disptached Session to the Id: ",
+                    sessionState["Session Id"]
+                );
 
                 // Pause for 1 second after setting the session in Redux
                 await new Promise((resolve) =>
@@ -144,12 +186,14 @@ export default function First_DocumentUpload() {
 
                 toast.dismiss("Uploading");
 
-                toast.error("An error occurred. Please try again later.");
+                toast.error(
+                    "An error occurred. Please try again later."
+                );
             }
             // All good, continue with the next steps
         } catch (error: any) {
             console.log("Error while Initializing Session: ", error);
-            toast.dismiss("Uploading...");
+            toast.dismiss("Uploading");
 
             Dispatch(
                 setProcess({
@@ -181,798 +225,795 @@ export default function First_DocumentUpload() {
             }
         }
 
-        // [STEP 2] Extract the Data from the file
-        toast.loading("Extracting Text from your file...", {
-            id: "Extracting Text",
-        });
-
-        try {
-            const SESSION_ID = Session["Session Id"];
-
-            if (!SESSION_ID || SESSION_ID == "") {
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                console.log("Session Identifier is missing in: ", Session);
-
-                toast.dismiss("Extracting Text");
-                return toast.error(
-                    "Session Identifier is missing, the server was probably inactive, please try again in few seconds."
-                );
-            }
-
-            const EXTRACT_URL =
-                SERVER_API + `/api/v1/extract-text?Session_Id=${SESSION_ID}`;
-
-            const response = await axios.post(EXTRACT_URL, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            const { status, data } = response;
-
-            if (status == 200 && data.Session.Status == "Extracted") {
-                Dispatch(
-                    setProcess({
-                        isLoading: true,
-                        name: "Correcting",
-                        description: "Correcting your file...",
-                    })
-                );
-
-                toast.dismiss("Extracting Text");
-
-                // Wait for the session state to be updated
-                await Dispatch(setSession(data.Session));
-            } else {
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                toast.dismiss("Extracting Text");
-
-                return toast.error(
-                    "An error occurred while extracting the data. Please try again later."
-                );
-            }
-        } catch (error: any) {
-            console.log("[SERVER] Error while Extracting Data: ", error);
-
-            Dispatch(
-                setProcess({
-                    isLoading: false,
-                })
-            );
-
-            toast.dismiss("Extracting Text");
-
-            // Check if the error contains a response
-            if (error.response) {
-                const { status, data } = error.response;
-                switch (status) {
-                    case 400:
-                        return toast.error(
-                            "The server got an invalid request. Please try again later."
-                        );
-                    case 500:
-                        return toast.error(
-                            "The server is not responding. Please try again later."
-                        );
-                    default:
-                        return toast.error(
-                            "Server returned an unknown error. Please try again later."
-                        );
-                }
-            } else {
-                // Handle other types of errors (e.g., network errors, timeout)
-                return toast.error(
-                    error.message ||
-                        "Server is not responding, please try again later."
-                );
-            }
-        }
-        // [STEP 3] Presence of Tabular Data - Extract Tables from the file
-        if (Session["Information Type"] == "Tabular") {
-            toast.loading("Extracting Tables from your file...", {
-                id: "Extracting Tables",
-            });
-
-            try {
-                const SESSION_ID = Session["Session Id"];
-
-                if (!SESSION_ID || SESSION_ID == "") {
-                    Dispatch(
-                        setProcess({
-                            isLoading: false,
-                        })
-                    );
-
-                    console.log("Session Identifier is missing in: ", Session);
-
-                    toast.dismiss("Extracting Text");
-                    return toast.error(
-                        "Session Identifier is missing, the server was probably inactive, please try again in few seconds."
-                    );
-                }
-
-                const EXTRACT_URL =
-                    SERVER_API +
-                    `/api/v1/extract-tables?Session_Id=${SESSION_ID}`;
-
-                const response = await axios.post(EXTRACT_URL, {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                });
-
-                const { status, data } = response;
-
-                if (status == 200 && data.Session.Status == "Extracted") {
-                    Dispatch(
-                        setProcess({
-                            isLoading: true,
-                        })
-                    );
-
-                    toast.dismiss("Extracting Tables");
-
-                    await Dispatch(setSession(data.Session));
-                } else {
-                    Dispatch(
-                        setProcess({
-                            isLoading: false,
-                        })
-                    );
-
-                    toast.dismiss("Extracting Tables");
-
-                    return toast.error(
-                        "An error occurred while extracting the tables. Please try again later."
-                    );
-                }
-            } catch (error: any) {
-                console.log("[SERVER] Error while Extracting Tables: ", error);
-
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                toast.dismiss("Extracting Tables");
-
-                // Check if the error contains a response
-                if (error.response) {
-                    const { status, data } = error.response;
-                    switch (status) {
-                        case 400:
-                            return toast.error(
-                                "The server got an invalid request. Please try again later."
-                            );
-                        case 500:
-                            return toast.error(
-                                "The server is not responding. Please try again later."
-                            );
-                        default:
-                            return toast.error(
-                                "Server returned an unknown error. Please try again later."
-                            );
-                    }
-                } else {
-                    // Handle other types of errors (e.g., network errors, timeout)
-                    return toast.error(
-                        error.message ||
-                            "Server is not responding, please try again later."
-                    );
-                }
-            }
-        }
-
-        // [STEP 4] Correct the Text with AI (Correction)
-        toast.loading("Processing the extracted Text...", {
-            id: "Correcting Text",
-        });
-
-        try {
-            const SESSION_ID = Session["Session Id"];
-
-            if (!SESSION_ID || SESSION_ID == "") {
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                console.log("Session ID is missing in: ", Session);
-
-                toast.dismiss("Correcting Text");
-                return toast.error("Session ID is missing.");
-            }
-
-            const TRANSLATE_URL =
-                SERVER_API + `/api/v1/correct-text?Session_Id=${SESSION_ID}`;
-
-            const response = await axios.post(TRANSLATE_URL, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            const { status, data } = response;
-
-            if (status == 200 && data.Session.Status == "Corrected") {
-                Dispatch(
-                    setProcess({
-                        isLoading: true,
-                    })
-                );
-
-                toast.dismiss("Correcting Text");
-
-                await Dispatch(setSession(data.Session));
-            } else {
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                toast.dismiss("Correcting Text");
-
-                return toast.error(
-                    "AI returned an error. Please try again later."
-                );
-            }
-        } catch (Error: any) {
-            console.log("Error while Correcting Text: ", Error);
-
-            Dispatch(
-                setProcess({
-                    isLoading: false,
-                })
-            );
-
-            toast.dismiss("Correcting Text");
-
-            // Check if the error contains a response
-            if (Error.response) {
-                const { status, data } = Error.response;
-                switch (status) {
-                    case 400:
-                        return toast.error(
-                            "AI got an invalid request. Please try again later."
-                        );
-                    case 500:
-                        return toast.error(
-                            "AI is not responding, please try again later."
-                        );
-                    default:
-                        return toast.error("AI returned an unknown error.");
-                }
-            } else {
-                // Handle other types of errors (e.g., network errors, timeout)
-                return toast.error(
-                    Error.message ||
-                        "AI is not responding, please try again later."
-                );
-            }
-        }
-        // [STEP 5] Tabular Information: AI Correction
-        async function correctTable() {
-            if (Session["Information Type"] === "Tabular") {
-                toast.loading("Processing the Extracted Table....", {
-                    id: "Correcting Table",
-                });
-
-                try {
-                    const SESSION_ID = Session["Session Id"];
-
-                    if (!SESSION_ID || SESSION_ID === "") {
-                        Dispatch(
-                            setProcess({
-                                isLoading: false,
-                            })
-                        );
-
-                        console.log("Session ID is missing in: ", Session);
-
-                        toast.dismiss("Correcting Table");
-                        return toast.error("Session ID is missing.");
-                    }
-
-                    const TRANSLATE_URL =
-                        SERVER_API +
-                        `/api/v1/correct-tables?Session_Id=${SESSION_ID}`;
-
-                    const response = await makeRequestWithRetry(TRANSLATE_URL);
-
-                    const { status, data } = response;
-
-                    if (status === 200 && data.Session.Status === "Corrected") {
-                        Dispatch(
-                            setProcess({
-                                isLoading: true,
-                            })
-                        );
-
-                        toast.dismiss("Correcting Table");
-
-                        Dispatch(setSession(data.Session));
-                    } else {
-                        Dispatch(
-                            setProcess({
-                                isLoading: false,
-                            })
-                        );
-
-                        toast.dismiss("Correcting Table");
-
-                        return toast.error(
-                            "The Transcripts AI returned an error, please try again later."
-                        );
-                    }
-                } catch (error: any) {
-                    console.log("Error while Correcting Text: ", error);
-
-                    Dispatch(
-                        setProcess({
-                            isLoading: false,
-                        })
-                    );
-
-                    toast.dismiss("Correcting Table");
-
-                    // Check if the error contains a response
-                    if (error.response) {
-                        const { status, data } = error.response;
-                        switch (status) {
-                            case 400:
-                                return toast.error(
-                                    "The Transcripts AI got an invalid request. Please try again later."
-                                );
-                            case 500:
-                                return toast.error(
-                                    "The Transcripts AI is not responding, please try again later."
-                                );
-                            default:
-                                return toast.error(
-                                    "The Transcripts AI returned an unknown error."
-                                );
-                        }
-                    } else {
-                        // Handle other types of errors (e.g., network errors, timeout)
-                        return toast.error(
-                            error.message ||
-                                "The Transcripts AI is not responding, please try again later."
-                        );
-                    }
-                }
-            }
-        }
-
-        // Helper function to make the Axios request with retry
-        async function makeRequestWithRetry(
-            url: string,
-            maxRetries = 3,
-            currentRetry = 0
-        ) {
-            try {
-                const response = await axios.post(url, {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                });
-
-                return response;
-            } catch (error: any) {
-                if (
-                    currentRetry < maxRetries &&
-                    (axios.isAxiosError(error) || error.code === "ECONNABORTED")
-                ) {
-                    // Retry the request by recursively calling the function after a short delay
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    return makeRequestWithRetry(
-                        url,
-                        maxRetries,
-                        currentRetry + 1
-                    );
-                } else {
-                    throw error; // Reject the promise for non-retryable errors
-                }
-            }
-        }
-
-        await correctTable();
-
-        // [STEP 6] Translate the Text with AI (Correction)
-        toast.loading("Translating the extracted Text...", {
-            id: "Translating Text",
-        });
-
-        try {
-            const SESSION_ID = Session["Session Id"];
-
-            if (!SESSION_ID || SESSION_ID == "") {
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                console.log("Session ID is missing in: ", Session);
-
-                toast.dismiss("Translating Text");
-                return toast.error("Session ID is missing.");
-            }
-
-            const TRANSLATE_URL =
-                SERVER_API + `/api/v1/translate-text?Session_Id=${SESSION_ID}`;
-
-            const response = await axios.post(TRANSLATE_URL, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            const { status, data } = response;
-
-            if (status == 200 && data.Session.Status == "Translated") {
-                Dispatch(
-                    setProcess({
-                        isLoading: true,
-                    })
-                );
-
-                toast.dismiss("Translating Text");
-
-                Dispatch(setSession(data.Session));
-            } else {
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                toast.dismiss("Translating Text");
-
-                return toast.error(
-                    "AI returned an error. Please try again later."
-                );
-            }
-        } catch (Error: any) {
-            console.log("Error while Translating Text: ", Error);
-
-            Dispatch(
-                setProcess({
-                    isLoading: false,
-                })
-            );
-
-            toast.dismiss("Translating Text");
-
-            // Check if the error contains a response
-            if (Error.response) {
-                const { status, data } = Error.response;
-                switch (status) {
-                    case 400:
-                        return toast.error(
-                            "AI got an invalid request. Please try again later."
-                        );
-                    case 500:
-                        return toast.error(
-                            "AI is not responding, please try again later."
-                        );
-                    default:
-                        return toast.error("AI returned an unknown error.");
-                }
-            } else {
-                // Handle other types of errors (e.g., network errors, timeout)
-                return toast.error(
-                    Error.message ||
-                        "AI is not responding, please try again later."
-                );
-            }
-        }
-
-        // [STEP 7] Tabular Information: AI Translation
-        if (Session["Information Type"] == "Tabular") {
-            toast.loading("Translating the Extracted Table....", {
-                id: "Translating Table",
-            });
-
-            try {
-                const SESSION_ID = Session["Session Id"];
-
-                if (!SESSION_ID || SESSION_ID == "") {
-                    Dispatch(
-                        setProcess({
-                            isLoading: false,
-                        })
-                    );
-
-                    console.log("Session ID is missing in: ", Session);
-
-                    toast.dismiss("Translating Table");
-                    return toast.error("Session ID is missing.");
-                }
-
-                const TRANSLATE_URL =
-                    SERVER_API +
-                    `/api/v1/translate-tables?Session_Id=${SESSION_ID}`;
-
-                const response = await axios.post(TRANSLATE_URL, {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                });
-
-                const { status, data } = response;
-
-                if (status == 200 && data.Session.Status == "Translated") {
-                    Dispatch(
-                        setProcess({
-                            isLoading: true,
-                        })
-                    );
-
-                    toast.dismiss("Translating Table");
-
-                    Dispatch(setSession(data.Session));
-                } else {
-                    Dispatch(
-                        setProcess({
-                            isLoading: false,
-                        })
-                    );
-
-                    toast.dismiss("Translating Table");
-
-                    return toast.error(
-                        "The Transcripts AI returned an error, please try again later."
-                    );
-                }
-            } catch (Error: any) {
-                console.log("Error while Correcting Text: ", Error);
-
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                toast.dismiss("Translating Table");
-
-                // Check if the error contains a response
-                if (Error.response) {
-                    const { status, data } = Error.response;
-                    switch (status) {
-                        case 400:
-                            return toast.error(
-                                "The Transcripts AI  got an invalid request. Please try again later."
-                            );
-                        case 500:
-                            return toast.error(
-                                "The Transcripts AI  is not responding, please try again later."
-                            );
-                        default:
-                            return toast.error(
-                                "The Transcripts AI  returned an unknown error."
-                            );
-                    }
-                } else {
-                    // Handle other types of errors (e.g., network errors, timeout)
-                    return toast.error(
-                        Error.message ||
-                            "The Transcripts AI is not responding, please try again later."
-                    );
-                }
-            }
-        }
-
-        toast.loading("Generating Final Document...", {
-            id: "Generating",
-        });
-
-        try {
-            const SESSION_ID = Session["Session Id"];
-
-            if (!SESSION_ID || SESSION_ID == "") {
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                console.log("Session ID is missing in: ", Session);
-
-                toast.dismiss("Generating");
-                return toast.error(
-                    "Session Identifier is missing, please restart the process."
-                );
-            }
-
-            const GENERATE_URL =
-                SERVER_API +
-                `/api/v1/generate-document?Session_Id=${SESSION_ID}`;
-
-            const response = await axios.post(GENERATE_URL, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            const { status, data } = response;
-
-            if (status == 200) {
-                Dispatch(
-                    setProcess({
-                        isLoading: true,
-                    })
-                );
-
-                await Dispatch(setSession(data.Session));
-
-                await new Promise((resolve) =>
-                    setTimeout(() => {
-                        resolve(true);
-                        return toast.dismiss("Generating");
-                    }, 1000)
-                );
-
-                console.log("Final Session Information: ", data.Session);
-            } else {
-                Dispatch(
-                    setProcess({
-                        isLoading: false,
-                    })
-                );
-
-                toast.dismiss("Generating");
-
-                return toast.error(
-                    "Google Cloud returned an error. Please try again later."
-                );
-            }
-        } catch (Error: any) {
-            console.log(
-                "[CLOUD] Error while Generating Google Docs File: ",
-                Error
-            );
-
-            Dispatch(
-                setProcess({
-                    isLoading: false,
-                })
-            );
-
-            toast.dismiss("Generating");
-
-            // Check if the error contains a response
-            if (Error.response) {
-                const { status, data } = Error.response;
-                switch (status) {
-                    case 400:
-                        return toast.error(
-                            "Google Cloud got an invalid request. Please try again later."
-                        );
-                    case 500:
-                        return toast.error("Google Cloud is not responding.");
-                    default:
-                        return toast.error(
-                            "Unknown error occurred on Google Cloud."
-                        );
-                }
-            } else {
-                // Handle other types of errors (e.g., network errors, timeout)
-                return toast.error(
-                    Error.message ||
-                        "A problem occured with the Cloud. Please try again later."
-                );
-            }
-        }
-
-        Dispatch(
-            setProcess({
-                isLoading: false,
-            })
+        // DEBUG THE SESSION ID
+        console.log(
+            "Session ID after dispatching: ",
+            Session?.["Session Id"]
         );
 
-        toast.dismiss("Generating");
+        Dispatch(
+                setProcess({
+                    isLoading: false,
+                })
+            );
+        
 
-        // Change the Step
-        Dispatch(setStep(Steps.Finish));
+        // // [STEP 2] Extract the Data from the file
+        // toast.loading("Extracting Text from your file...", {
+        //     id: "Extracting Text",
+        // });
 
-        toast.custom((t) => (
-            <div
-                id="toast-interactive"
-                className={`relative z-10 w-full max-w-xs p-4 text-zinc-500 bg-white rounded-lg shadow-2xl dark:bg-zinc-900 dark:text-zinc-400`}
-                role="alert"
-            >
-                <div className="flex">
-                    <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-blue-500 bg-blue-100 rounded-lg dark:text-blue-300 dark:bg-blue-900">
-                        <DocumentDownload
-                            className="w-4 h-4"
-                            aria-hidden="true"
-                            variant="Bulk"
-                        />
-                        <span className="sr-only">
-                            File is Ready to Download !
-                        </span>
-                    </div>
-                    <div className="ml-3 text-sm font-normal">
-                        <span className="mb-1 text-sm font-semibold text-zinc-900 dark:text-white">
-                            File is Ready to Download !
-                        </span>
-                        <div className="mb-2 text-sm font-normal">
-                            <span className="text-zinc-500 dark:text-zinc-400">
-                                Click on the buttons below to download the file
-                                or edit it on Google Docs.
-                            </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <a
-                                    href={
-                                        Session?.Generation
-                                            ? Session.Generation[
-                                                  "Google Docs Link"
-                                              ]
-                                            : "#"
-                                    }
-                                    target="_blank"
-                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none dark:bg-blue-500 dark:hover:bg-blue-600"
-                                >
-                                    Google Docs
-                                </a>
-                            </div>
-                            <div>
-                                <a
-                                    href={
-                                        Session?.Generation
-                                            ? Session.Generation["PDF Link"]
-                                            : "#"
-                                    }
-                                    target="_blank"
-                                    className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-zinc-900 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-100 focus:outline-none dark:bg-zinc-600 dark:text-white dark:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:border-zinc-700"
-                                >
-                                    Download
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => toast.remove(t.id)}
-                        className="ml-auto -mx-1.5 -my-1.5 bg-white items-center justify-center flex-shrink-0 text-zinc-400 hover:text-zinc-900 rounded-lg p-1.5 hover:bg-zinc-100 inline-flex h-8 w-8 dark:text-zinc-500 dark:hover:text-white dark:bg-zinc-800 dark:hover:bg-zinc-700"
-                        data-dismiss-target="#toast-interactive"
-                        aria-label="Close"
-                    >
-                        <span className="sr-only">Close</span>
-                        <svg
-                            className="w-3 h-3"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 14 14"
-                        >
-                            <path
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                            />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        ));
+        // try {
+        //     const SESSION_ID = sessionState["Session Id"];
+
+        //     if (SESSION_ID == "" || SESSION_ID == null) {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         console.log("Session Identifier is missing in: ", Session);
+
+        //         toast.dismiss("Extracting Text");
+        //         return toast.error(
+        //             "Session Identifier is missing, the server was probably inactive, please try again in few seconds."
+        //         );
+        //     }
+
+        //     const EXTRACT_URL =
+        //         SERVER_API + `/api/v1/extract-text?Session_Id=${SESSION_ID}`;
+
+        //     const response = await axios.post(EXTRACT_URL, {
+        //         headers: {
+        //             "Content-Type": "multipart/form-data",
+        //         },
+        //     });
+
+        //     const { status, data } = response;
+
+        //     if (status == 200 && data.Session.Status == "Extracted") {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: true,
+        //                 name: "Correcting",
+        //                 description: "Correcting your file...",
+        //             })
+        //         );
+
+        //         toast.dismiss("Extracting Text");
+
+        //         // Wait for the session state to be updated
+        //         await Dispatch(setSession(data.Session));
+
+        //         setSessionState(data.Session); // Save the updated session data in the useState variable
+        //     } else {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         toast.dismiss("Extracting Text");
+
+        //         return toast.error(
+        //             "An error occurred while extracting the data. Please try again later."
+        //         );
+        //     }
+        // } catch (error: any) {
+        //     console.log("[SERVER] Error while Extracting Data: ", error);
+
+        //     Dispatch(
+        //         setProcess({
+        //             isLoading: false,
+        //         })
+        //     );
+
+        //     toast.dismiss("Extracting Text");
+
+        //     // Check if the error contains a response
+        //     if (error.response) {
+        //         const { status, data } = error.response;
+        //         switch (status) {
+        //             case 400:
+        //                 return toast.error(
+        //                     "The server got an invalid request. Please try again later."
+        //                 );
+        //             case 500:
+        //                 return toast.error(
+        //                     "The server is not responding. Please try again later."
+        //                 );
+        //             default:
+        //                 return toast.error(
+        //                     "Server returned an unknown error. Please try again later."
+        //                 );
+        //         }
+        //     } else {
+        //         // Handle other types of errors (e.g., network errors, timeout)
+        //         return toast.error(
+        //             error.message ||
+        //                 "Server is not responding, please try again later."
+        //         );
+        //     }
+        // }
+        // // [STEP 3] Presence of Tabular Data - Extract Tables from the file
+        // if (Session["Information Type"] == "Tabular") {
+        //     toast.loading("Extracting Tables from your file...", {
+        //         id: "Extracting Tables",
+        //     });
+
+        //     try {
+        //         const SESSION_ID = sessionState?.["Session Id"];
+
+        //         if (!SESSION_ID || SESSION_ID == "") {
+        //             Dispatch(
+        //                 setProcess({
+        //                     isLoading: false,
+        //                 })
+        //             );
+
+        //             console.log("Session Identifier is missing in: ", Session);
+
+        //             toast.dismiss("Extracting Text");
+        //             return toast.error(
+        //                 "Session Identifier is missing, the server was probably inactive, please try again in few seconds."
+        //             );
+        //         }
+
+        //         const EXTRACT_URL =
+        //             SERVER_API +
+        //             `/api/v1/extract-tables?Session_Id=${SESSION_ID}`;
+
+        //         const response = await axios.post(EXTRACT_URL, {
+        //             headers: {
+        //                 "Content-Type": "multipart/form-data",
+        //             },
+        //         });
+
+        //         const { status, data } = response;
+
+        //         if (status == 200 && data.Session.Status == "Extracted") {
+        //             Dispatch(
+        //                 setProcess({
+        //                     isLoading: true,
+        //                 })
+        //             );
+
+        //             toast.dismiss("Extracting Tables");
+
+        //             await Dispatch(setSession(data.Session));
+
+        //             setSessionState(data.Session); // Save the updated session data in the useState variable
+        //         } else {
+        //             Dispatch(
+        //                 setProcess({
+        //                     isLoading: false,
+        //                 })
+        //             );
+
+        //             toast.dismiss("Extracting Tables");
+
+        //             return toast.error(
+        //                 "An error occurred while extracting the tables. Please try again later."
+        //             );
+        //         }
+        //     } catch (error: any) {
+        //         console.log("[SERVER] Error while Extracting Tables: ", error);
+
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         toast.dismiss("Extracting Tables");
+
+        //         // Check if the error contains a response
+        //         if (error.response) {
+        //             const { status, data } = error.response;
+        //             switch (status) {
+        //                 case 400:
+        //                     return toast.error(
+        //                         "The server got an invalid request. Please try again later."
+        //                     );
+        //                 case 500:
+        //                     return toast.error(
+        //                         "The server is not responding. Please try again later."
+        //                     );
+        //                 default:
+        //                     return toast.error(
+        //                         "Server returned an unknown error. Please try again later."
+        //                     );
+        //             }
+        //         } else {
+        //             // Handle other types of errors (e.g., network errors, timeout)
+        //             return toast.error(
+        //                 error.message ||
+        //                     "Server is not responding, please try again later."
+        //             );
+        //         }
+        //     }
+        // }
+
+        // // [STEP 4] Correct the Text with AI (Correction)
+        // toast.loading("Processing the extracted Text...", {
+        //     id: "Correcting Text",
+        // });
+
+        // try {
+        //     const SESSION_ID = sessionState?.["Session Id"];
+
+        //     if (!SESSION_ID || SESSION_ID == "") {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         console.log("Session ID is missing in: ", Session);
+
+        //         toast.dismiss("Correcting Text");
+        //         return toast.error("Session ID is missing.");
+        //     }
+
+        //     const TRANSLATE_URL =
+        //         SERVER_API + `/api/v1/correct-text?Session_Id=${SESSION_ID}`;
+
+        //     const response = await axios.post(TRANSLATE_URL, {
+        //         headers: {
+        //             "Content-Type": "multipart/form-data",
+        //         },
+        //     });
+
+        //     const { status, data } = response;
+
+        //     if (status == 200 && data.Session.Status == "Corrected") {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: true,
+        //             })
+        //         );
+
+        //         toast.dismiss("Correcting Text");
+
+        //         await Dispatch(setSession(data.Session));
+
+        //         setSessionState(data.Session); // Save the updated session data in the useState variable
+        //     } else {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         toast.dismiss("Correcting Text");
+
+        //         return toast.error(
+        //             "AI returned an error. Please try again later."
+        //         );
+        //     }
+        // } catch (Error: any) {
+        //     console.log("Error while Correcting Text: ", Error);
+
+        //     Dispatch(
+        //         setProcess({
+        //             isLoading: false,
+        //         })
+        //     );
+
+        //     toast.dismiss("Correcting Text");
+
+        //     // Check if the error contains a response
+        //     if (Error.response) {
+        //         const { status, data } = Error.response;
+        //         switch (status) {
+        //             case 400:
+        //                 return toast.error(
+        //                     "AI got an invalid request. Please try again later."
+        //                 );
+        //             case 500:
+        //                 return toast.error(
+        //                     "AI is not responding, please try again later."
+        //                 );
+        //             default:
+        //                 return toast.error("AI returned an unknown error.");
+        //         }
+        //     } else {
+        //         // Handle other types of errors (e.g., network errors, timeout)
+        //         return toast.error(
+        //             Error.message ||
+        //                 "AI is not responding, please try again later."
+        //         );
+        //     }
+        // }
+        // // [STEP 5] Tabular Information: AI Correction
+        // async function correctTable() {
+        //     if (Session["Information Type"] === "Tabular") {
+        //         toast.loading("Processing the Extracted Table....", {
+        //             id: "Correcting Table",
+        //         });
+
+        //         try {
+        //             const SESSION_ID = sessionState?.["Session Id"];
+
+        //             if (!SESSION_ID || SESSION_ID === "") {
+        //                 Dispatch(
+        //                     setProcess({
+        //                         isLoading: false,
+        //                     })
+        //                 );
+
+        //                 console.log("Session ID is missing in: ", Session);
+
+        //                 toast.dismiss("Correcting Table");
+        //                 return toast.error("Session ID is missing.");
+        //             }
+
+        //             const TRANSLATE_URL =
+        //                 SERVER_API +
+        //                 `/api/v1/correct-tables?Session_Id=${SESSION_ID}`;
+
+        //             const response = await makeRequestWithRetry(TRANSLATE_URL);
+
+        //             const { status, data } = response;
+
+        //             if (status === 200 && data.Session.Status === "Corrected") {
+        //                 Dispatch(
+        //                     setProcess({
+        //                         isLoading: true,
+        //                     })
+        //                 );
+
+        //                 toast.dismiss("Correcting Table");
+
+        //                 await Dispatch(setSession(data.Session));
+
+        //                 setSessionState(data.Session); // Save the updated session data in the useState variable
+        //             } else {
+        //                 Dispatch(
+        //                     setProcess({
+        //                         isLoading: false,
+        //                     })
+        //                 );
+
+        //                 toast.dismiss("Correcting Table");
+
+        //                 return toast.error(
+        //                     "The Transcripts AI returned an error, please try again later."
+        //                 );
+        //             }
+        //         } catch (error: any) {
+        //             console.log("Error while Correcting Text: ", error);
+
+        //             Dispatch(
+        //                 setProcess({
+        //                     isLoading: false,
+        //                 })
+        //             );
+
+        //             toast.dismiss("Correcting Table");
+
+        //             // Check if the error contains a response
+        //             if (error.response) {
+        //                 const { status, data } = error.response;
+        //                 switch (status) {
+        //                     case 400:
+        //                         return toast.error(
+        //                             "The Transcripts AI got an invalid request. Please try again later."
+        //                         );
+        //                     case 500:
+        //                         return toast.error(
+        //                             "The Transcripts AI is not responding, please try again later."
+        //                         );
+        //                     default:
+        //                         return toast.error(
+        //                             "The Transcripts AI returned an unknown error."
+        //                         );
+        //                 }
+        //             } else {
+        //                 // Handle other types of errors (e.g., network errors, timeout)
+        //                 return toast.error(
+        //                     error.message ||
+        //                         "The Transcripts AI is not responding, please try again later."
+        //                 );
+        //             }
+        //         }
+        //     }
+        // }
+
+        
+
+        // await correctTable();
+
+        // // [STEP 6] Translate the Text with AI (Correction)
+        // toast.loading("Translating the extracted Text...", {
+        //     id: "Translating Text",
+        // });
+
+        // try {
+        //     const SESSION_ID = sessionState?.["Session Id"];
+
+        //     if (!SESSION_ID || SESSION_ID == "") {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         console.log("Session ID is missing in: ", Session);
+
+        //         toast.dismiss("Translating Text");
+        //         return toast.error("Session ID is missing.");
+        //     }
+
+        //     const TRANSLATE_URL =
+        //         SERVER_API + `/api/v1/translate-text?Session_Id=${SESSION_ID}`;
+
+        //     const response = await axios.post(TRANSLATE_URL, {
+        //         headers: {
+        //             "Content-Type": "multipart/form-data",
+        //         },
+        //     });
+
+        //     const { status, data } = response;
+
+        //     if (status == 200 && data.Session.Status == "Translated") {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: true,
+        //             })
+        //         );
+
+        //         toast.dismiss("Translating Text");
+
+        //         await Dispatch(setSession(data.Session));
+
+        //         setSessionState(data.Session); // Save the updated session data in the useState variable
+        //     } else {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         toast.dismiss("Translating Text");
+
+        //         return toast.error(
+        //             "AI returned an error. Please try again later."
+        //         );
+        //     }
+        // } catch (Error: any) {
+        //     console.log("Error while Translating Text: ", Error);
+
+        //     Dispatch(
+        //         setProcess({
+        //             isLoading: false,
+        //         })
+        //     );
+
+        //     toast.dismiss("Translating Text");
+
+        //     // Check if the error contains a response
+        //     if (Error.response) {
+        //         const { status, data } = Error.response;
+        //         switch (status) {
+        //             case 400:
+        //                 return toast.error(
+        //                     "AI got an invalid request. Please try again later."
+        //                 );
+        //             case 500:
+        //                 return toast.error(
+        //                     "AI is not responding, please try again later."
+        //                 );
+        //             default:
+        //                 return toast.error("AI returned an unknown error.");
+        //         }
+        //     } else {
+        //         // Handle other types of errors (e.g., network errors, timeout)
+        //         return toast.error(
+        //             Error.message ||
+        //                 "AI is not responding, please try again later."
+        //         );
+        //     }
+        // }
+
+        // // [STEP 7] Tabular Information: AI Translation
+        // if (Session["Information Type"] == "Tabular") {
+        //     toast.loading("Translating the Extracted Table....", {
+        //         id: "Translating Table",
+        //     });
+
+        //     try {
+        //         const SESSION_ID = sessionState?.["Session Id"];
+
+        //         if (!SESSION_ID || SESSION_ID == "") {
+        //             Dispatch(
+        //                 setProcess({
+        //                     isLoading: false,
+        //                 })
+        //             );
+
+        //             console.log("Session ID is missing in: ", Session);
+
+        //             toast.dismiss("Translating Table");
+        //             return toast.error("Session ID is missing.");
+        //         }
+
+        //         const TRANSLATE_URL =
+        //             SERVER_API +
+        //             `/api/v1/translate-tables?Session_Id=${SESSION_ID}`;
+
+        //         const response = await axios.post(TRANSLATE_URL, {
+        //             headers: {
+        //                 "Content-Type": "multipart/form-data",
+        //             },
+        //         });
+
+        //         const { status, data } = response;
+
+        //         if (status == 200 && data.Session.Status == "Translated") {
+        //             Dispatch(
+        //                 setProcess({
+        //                     isLoading: true,
+        //                 })
+        //             );
+
+        //             toast.dismiss("Translating Table");
+
+        //             await Dispatch(setSession(data.Session));
+
+        //             setSessionState(data.Session); // Save the updated session data in the useState variable
+        //         } else {
+        //             Dispatch(
+        //                 setProcess({
+        //                     isLoading: false,
+        //                 })
+        //             );
+
+        //             toast.dismiss("Translating Table");
+
+        //             return toast.error(
+        //                 "The Transcripts AI returned an error, please try again later."
+        //             );
+        //         }
+        //     } catch (Error: any) {
+        //         console.log("Error while Correcting Text: ", Error);
+
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         toast.dismiss("Translating Table");
+
+        //         // Check if the error contains a response
+        //         if (Error.response) {
+        //             const { status, data } = Error.response;
+        //             switch (status) {
+        //                 case 400:
+        //                     return toast.error(
+        //                         "The Transcripts AI  got an invalid request. Please try again later."
+        //                     );
+        //                 case 500:
+        //                     return toast.error(
+        //                         "The Transcripts AI  is not responding, please try again later."
+        //                     );
+        //                 default:
+        //                     return toast.error(
+        //                         "The Transcripts AI  returned an unknown error."
+        //                     );
+        //             }
+        //         } else {
+        //             // Handle other types of errors (e.g., network errors, timeout)
+        //             return toast.error(
+        //                 Error.message ||
+        //                     "The Transcripts AI is not responding, please try again later."
+        //             );
+        //         }
+        //     }
+        // }
+
+        // toast.loading("Generating Final Document...", {
+        //     id: "Generating",
+        // });
+
+        // try {
+        //     const SESSION_ID = Session["Session Id"];
+
+        //     if (!SESSION_ID || SESSION_ID == "") {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         console.log("Session ID is missing in: ", Session);
+
+        //         toast.dismiss("Generating");
+        //         return toast.error(
+        //             "Session Identifier is missing, please restart the process."
+        //         );
+        //     }
+
+        //     const GENERATE_URL =
+        //         SERVER_API +
+        //         `/api/v1/generate-document?Session_Id=${SESSION_ID}`;
+
+        //     const response = await axios.post(GENERATE_URL, {
+        //         headers: {
+        //             "Content-Type": "multipart/form-data",
+        //         },
+        //     });
+
+        //     const { status, data } = response;
+
+        //     if (status == 200) {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: true,
+        //             })
+        //         );
+
+        //         await Dispatch(setSession(data.Session));
+
+        //         setSessionState(data.Session); // Save the updated session data in the useState variable
+
+        //         await new Promise((resolve) =>
+        //             setTimeout(() => {
+        //                 resolve(true);
+        //                 return toast.dismiss("Generating");
+        //             }, 1000)
+        //         );
+
+        //         console.log("Final Session Information: ", data.Session);
+        //     } else {
+        //         Dispatch(
+        //             setProcess({
+        //                 isLoading: false,
+        //             })
+        //         );
+
+        //         toast.dismiss("Generating");
+
+        //         return toast.error(
+        //             "Google Cloud returned an error. Please try again later."
+        //         );
+        //     }
+        // } catch (Error: any) {
+        //     console.log(
+        //         "[CLOUD] Error while Generating Google Docs File: ",
+        //         Error
+        //     );
+
+        //     Dispatch(
+        //         setProcess({
+        //             isLoading: false,
+        //         })
+        //     );
+
+        //     toast.dismiss("Generating");
+
+        //     // Check if the error contains a response
+        //     if (Error.response) {
+        //         const { status, data } = Error.response;
+        //         switch (status) {
+        //             case 400:
+        //                 return toast.error(
+        //                     "Google Cloud got an invalid request. Please try again later."
+        //                 );
+        //             case 500:
+        //                 return toast.error("Google Cloud is not responding.");
+        //             default:
+        //                 return toast.error(
+        //                     "Unknown error occurred on Google Cloud."
+        //                 );
+        //         }
+        //     } else {
+        //         // Handle other types of errors (e.g., network errors, timeout)
+        //         return toast.error(
+        //             Error.message ||
+        //                 "A problem occured with the Cloud. Please try again later."
+        //         );
+        //     }
+        // }
+
+        // Dispatch(
+        //     setProcess({
+        //         isLoading: false,
+        //     })
+        // );
+
+        // toast.dismiss("Generating");
+
+        // // Change the Step
+        // Dispatch(setStep(Steps.Finish));
+
+        // toast.custom((t) => (
+        //     <div
+        //         id="toast-interactive"
+        //         className={`relative z-10 w-full max-w-xs p-4 text-zinc-500 bg-white rounded-lg shadow-2xl dark:bg-zinc-900 dark:text-zinc-400`}
+        //         role="alert"
+        //     >
+        //         <div className="flex">
+        //             <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-blue-500 bg-blue-100 rounded-lg dark:text-blue-300 dark:bg-blue-900">
+        //                 <DocumentDownload
+        //                     className="w-4 h-4"
+        //                     aria-hidden="true"
+        //                     variant="Bulk"
+        //                 />
+        //                 <span className="sr-only">
+        //                     File is Ready to Download !
+        //                 </span>
+        //             </div>
+        //             <div className="ml-3 text-sm font-normal">
+        //                 <span className="mb-1 text-sm font-semibold text-zinc-900 dark:text-white">
+        //                     File is Ready to Download !
+        //                 </span>
+        //                 <div className="mb-2 text-sm font-normal">
+        //                     <span className="text-zinc-500 dark:text-zinc-400">
+        //                         Click on the buttons below to download the file
+        //                         or edit it on Google Docs.
+        //                     </span>
+        //                 </div>
+        //                 <div className="grid grid-cols-2 gap-2">
+        //                     <div>
+        //                         <a
+        //                             href={
+        //                                 Session?.Generation
+        //                                     ? Session.Generation[
+        //                                           "Google Docs Link"
+        //                                       ]
+        //                                     : "#"
+        //                             }
+        //                             target="_blank"
+        //                             className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none dark:bg-blue-500 dark:hover:bg-blue-600"
+        //                         >
+        //                             Google Docs
+        //                         </a>
+        //                     </div>
+        //                     <div>
+        //                         <a
+        //                             href={
+        //                                 Session?.Generation
+        //                                     ? Session.Generation["PDF Link"]
+        //                                     : "#"
+        //                             }
+        //                             target="_blank"
+        //                             className="inline-flex justify-center w-full px-2 py-1.5 text-xs font-medium text-center text-zinc-900 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-100 focus:outline-none dark:bg-zinc-600 dark:text-white dark:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:border-zinc-700"
+        //                         >
+        //                             Download
+        //                         </a>
+        //                     </div>
+        //                 </div>
+        //             </div>
+        //             <button
+        //                 type="button"
+        //                 onClick={() => toast.remove(t.id)}
+        //                 className="ml-auto -mx-1.5 -my-1.5 bg-white items-center justify-center flex-shrink-0 text-zinc-400 hover:text-zinc-900 rounded-lg p-1.5 hover:bg-zinc-100 inline-flex h-8 w-8 dark:text-zinc-500 dark:hover:text-white dark:bg-zinc-800 dark:hover:bg-zinc-700"
+        //                 data-dismiss-target="#toast-interactive"
+        //                 aria-label="Close"
+        //             >
+        //                 <span className="sr-only">Close</span>
+        //                 <svg
+        //                     className="w-3 h-3"
+        //                     aria-hidden="true"
+        //                     xmlns="http://www.w3.org/2000/svg"
+        //                     fill="none"
+        //                     viewBox="0 0 14 14"
+        //                 >
+        //                     <path
+        //                         stroke="currentColor"
+        //                         stroke-linecap="round"
+        //                         stroke-linejoin="round"
+        //                         stroke-width="2"
+        //                         d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+        //                     />
+        //                 </svg>
+        //             </button>
+        //         </div>
+        //     </div>
+        // ));
     };
 
     const handleCancelOperation = () => {
@@ -1060,31 +1101,4 @@ export default function First_DocumentUpload() {
             )}
         </div>
     );
-}
-
-async function makeRequestWithRetry(
-    url: string,
-    maxRetries = 3,
-    currentRetry = 0
-) {
-    try {
-        const response = await axios.post(url, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
-
-        return response;
-    } catch (error: any) {
-        if (
-            currentRetry < maxRetries &&
-            (axios.isAxiosError(error) || error.code === "ECONNABORTED")
-        ) {
-            // Retry the request by recursively calling the function after a short delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            return makeRequestWithRetry(url, maxRetries, currentRetry + 1);
-        } else {
-            throw error; // Reject the promise for non-retryable errors
-        }
-    }
 }

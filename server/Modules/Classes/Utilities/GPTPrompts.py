@@ -145,9 +145,6 @@ def GeneratePrompt(Doctype):
     return Prompt
 
 
-print(GeneratePrompt("Baccalaureate-Certificate"))
-
-
 # Text Correction
 def GenerateTextCorrection(Doctype, Text):
     Response = openai.ChatCompletion.create(
