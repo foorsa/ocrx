@@ -6,11 +6,12 @@ import { stepReducer } from "./reducers/stepReducer";
 import { documentTypeReducer } from "./reducers/documentTypeReducer";
 import sessionReducer from "./slices/sessionSlice";
 import searchReducer from "./slices/searchSlice";
+import sessionStorage from "redux-persist/es/storage/session";
 
 // Configure Redux Persist
 const persistConfig = {
     key: 'root',
-    storage,
+    storage: sessionStorage,
     whitelist: ['session', 'step', 'search'],
     blacklist: ['file', 'documentType'],
     keyPrefix: 'OCRX-STATE-',
