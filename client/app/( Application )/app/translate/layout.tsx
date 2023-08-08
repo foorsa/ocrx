@@ -24,11 +24,11 @@ const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-    const Process = useAppSelector((state) => state.process);
+    const Session = useAppSelector((state) => state.session);
 
     return (
         <div className="relative flex-1 h-full w-full min-h-screen min-w-full flex text-center flex-col justify-start items-center p-5">
-            <OCRX_ICON isLoading={Process.isLoading} />
+            <OCRX_ICON isLoading={Session.isLoading} />
             {children}
         </div>
     );

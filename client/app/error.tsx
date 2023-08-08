@@ -13,8 +13,7 @@ import Link from "next/link";
 import { resetDocumentType } from "@/redux/actions/documentTypeActions";
 import { useAppDispatch } from "@/redux/hooks";
 import { resetFile } from "@/redux/actions/fileActions";
-import { resetProcess } from "@/redux/actions/processActions";
-import { clearSession } from "@/redux/actions/sessionActions";
+import { clearSession } from "@/redux/slices/sessionSlice";
 import { resetStep } from "@/redux/actions/stepActions";
 import PageWrapper from "../components/PageWrapper";
 import { toast } from "react-hot-toast";
@@ -33,13 +32,12 @@ export default function Error({
     }, [error]);
     const dispatch = useAppDispatch();
 
-    const handleClearredux = () => {
+    const handleClearRedux = () => {
         // Reset the entire states
         dispatch(clearSession());
         dispatch(resetStep());
         dispatch(resetFile());
         dispatch(resetDocumentType());
-        dispatch(resetProcess());
 
         // Reset the error
         reset();
@@ -90,7 +88,7 @@ export default function Error({
                         <BackSquare variant="Bulk" color="currentColor" />
                     </div>
                     <div
-                        onClick={() => handleClearredux()}
+                        onClick={() => handleClearRedux()}
                         className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center rounded-lg text-blue-800 bg-blue-600/25 hover:bg-blue-600/50 dark:text-blue-300 dark:bg-blue-600/50 dark:hover:bg-blue-600/75"
                     >
                         <span className="mr-2 text-md font-semibold">

@@ -60,20 +60,19 @@ const ProcessingSteps: ProcessingStep[] = [
     // Add more phrases as needed...
 ];
 
-export default function Generating() {
-    const dispatch = useAppDispatch();
-    const Processing = useAppSelector((state) => state.process);
+export default function Processing() {
+    const isLoading = useAppSelector((state) => state.session.isLoading);
     const [FakeProcess, setFakeProcess] = useState(0);
 
     useEffect(() => {
-        if (Processing.isLoading) {
+        if (isLoading) {
             const timer = setTimeout(() => {
                 setFakeProcess((prev) => (prev + 1) % ProcessingSteps.length);
             }, Math.max(1000, Math.random() * 4000 + 1000)); // Random interval between 1 second and 5 seconds
 
             return () => clearTimeout(timer);
         }
-    }, [Processing.isLoading, FakeProcess]);
+    }, [isLoading, FakeProcess]);
 
     return (
         <div className="relative w-full">

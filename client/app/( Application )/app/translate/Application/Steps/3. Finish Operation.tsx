@@ -13,11 +13,10 @@ import {
 } from "iconsax-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { clearSession } from "@/redux/actions/sessionActions";
+import { clearSession } from "@/redux/slices/sessionSlice";
 import { resetStep, setStep } from "@/redux/actions/stepActions";
 import { resetFile } from "@/redux/actions/fileActions";
 import { resetDocumentType } from "@/redux/actions/documentTypeActions";
-import { resetProcess } from "@/redux/actions/processActions";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Steps } from "@/redux/types/states/Step";
 import PDFPreview from "./Core/C. Finish/A. PDF Preview";
@@ -27,15 +26,15 @@ export default function Third_FinishOperation() {
     const Router = useRouter();
 
     const dispatch = useAppDispatch();
-    const Session = useAppSelector((state) => state.session);
+    const Session = useAppSelector((state) => state.session.Data);
 
     const PYTHON_PUBLIC_URL = getApiServerUrl();
 
     const handleDownloadPDF = () => {
         // Open the PDF in a new tab
         if (
-            Session.Generation?.["PDF Link"] &&
-            Session.Generation["PDF Link"] != ""
+            Session?.Generation?.["PDF Link"] &&
+            Session?.Generation["PDF Link"] != ""
         ) {
             window.open(Session.Generation["PDF Link"], "_blank");
         } else {
@@ -53,13 +52,12 @@ export default function Third_FinishOperation() {
         dispatch(resetStep());
         dispatch(resetFile());
         dispatch(resetDocumentType());
-        dispatch(resetProcess());
     };
 
     const handleEditDocument = () => {
         if (
-            Session.Generation?.["Google Docs Link"] &&
-            Session.Generation["Google Docs Link"] != ""
+            Session?.Generation?.["Google Docs Link"] &&
+            Session?.Generation["Google Docs Link"] != ""
         ) {
             window.open(Session.Generation["Google Docs Link"], "_blank");
         } else {

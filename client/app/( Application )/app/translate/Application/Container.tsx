@@ -16,10 +16,11 @@ import {
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import BaccalaureateDegree from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
 import { setSearch } from "@/redux/slices/searchSlice";
-import { clearSession } from "@/redux/actions/sessionActions";
+import { clearSession } from "@/redux/slices/sessionSlice";
 import { resetFile } from "@/redux/actions/fileActions";
 import { resetStep } from "@/redux/actions/stepActions";
 import { useRouter } from "next/navigation";
+
 const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     const Router = useRouter();
 
@@ -45,7 +46,6 @@ export default function Container({
     DocId: string | string[] | undefined;
 }) {
     const Step = useAppSelector((state) => state.step);
-    const Process = useAppSelector((state) => state.process);
     const Doctype = useAppSelector((state) => state.documentType); // Add this line
     const Dispatch = useAppDispatch();
 

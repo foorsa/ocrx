@@ -1,19 +1,47 @@
-import { SessionAction, SET_SESSION, CLEAR_SESSION } from '@/redux/types/actions/sessionActionTypes';
-import { Session } from '@/redux/types/states/Session';
+import { Session, Session as SessionType } from '@/redux/types/states/Session';
 
-// sessionActions.js
-
+// sessionActions.ts
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { initializeSessionAPI, extractTextAPI, extractTableAPI, ... } from '../api'; // Import your API functions
+import { initializeSessionAPI } from '@/redux/apis/sessionAPI';
+import { Doctype } from '../types/states/Document Type';
+import { FileType } from '../types/states/File';
+import { toast } from 'react-hot-toast';
+import Axios, { CancelTokenSource } from 'axios';
+import { create } from 'domain';
 
-export const initializeSession = createAsyncThunk('session/initialize', async () => {
-    const response = await initializeSessionAPI();
-    return response.Session;
-});
+const cancelSignal = Axios.CancelToken.source();
 
-export const extractText = createAsyncThunk('session/extractText', async () => {
-    const response = await extractTextAPI();
-    return response.Session;
-});
+export const initializeSession
+    = createAsyncThunk('session/initialize', async (
+        {
+            Dispatch, Doctype, UploadedFile
+        }: {
+            Dispatch: any;
+            Doctype: Doctype;
+            UploadedFile: FileType;
+        }
+    ) => {
 
-// Define similar async actions for the remaining API calls (extractTable, correctText, correctTable, translateText, translateTable, generateDocument)
+        const Response = await initializeSessionAPI(Dispatch, Doctype, UploadedFile, cancelSignal);
+
+        console.log("Response: ", Response);
+
+        toast.success("Session initialized successfully.");
+        return {
+            type: "session/initialize",
+            payload: Response,
+        }
+    }) as any
+
+
+export const abortOperation = createAsyncThunk('session/abort', async () => {
+    toast.success("Session cancelled successfully.");
+
+    cancelSignal.cancel("Operation Cancelled.");
+
+    return {
+        type: "session/cancel",
+        payload: null,
+    }
+}) as any;
+
