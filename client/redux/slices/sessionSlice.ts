@@ -2,7 +2,7 @@
 
 import { createSlice } from '@reduxjs/toolkit';
 import { Session as SessionType } from '@/redux/types/states/Session';
-import { initializeSession } from '@/redux/actions/sessionActions';
+import { processDocument, generateDocument } from '@/redux/actions/sessionActions';
 import { toast } from 'react-hot-toast';
 
 
@@ -21,68 +21,50 @@ const initialState: sessionState = {
 }
 
 const sessionSlice = createSlice({
-    name: 'Session',
+    name: 'session',
     initialState,
     reducers: {
-        clearSession: (state) => {
-            toast.success("Session cleared successfully.");
-            console.log("State Before: ", state);
-
-            state = {
-                Data: null,
-                isLoading: false,
-                Status: "idle",
-                Error: null,
-            };
-
-            return state;
-        },
+        clearSession: (state) => initialState,
         setSession: (state, action) => {
-            toast.success("Session set successfully.");
-            console.log("State Before: ", state);
-
-            state = {
-                Data: action.payload,
-                isLoading: false,
-                Status: "succeeded",
-                Error: null,
-            };
-
-            console.log("State After: ", state);
-            return state;
+            state.Data = action.payload;
+            state.isLoading = false;
+            state.Status = "succeeded";
+            state.Error = null;
         },
-        // Cancel Operation
-        cancelSession: (state) => {
-            toast.success("Session cancelled successfully.");
-            console.log("State Before: ", state);
-
-            // Abort the request
-            state = {
-                Data: null,
-                isLoading: false,
-                Status: "idle",
-                Error: null,
-            };
-
-            console.log("State After: ", state);
-            return state;
-        },
+        cancelSession: (state) => initialState,
     },
     extraReducers(builder) {
-        builder.addCase(initializeSession.pending, (state) => {
+        builder.addCase(processDocument.pending, (state) => {
             state.isLoading = true;
             state.Status = "loading";
         });
-        builder.addCase(initializeSession.fulfilled, (state, action) => {
+        builder.addCase(processDocument.fulfilled, (state, action) => {
             state.isLoading = false;
             state.Status = "succeeded";
             state.Data = action.payload;
         });
-        builder.addCase(initializeSession.rejected, (state, action) => {
+        builder.addCase(processDocument.rejected, (state, action) => {
             state.isLoading = false;
             state.Status = "failed";
             state.Error = action.error.message || null;
         });
+        builder.addCase(generateDocument.pending, (state) => {
+            state.isLoading = true;
+            state.Status = "loading";
+        }
+        );
+        builder.addCase(generateDocument.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.Status = "succeeded";
+            state.Data = action.payload;
+        }
+        );
+        builder.addCase(generateDocument.rejected, (state, action) => {
+            state.isLoading = false;
+            state.Status = "failed";
+            state.Error = action.error.message || null;
+        }
+        );
     },
 },
 );

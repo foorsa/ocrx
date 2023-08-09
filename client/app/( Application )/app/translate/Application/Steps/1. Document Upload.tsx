@@ -35,7 +35,7 @@ import axios, { AxiosResponse, AxiosError } from "axios";
 import { Doctype } from "@/redux/types/states/Document Type";
 import Processing from "./Core/A. Upload/D. Processing";
 import { resetFile } from "@/redux/actions/fileActions";
-import { initializeSession } from "@/redux/actions/sessionActions";
+import { processDocument } from "@/redux/actions/sessionActions";
 import { Session, Session as SessionType } from "@/redux/types/states/Session";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Steps } from "@/redux/types/states/Step";
@@ -63,8 +63,13 @@ export default function First_DocumentUpload() {
 
         // [STEP 1] Initialize the session
         try {
-            Dispatch(initializeSession({ Dispatch, Doctype, UploadedFile }));
-        } catch {}
+            await Dispatch(processDocument({ Doctype, UploadedFile }));
+        } catch {
+            toast.error("An error occured while processing your document.");
+        } finally {
+            console.log("Session has been processed: ", Session);
+            Dispatch(setStep(Steps.Finish));
+        }
     };
 
     const handleCancelOperation = () => {

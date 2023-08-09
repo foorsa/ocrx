@@ -442,6 +442,14 @@ class SessionGenerator:
         # Add the Links to the Session
         self.session["Generation"] = Links
 
+        # Update the Status of the Session
+        self.session["Status"] = "Generated"
+
+        # Update the Session object
+        self.db.sessions.update_one(
+            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
+
         return self.session
 
     def Destroy(self):

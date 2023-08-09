@@ -32,6 +32,7 @@ import { resetFile } from "@/redux/actions/fileActions";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Session as SessionType } from "@/redux/types/states/Session";
 import { Steps } from "@/redux/types/states/Step";
+import { generateDocument } from "@/redux/actions/sessionActions";
 
 // Selection for Document Type
 
@@ -81,60 +82,17 @@ export default function Second_CorrectData() {
         });
 
         if (isValid) {
-            try {
-                toast.loading("Generating PDF...", {
-                    id: "Generating",
-                });
-
-                // Check Session ID
-                if (
-                    !Session ||
-                    !Session?.Data ||
-                    !Session?.Data["Session Id"]
-                ) {
-                    // Reset the process
-                    dispatch(cancelSession());
-
-                    toast.dismiss("Generating");
-
-                    return toast.error("Session ID not found.");
-                }
-
-                // Start the Process
-                const GENERATION_URL = `${getApiServerUrl()}/api/v1/generate-document?Session_Id=${
-                    Session?.Data["Session Id"]
-                }`;
-
-                const Response = await axios.post(GENERATION_URL, {
-                    Values: Session.Data?.Translation?.Text,
-                });
-
-                console.log(
-                    "Given Values to Generation URL: ",
-                    Session.Data?.Translation?.Text
-                );
-
-                console.log("Response from Generation URL: ", Response);
-
-                if (Response.status === 200 && Response.data?.Session != null) {
-                    toast.dismiss("Generating");
-                    toast.success("PDF Generated Successfully.");
-
-                    // Set the session
-                    dispatch(setSession(Response.data?.Session as SessionType));
-
-                    // Set the step
-                    dispatch(setStep(Steps.Finish));
+            if (Session?.Data?.Translation?.Text) {
+                // Generate the document
+                if (Session.Data["Session Id"] != null) {
+                    dispatch(generateDocument(Session.Data));
                 } else {
-                    // Reset the process
-                    toast.dismiss("Generating");
-                    return toast.error("Error while generating PDF.");
+                    toast.error(
+                        "Session is not valid any longer, please try again."
+                    );
                 }
-            } catch (Error) {
-                console.log("Error while sending request: ", Error);
-                // Reset the process
-
-                toast.error(`${Error}`);
+            } else {
+                toast.error("Please fill the required fields.");
             }
         } else {
             toast.error(

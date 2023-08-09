@@ -6,6 +6,8 @@ const PDFPreview = () => {
     const Session = useAppSelector((state) => state.session);
     const PDFLink = Session?.Data?.Generation?.["Preview Link"];
 
+    console.log("PDFLink", PDFLink);
+
     return (
         <div className="w-full h-auto relative my-5">
             <div className="relative mx-auto border-zinc-200 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-800 border-[16px] rounded-t-xl h-[172px] max-w-[301px] md:h-[294px] md:max-w-[512px]">

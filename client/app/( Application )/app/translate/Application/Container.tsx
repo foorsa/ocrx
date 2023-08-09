@@ -99,7 +99,7 @@ export default function Container({
     }, []);
 
     return (
-        <div className="flex flex-col justify-center items-center w-full max-w-lg p-5 bg-white border border-zinc-200 rounded-lg shadow-2xl dark:bg-zinc-950 dark:border-zinc-800 overflow-hidden">
+        <div className="flex flex-col justify-center items-center w-full max-w-lg p-5 bg-white border border-zinc-200 rounded-lg dark:bg-zinc-950 dark:border-zinc-800 overflow-hidden">
             <Stepper />
             <AnimatePresence initial={false} mode="wait">
                 {Step === Steps.Upload && (
