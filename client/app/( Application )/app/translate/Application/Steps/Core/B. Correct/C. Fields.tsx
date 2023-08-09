@@ -21,7 +21,7 @@ export default function Fields() {
             // Disptach
             dispatch(
                 setSession({
-                    ...Session,
+                    ...Session?.Data,
                     Translation: {
                         ...Session?.Data?.Translation,
                         Text: {

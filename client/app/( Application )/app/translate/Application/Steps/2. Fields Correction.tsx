@@ -82,15 +82,20 @@ export default function Second_CorrectData() {
         });
 
         if (isValid) {
+            console.log("All fields are present.");
+            console.log(
+                "Session Identifier is: ",
+                Session.Data && Session.Data["Session Id"]
+            );
+
             if (Session?.Data?.Translation?.Text) {
                 // Generate the document
-                if (Session.Data["Session Id"] != null) {
-                    dispatch(generateDocument(Session.Data));
-                } else {
-                    toast.error(
-                        "Session is not valid any longer, please try again."
-                    );
-                }
+                await dispatch(
+                    generateDocument({ CorrectedSession: Session.Data })
+                );
+
+                // Change the Step
+                dispatch(setStep(Steps.Finish));
             } else {
                 toast.error("Please fill the required fields.");
             }

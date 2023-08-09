@@ -1,4 +1,4 @@
-import { Session, Session as SessionType } from '@/redux/types/states/Session';
+import { Session as SessionType } from '@/redux/types/states/Session';
 
 // sessionActions.ts
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -6,11 +6,7 @@ import { initializeSessionAPI, extractTextAPI, extractTableAPI, correctTextAPI, 
 import { Doctype } from '../types/states/Document Type';
 import { FileType } from '../types/states/File';
 import { toast } from 'react-hot-toast';
-import Axios, { CancelTokenSource } from 'axios';
-import { create } from 'domain';
-import { TableDocument } from 'iconsax-react';
 
-const cancelSignal = Axios.CancelToken.source();
 
 export const processDocument
     = createAsyncThunk('session/process', async (
@@ -22,7 +18,6 @@ export const processDocument
         }
     ) => {
         // STEP ONE: Initialize the Operation
-
         const InitializeResponse = await toast.promise(initializeSessionAPI(Doctype, UploadedFile), {
             loading: 'Initializing Session...',
             success: 'Session initialized successfully.',
@@ -136,7 +131,6 @@ export const processDocument
         }
 
         // Step EIGHT: Generate Document
-        // const GenerateDocumentResponse = await generateDocumentAPI(TranslateTableResponse.Session);
         const GenerateDocumentResponse = await toast.promise(generateDocumentAPI(TranslateTableResponse.Session), {
             loading: 'Generating Document...',
             success: 'Document generated successfully.',
@@ -153,30 +147,37 @@ export const processDocument
 
         const ProcessedSession = GenerateDocumentResponse.Session as SessionType;
 
+        console.log("[STEP ONE] Session Processed Successfully, setting Session in Redux Store.");
+
+        console.log("[STEP TWO] Logging Session: ", ProcessedSession);
+
         return ProcessedSession
-    }) as any
+    })
 
 export const generateDocument
     = createAsyncThunk('session/generate', async (
-        Session: SessionType
+        { CorrectedSession }: { CorrectedSession: SessionType }
     ) => {
-        const GeneratedDocument = await toast.promise(generateDocumentAPI(Session), {
+        console.log("[OK] Generating Document Response: ", CorrectedSession["Session Id"]);
+
+        const GeneratedDocument = await toast.promise(generateDocumentAPI(CorrectedSession), {
             loading: 'Generating Document...',
             success: 'Document generated successfully.',
             error: "Failed to generate document function."
         }).then((Result) => {
             return Result
-        }
-        );
+        });
 
         if (GeneratedDocument.Status === "Failed" || !GeneratedDocument.Session) {
             toast.error(GeneratedDocument.Error);
-            return Session
+            return CorrectedSession
         }
 
         const ProcessedSession = GeneratedDocument.Session as SessionType;
 
+        console.log("[OK] Generated document successfully: " + GeneratedDocument.Session["Session Id"]);
+
         return ProcessedSession
-    }) as any
+    })
 
 

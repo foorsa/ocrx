@@ -3,7 +3,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { Session as SessionType } from '@/redux/types/states/Session';
 import { processDocument, generateDocument } from '@/redux/actions/sessionActions';
-import { toast } from 'react-hot-toast';
 
 
 export interface sessionState {
@@ -37,34 +36,43 @@ const sessionSlice = createSlice({
         builder.addCase(processDocument.pending, (state) => {
             state.isLoading = true;
             state.Status = "loading";
+            state.Error = null;
         });
         builder.addCase(processDocument.fulfilled, (state, action) => {
+            console.log("[PROCESSION] Extra Reducers Setting Payload: " + action.payload)
+
+            state.Data = action.payload;
             state.isLoading = false;
             state.Status = "succeeded";
-            state.Data = action.payload;
+            state.Error = null;
+
+            console.log("[PROCESSION] Extra Reducers has set payload: " + state.Data);
         });
         builder.addCase(processDocument.rejected, (state, action) => {
             state.isLoading = false;
             state.Status = "failed";
-            state.Error = action.error.message || null;
+            state.Error = action.error.message || "Error generating document.";
         });
         builder.addCase(generateDocument.pending, (state) => {
             state.isLoading = true;
             state.Status = "loading";
-        }
-        );
+            state.Error = null;
+        });
         builder.addCase(generateDocument.fulfilled, (state, action) => {
+            console.log("[GENERATION] Extra Reducers Setting Payload: " + action.payload)
+
+            state.Data = action.payload;
             state.isLoading = false;
             state.Status = "succeeded";
-            state.Data = action.payload;
-        }
-        );
+            state.Error = null;
+
+            console.log("[GENERATION] Extra Reducers has set payload: " + state.Data);
+        });
         builder.addCase(generateDocument.rejected, (state, action) => {
             state.isLoading = false;
             state.Status = "failed";
-            state.Error = action.error.message || null;
-        }
-        );
+            state.Error = action.error.message || "Error generating document.";
+        });
     },
 },
 );
