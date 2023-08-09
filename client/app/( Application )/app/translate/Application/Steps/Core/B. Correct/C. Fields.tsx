@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import { Doctype, Field } from "@/redux/types/states/Document Type";
-import { setSession } from "@/redux/actions/sessionActions";
+import { setSession } from "@/redux/slices/sessionSlice";
 
 export default function Fields() {
     const dispatch = useAppDispatch();
@@ -11,21 +11,21 @@ export default function Fields() {
     );
     const Session = useAppSelector((state) => state.session);
 
-    const Values = Session.Translation?.Text;
+    const Values = Session?.Data?.Translation?.Text;
 
     const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
 
         // Set the value in the session
-        if (Session.Translation?.Text) {
+        if (Session?.Data?.Translation?.Text) {
             // Disptach
             dispatch(
                 setSession({
-                    ...Session,
+                    ...Session?.Data,
                     Translation: {
-                        ...Session.Translation,
+                        ...Session?.Data?.Translation,
                         Text: {
-                            ...Session.Translation.Text,
+                            ...Session?.Data?.Translation?.Text,
                             [name]: value,
                         },
                     },

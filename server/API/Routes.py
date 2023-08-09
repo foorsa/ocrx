@@ -252,7 +252,10 @@ def Generate():
 
     print("[...] Checking Session Status...")
 
-    if not Session.Get()["Status"] == "Translated":
+    if (
+        not Session.Get()["Status"] == "Translated"
+        and not Session.Get()["Status"] == "Generated"
+    ):
         print("[X] The Session has not passed the Translation Phase.")
         return (
             jsonify(

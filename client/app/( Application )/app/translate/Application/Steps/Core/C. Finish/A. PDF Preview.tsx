@@ -4,7 +4,9 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 const PDFPreview = () => {
     const Dispatch = useAppDispatch();
     const Session = useAppSelector((state) => state.session);
-    const PDFLink = Session.Generation?.["Preview Link"];
+    const PDFLink = Session?.Data?.Generation?.["Preview Link"];
+
+    console.log("PDFLink", PDFLink);
 
     return (
         <div className="w-full h-auto relative my-5">

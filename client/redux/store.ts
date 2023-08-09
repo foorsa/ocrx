@@ -4,21 +4,23 @@ import storage from 'redux-persist/lib/storage';
 import { fileReducer } from "./reducers/fileReducer";
 import { stepReducer } from "./reducers/stepReducer";
 import { documentTypeReducer } from "./reducers/documentTypeReducer";
-import { processReducer } from "./reducers/processReducer";
-import sessionReducer from "./reducers/sessionReducer";
+import sessionReducer from "./slices/sessionSlice";
 import searchReducer from "./slices/searchSlice";
+import sessionStorage from "redux-persist/es/storage/session";
 
 // Configure Redux Persist
 const persistConfig = {
     key: 'root',
-    storage,
+    storage: sessionStorage,
+    whitelist: ['session', 'step', 'search'],
+    blacklist: ['file', 'documentType'],
+    keyPrefix: 'OCRX-STATE-',
 };
 
 const rootReducer = combineReducers({
     file: fileReducer,
     step: stepReducer,
     documentType: documentTypeReducer,
-    process: processReducer,
     session: sessionReducer,
     search: searchReducer,
 });

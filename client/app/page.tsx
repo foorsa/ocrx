@@ -11,7 +11,7 @@ import PageWrapper from "../components/PageWrapper";
 
 export default function Home() {
     return (
-        <div className="flex flex-col items-center justify-between min-h-screen py-2">
+        <div className="flex flex-col items-center justify-between min-h-screen h-full flex-1">
             {/* <BetaBanner /> */}
             <Header />
             <Jumbotron />

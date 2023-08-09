@@ -8,7 +8,7 @@ export default function Page({ children }: { children: React.ReactNode }) {
     const Pathname = usePathname();
 
     return (
-        // <AnimatePresence mode="sync">
+        // <AnimatePresence mode="wait">
         <motion.div
             initial="initial"
             animate="animate"
@@ -33,7 +33,7 @@ export default function Page({ children }: { children: React.ReactNode }) {
                 stiffness: 260,
                 damping: 20,
             }}
-            className="min-h-screen h-auto min-w-full w-full flex flex-col justify-between items-center"
+            className="h-full min-w-full w-full flex flex-col justify-between items-center min-h-screen"
         >
             {children}
         </motion.div>

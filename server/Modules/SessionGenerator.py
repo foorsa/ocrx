@@ -412,13 +412,13 @@ class SessionGenerator:
         if self.session["Information Type"] == "Tabular":
             TABLES = self.session["Correction"]["Tables"]
 
-            # TranslatedTables = GPT.TranslateTable(TABLES, Doctype)
+            TranslatedTables = GPT.TranslateTable(TABLES, Doctype)
 
-            # JSON_TABLE = json.loads(TranslatedTables)
+            JSON_TABLE = json.loads(TranslatedTables)
 
-            # self.session["Translation"]["Tables"] = JSON_TABLE
+            self.session["Translation"]["Tables"] = JSON_TABLE
 
-            self.session["Translation"]["Tables"] = self.session["Correction"]["Tables"]
+            # self.session["Translation"]["Tables"] = self.session["Correction"]["Tables"]
 
         # Update the Status of the Session
         self.session["Status"] = "Translated"
@@ -441,6 +441,14 @@ class SessionGenerator:
 
         # Add the Links to the Session
         self.session["Generation"] = Links
+
+        # Update the Status of the Session
+        self.session["Status"] = "Generated"
+
+        # Update the Session object
+        self.db.sessions.update_one(
+            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
 
         return self.session
 

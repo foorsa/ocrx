@@ -3,10 +3,10 @@ import { SessionAction, SET_SESSION, CLEAR_SESSION } from '@/redux/types/actions
 
 
 const initialState: Session = {
-    "Session Id": '',
+    "Session Id": "",
 };
 
-const sessionReducer = (state = initialState, action: SessionAction): Session => {
+const sessionReducer = (state = initialState, action: SessionAction) => {
     switch (action.type) {
         case SET_SESSION:
             return action.payload;

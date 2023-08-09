@@ -13,7 +13,6 @@ import {
 import Heading from "./Core/B. Correct/A. Heading";
 import Fields from "./Core/B. Correct/C. Fields";
 import Preview from "./Core/B. Correct/B. Preview";
-import { resetProcess, setProcess } from "@/redux/actions/processActions";
 import { nextStep, resetStep, setStep } from "@/redux/actions/stepActions";
 import {
     resetDocumentType,
@@ -24,48 +23,33 @@ import { toast } from "react-hot-toast";
 import { Field } from "@/redux/types/states/Document Type";
 import Generating from "./Core/B. Correct/D. Generating";
 import axios from "axios";
-import { clearSession, setSession } from "@/redux/actions/sessionActions";
+import {
+    cancelSession,
+    clearSession,
+    setSession,
+} from "@/redux/slices/sessionSlice";
 import { resetFile } from "@/redux/actions/fileActions";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Session as SessionType } from "@/redux/types/states/Session";
 import { Steps } from "@/redux/types/states/Step";
+import { generateDocument } from "@/redux/actions/sessionActions";
 
 // Selection for Document Type
 
 export default function Second_CorrectData() {
     const dispatch = useAppDispatch();
-    const Process = useAppSelector((state) => state.process);
     const Doctype = useAppSelector((state) => state.documentType);
     const Session = useAppSelector((state) => state.session);
     const File = useAppSelector((state) => state.file);
 
     const handleCancelOperation = () => {
         // Reset the process
-        dispatch(
-            setProcess({
-                isLoading: false,
-                name: "Cancelling",
-                description: "Cancelling the operation...",
-            })
-        );
+        dispatch(cancelSession());
     };
 
     const handleResetOperation = () => {
-        // Reset the process
-        dispatch(
-            setProcess({
-                isLoading: false,
-                name: "Cancelling",
-                description: "Cancelling the operation...",
-            })
-        );
-
-        // Reset the entire states
         dispatch(clearSession());
         dispatch(resetStep());
-        // dispatch(resetFile());
-        // dispatch(resetDocumentType());
-        dispatch(resetProcess());
     };
 
     const handleNextStep = async () => {
@@ -82,7 +66,7 @@ export default function Second_CorrectData() {
             | {
                   [key: string]: string;
               }
-            | undefined = Session?.Translation?.Text;
+            | undefined = Session?.Data?.Translation?.Text;
 
         const RequiredFields = Doctype?.fields?.filter(
             (Field) => Field.required
@@ -98,89 +82,22 @@ export default function Second_CorrectData() {
         });
 
         if (isValid) {
-            try {
-                toast.loading("Generating PDF...", {
-                    id: "Generating",
-                });
+            console.log("All fields are present.");
+            console.log(
+                "Session Identifier is: ",
+                Session.Data && Session.Data["Session Id"]
+            );
 
-                // Set the process
-                dispatch(
-                    setProcess({
-                        isLoading: true,
-                    })
+            if (Session?.Data?.Translation?.Text) {
+                // Generate the document
+                await dispatch(
+                    generateDocument({ CorrectedSession: Session.Data })
                 );
 
-                // Check Session ID
-                if (!Session["Session Id"]) {
-                    // Reset the process
-                    dispatch(
-                        setProcess({
-                            isLoading: false,
-                            name: "Error",
-                            description: "An error has occured.",
-                        })
-                    );
-                    toast.dismiss("Generating");
-
-                    return toast.error("Session ID not found.");
-                }
-
-                // Start the Process
-                const GENERATION_URL = `${getApiServerUrl()}/api/v1/generate-document?Session_Id=${
-                    Session["Session Id"]
-                }`;
-
-                const Response = await axios.post(GENERATION_URL, {
-                    Values: Session.Translation?.Text,
-                });
-
-                console.log(
-                    "Given Values to Generation URL: ",
-                    Session.Translation?.Text
-                );
-
-                console.log("Response from Generation URL: ", Response);
-
-                if (Response.status === 200 && Response.data?.Session != null) {
-                    toast.dismiss("Generating");
-                    toast.success("PDF Generated Successfully.");
-
-                    // Set the process
-                    dispatch(
-                        setProcess({
-                            isLoading: false,
-                        })
-                    );
-
-                    // Set the session
-                    dispatch(setSession(Response.data?.Session as SessionType));
-
-                    // Set the step
-                    dispatch(setStep(Steps.Finish));
-                } else {
-                    // Reset the process
-                    dispatch(
-                        setProcess({
-                            isLoading: false,
-                            name: "Error",
-                            description: "An error has occured.",
-                        })
-                    );
-                    toast.dismiss("Generating");
-
-                    return toast.error("Error while generating PDF.");
-                }
-            } catch (Error) {
-                console.log("Error while sending request: ", Error);
-                // Reset the process
-                dispatch(
-                    setProcess({
-                        isLoading: false,
-                        name: "Error",
-                        description: "An error has occured.",
-                    })
-                );
-                toast.error(`${Error}`);
+                // Change the Step
+                dispatch(setStep(Steps.Finish));
+            } else {
+                toast.error("Please fill the required fields.");
             }
         } else {
             toast.error(
@@ -195,7 +112,7 @@ export default function Second_CorrectData() {
 
     return (
         <div className="relative w-full">
-            {!Process.isLoading && (
+            {!Session.isLoading && (
                 <>
                     <Heading />
                     {
@@ -205,10 +122,10 @@ export default function Second_CorrectData() {
                     <Fields />
                 </>
             )}
-            {Process.isLoading && <Generating />}
+            {Session.isLoading && <Generating />}
             {/* Next Step */}
 
-            {!Process.isLoading && (
+            {!Session.isLoading && (
                 <>
                     <button
                         type="button"
@@ -229,7 +146,7 @@ export default function Second_CorrectData() {
                 </>
             )}
 
-            {Process.isLoading && (
+            {Session.isLoading && (
                 <>
                     <button
                         disabled

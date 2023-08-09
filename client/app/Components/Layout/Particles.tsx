@@ -17,11 +17,11 @@ import Colors from "tailwindcss/colors";
 import { hexToRgb } from "@/lib/Color.utilities";
 
 export default function Particles({
-    className = "fixed inset-0 z-0 w-full h-full",
+    className = "absolute top-0 left-0 h-full max-h-screen w-full overflow-hidden",
     quantity = 30,
     staticity = 50,
     ease = 50,
-    refresh = false,
+    refresh = true,
 }: ParticlesProps) {
     const { theme } = useTheme();
     const canvasRef = useRef<HTMLCanvasElement>(null);

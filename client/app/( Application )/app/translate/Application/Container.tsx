@@ -16,10 +16,11 @@ import {
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import BaccalaureateDegree from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
 import { setSearch } from "@/redux/slices/searchSlice";
-import { clearSession } from "@/redux/actions/sessionActions";
+import { clearSession } from "@/redux/slices/sessionSlice";
 import { resetFile } from "@/redux/actions/fileActions";
 import { resetStep } from "@/redux/actions/stepActions";
 import { useRouter } from "next/navigation";
+
 const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     const Router = useRouter();
 
@@ -27,7 +28,7 @@ const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
         <div
             className={`${
                 isLoading && "animate-bounce"
-            } relative flex justify-center items-center h-16 w-16 aspect-square mb-10 p-1 bg-white border border-zinc-200 rounded-lg shadow-2xl dark:bg-zinc-950 dark:border-zinc-700 select-none`}
+            } relative flex justify-center items-center h-16 w-16 aspect-square mb-10 p-1 bg-white border border-zinc-200 rounded-lg dark:bg-zinc-950 dark:border-zinc-700 select-none`}
         >
             <img
                 src="/Logo/Black.png"
@@ -45,7 +46,6 @@ export default function Container({
     DocId: string | string[] | undefined;
 }) {
     const Step = useAppSelector((state) => state.step);
-    const Process = useAppSelector((state) => state.process);
     const Doctype = useAppSelector((state) => state.documentType); // Add this line
     const Dispatch = useAppDispatch();
 
@@ -99,7 +99,7 @@ export default function Container({
     }, []);
 
     return (
-        <div className="flex flex-col justify-center items-center w-full max-w-lg p-5 bg-white border border-zinc-200 rounded-lg shadow-2xl dark:bg-zinc-950 dark:border-zinc-800 overflow-hidden">
+        <div className="flex flex-col justify-center items-center w-full max-w-lg p-5 bg-white border border-zinc-200 rounded-lg dark:bg-zinc-950 dark:border-zinc-800 overflow-hidden">
             <Stepper />
             <AnimatePresence initial={false} mode="wait">
                 {Step === Steps.Upload && (

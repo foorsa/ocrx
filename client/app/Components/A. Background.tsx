@@ -13,7 +13,7 @@ interface Props {
 export default function Background({ Variant }: Props) {
     return (
         <div
-            className="absolute h-full w-screen min-h-screen top-0 left-0 right-0 bottom-0 bg-white dark:bg-black bg-opacity-0 dark:bg-opacity-60 -z-50 max-h-screen"
+            className="absolute h-full w-screen min-h-screen top-0 left-0 right-0 bottom-0 bg-white dark:bg-black bg-opacity-0 dark:bg-opacity-60 -z-50"
             id="Background"
         >
             {Variant == "Home" ? (
@@ -22,17 +22,17 @@ export default function Background({ Variant }: Props) {
                     <Particles />
                     {/* Bottom Center - Wide blue Gradient */}
                     {/* Division for Blurry Elements */}
-                    <div className="absolute h-full w-full min-h-full top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100">
-                        <div className="absolute w-3/5 h-3/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-blue-800 to-blue-400 -z-50 dark:from-transparent dark:via-blue-800 dark:to-blue-400"></div>
+                    <div className="absolute h-full w-full min-h-screen top-0 left-0 right-0 bottom-0 -z-50 opacity-60 dark:opacity-100 overflow-hidden">
+                        <div className="absolute w-3/5 h-3/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-blue-800 to-blue-400 -z-40 dark:from-transparent dark:via-blue-800 dark:to-blue-400"></div>
 
                         {/* Bottom Center - Light blue */}
                         <div className="absolute w-1/5 h-2/5 bottom-0 left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-blue-500 to-blue-50 -z-50 dark:from-transparent dark:via-blue-500 dark:to-blue-50"></div>
 
                         {/* Bottom Center - Middle White */}
-                        <div className="absolute w-1/5 h-2/5 -bottom-1/2 -translate-y-full left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-zinc-200 to-zinc-50 -z-50 dark:from-transparent dark:via-zinc-200 dark:to-zinc-50"></div>
+                        <div className="absolute w-1/5 h-2/5 -bottom-1/2 -translate-y-full left-1/2 -translate-x-1/2 rounded-full blur-3xl bg-gradient-to-b from-transparent via-zinc-200 to-zinc-50 -z-40 dark:from-transparent dark:via-zinc-200 dark:to-zinc-50"></div>
 
                         {/* Top Middle Left */}
-                        <div className="absolute w-1/2 h-1/5 top-1/4 left-2/4 -translate-x-1/2 rotate-45 blur-3xl bg-lime-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-lime-500"></div>
+                        <div className="absolute w-1/2 h-1/5 top-1/4 left-2/4 -translate-x-1/2 rotate-45 blur-3xl bg-lime-500 bg-opacity-60 -z-50 dark:bg-opacity-80 dark:bg-lime-500"></div>
 
                         {/* Bottom Right */}
                         <div className="absolute w-1/2 h-1/5 -bottom-0 right-0 blur-3xl bg-blue-500 bg-opacity-60 -z-0 dark:bg-opacity-80 dark:bg-blue-500"></div>
