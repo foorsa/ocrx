@@ -6,36 +6,22 @@ import {
     ArrowLeft3,
     ArrowRight3,
     CloseSquare,
-    Link,
-    LinkSquare,
     Warning2,
 } from "iconsax-react";
 import Heading from "./Core/B. Correct/A. Heading";
 import Fields from "./Core/B. Correct/C. Fields";
 import Preview from "./Core/B. Correct/B. Preview";
-import { nextStep, resetStep, setStep } from "@/redux/actions/stepActions";
-import {
-    resetDocumentType,
-    setDocumentType,
-} from "@/redux/actions/documentTypeActions";
-import Baccalaureate from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
+import { resetStep, setStep } from "@/redux/actions/stepActions";
 import { toast } from "react-hot-toast";
-import { Field } from "@/redux/types/states/Document Type";
 import Generating from "./Core/B. Correct/D. Generating";
-import axios from "axios";
 import {
     cancelSession,
     clearSession,
-    setSession,
 } from "@/redux/slices/sessionSlice";
-import { resetFile } from "@/redux/actions/fileActions";
-import { getApiServerUrl } from "@/utils/getApiServerUrl";
-import { Session as SessionType } from "@/redux/types/states/Session";
 import { Steps } from "@/redux/types/states/Step";
 import { generateDocument } from "@/redux/actions/sessionActions";
 
 // Selection for Document Type
-
 export default function Second_CorrectData() {
     const dispatch = useAppDispatch();
     const Doctype = useAppSelector((state) => state.documentType);

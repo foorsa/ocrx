@@ -104,3 +104,12 @@ body {
     border-radius: 5px;
     @apply rounded-2xl bg-white dark:bg-black;
 }
+
+@keyframes backgroundRotate2 {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
