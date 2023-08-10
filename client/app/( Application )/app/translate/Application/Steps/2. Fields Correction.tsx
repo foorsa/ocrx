@@ -2,24 +2,16 @@
 
 import React, { useCallback, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
-import {
-    ArrowLeft3,
-    ArrowRight3,
-    CloseSquare,
-    Warning2,
-} from "iconsax-react";
+import { ArrowLeft3, ArrowRight3, CloseSquare, Warning2 } from "iconsax-react";
 import Heading from "./Core/B. Correct/A. Heading";
 import Fields from "./Core/B. Correct/C. Fields";
 import Preview from "./Core/B. Correct/B. Preview";
 import { resetStep, setStep } from "@/redux/actions/stepActions";
 import { toast } from "react-hot-toast";
-import Generating from "./Core/B. Correct/D. Generating";
-import {
-    cancelSession,
-    clearSession,
-} from "@/redux/slices/sessionSlice";
+import { cancelSession, clearSession } from "@/redux/slices/sessionSlice";
 import { Steps } from "@/redux/types/states/Step";
 import { generateDocument } from "@/redux/actions/sessionActions";
+import LoadingScreens from "./Core/Utilities/Common";
 
 // Selection for Document Type
 export default function Second_CorrectData() {
@@ -108,9 +100,8 @@ export default function Second_CorrectData() {
                     <Fields />
                 </>
             )}
-            {Session.isLoading && <Generating />}
+            {Session.isLoading && <LoadingScreens Type="Generating" />}
             {/* Next Step */}
-
             {!Session.isLoading && (
                 <>
                     <button

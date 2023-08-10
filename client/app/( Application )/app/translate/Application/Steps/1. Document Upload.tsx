@@ -33,7 +33,6 @@ import Heading from "./Core/A. Upload/A. Heading";
 import { nextStep, resetStep, setStep } from "@/redux/actions/stepActions";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { Doctype } from "@/redux/types/states/Document Type";
-import Processing from "./Core/A. Upload/D. Processing";
 import { resetFile } from "@/redux/actions/fileActions";
 import { processDocument } from "@/redux/actions/sessionActions";
 import { Session, Session as SessionType } from "@/redux/types/states/Session";
@@ -42,6 +41,7 @@ import { Steps } from "@/redux/types/states/Step";
 import { DocumentCheckIcon } from "@heroicons/react/20/solid";
 import { makeRequestWithRetry } from "@/utils/makeRequestWithRetry";
 import { clearSession } from "@/redux/slices/sessionSlice";
+import LoadingScreens from "./Core/Utilities/Common";
 
 // Selection for Document Type
 export default function First_DocumentUpload() {
@@ -89,7 +89,7 @@ export default function First_DocumentUpload() {
                         <FileUploadService />
                     </>
                 )}
-                {Session.isLoading && <Processing />}
+                {Session.isLoading && <LoadingScreens Type="Processing" />}
             </div>
 
             {/* Next Step */}

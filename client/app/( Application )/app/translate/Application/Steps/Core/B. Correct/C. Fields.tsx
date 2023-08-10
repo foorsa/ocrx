@@ -60,6 +60,7 @@ const DynamicField = ({ XField }: { XField: Field }) => {
         const TranslatedValue = await toast
             .promise(
                 translate(Value, {
+                    from: "fr",
                     to: "en",
                     engine: "google",
                     key: "AIzaSyA7RFTSzlS2x_UGZS1YX6olIQrdWwkT-Us",
