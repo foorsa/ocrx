@@ -9,7 +9,7 @@ import React from "react";
 export default function Register() {
     const Router = useRouter();
     return (
-        <main className="grid min-h-full place-items-center w-full px-6 py-24 sm:py-32 lg:px-8">
+        <main className="grid min-h-full place-items-center w-full px-6 py-24 sm:py-32 lg:px-8 flex-1">
             <div className="text-center max-w-xs md:max-w-xl">
                 <div className="fixed -z-10 top-0 left-0 w-full h-screen pointer-events-none">
                     <Particles />

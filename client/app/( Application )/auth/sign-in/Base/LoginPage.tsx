@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { Facebook, Google, Login, LoginCurve } from "iconsax-react";
+import Particles from "@/app/Components/Layout/Particles";
 
 const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
     const Router = useRouter();
@@ -26,7 +27,10 @@ const OCRX_ICON = ({ isLoading }: { isLoading: boolean }) => {
 };
 export default function LoginPage() {
     return (
-        <section className="w-full h-auto">
+        <section className="w-full min-h-full flex flex-col justify-center items-center flex-1 z-10">
+            <div className="fixed -z-10 top-0 left-0 w-full h-screen pointer-events-none">
+                <Particles />
+            </div>
             <div className="flex flex-col items-center justify-center p-5 mx-auto h-auto lg:py-0 gap-2">
                 <OCRX_ICON isLoading={false} />
                 <div className="flex flex-col justify-center items-center w-full max-w-lg gap-5">
@@ -65,7 +69,7 @@ export default function LoginPage() {
 
                     <div className="inline-flex items-center justify-center w-full">
                         <hr className="w-full h-px my-2 bg-zinc-300 border-0 dark:bg-zinc-600" />
-                        <span className="absolute px-3 font-medium text-zinc-900 -translate-x-1/2 bg-white left-1/2 dark:text-white dark:bg-zinc-950 transition-all duration-500">
+                        <span className="absolute px-3 font-medium text-zinc-900 -translate-x-1/2 bg-white left-1/2 dark:text-white dark:bg-black transition-all duration-500">
                             or
                         </span>
                     </div>
