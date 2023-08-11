@@ -379,12 +379,13 @@ class SessionGenerator:
         # GPT to Correct the Output of the OCR
         GPT = GPTCorrector()
 
-        (Text, Doctype) = (
+        (RAW_OCR, Text, Doctype) = (
+            self.session["Extraction"]["Text"],
             self.session["Correction"]["Text"],
             self.session["Document Type"],
         )
 
-        Translated = GPT.TranslateText(Text, Doctype)
+        Translated = GPT.TranslateText(RAW_OCR, Text, Doctype)
 
         TranslatedObject = json.loads(Translated)
 

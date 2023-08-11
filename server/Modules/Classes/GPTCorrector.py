@@ -21,8 +21,8 @@ class GPTCorrector:
         return TextResponse
 
     #
-    def TranslateText(self, Text, Doctype):
-        TextResponse = GenerateTextTranslation(Doctype, Text)
+    def TranslateText(self, RAW_OCR, Text, Doctype):
+        TextResponse = GenerateTextTranslation(Doctype, Text, RAW_OCR)
         return TextResponse
 
     #

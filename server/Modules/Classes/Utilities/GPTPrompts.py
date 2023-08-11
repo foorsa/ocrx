@@ -180,7 +180,7 @@ def GenerateTextCorrection(Doctype, Text):
 
 
 # Text Translation
-def GenerateTextTranslation(Doctype, Text):
+def GenerateTextTranslation(Doctype, Text, RAW_OCR):
     Response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-16k-0613",
         temperature=0.9,
@@ -194,7 +194,7 @@ def GenerateTextTranslation(Doctype, Text):
 
                     Your function should take a JSON object as input and return the translated JSON object in English.
 
-                    Please ensure that all object values are capitalized, and if any value is empty or invalid, replace it with a valid value or "NULL".
+                    Please ensure that all object values are correct, and if any value is empty or invalid, replace it with a valid value, do not leave anything empty, PLEASE!
 
                     Remember to translate every non-English, French, or Arabic word to English accurately.
 
@@ -209,7 +209,9 @@ def GenerateTextTranslation(Doctype, Text):
                         "Address": "123 Rue de la Liberté",
                         "Language": "Français",
                         "Grade": "",
-                        "Option": "Bac Sciences Physiques"
+                        "Option": "Bac Sciences Physiques",
+                        "Date of birth": "01/01/1996",
+                        "City of birth": "Casablanca",
                     }
 
                     Expected output JSON:
@@ -219,11 +221,20 @@ def GenerateTextTranslation(Doctype, Text):
                         "Address": "123 LIBERTY STREET",
                         "Language": "FRENCH",
                         "Grade": "NULL",
-                        "Option": "BACCALAUREATE IN PHYSICAL SCIENCES"
+                        "Option": "BACCALAUREATE IN PHYSICAL SCIENCES",
+                        "Date of birth": "01/01/1996",
+                        "City of birth": "Casablanca",
                     }
+                    
+                    Note that I will also provide you with the RAW OCR Text, so you can use it in case a value is missing in the JSON Object.
+                    
+                    I don't want to have any missing values in the JSON Object, so please make sure that all the values are valid and make sense.
+                    
+                    I don't want any comments or explanations, just translate it and return it.
 
-                    Translate all the values from French or Arabic to English, and make sure the output JSON is valid and well-formatted.
-
+                    Translate all the values from Non-English to English, and make sure the output JSON is valid and well-formatted.
+                    
+                    Please, do not change the object keys, just translate the values. 
                 """,
             },
             {
@@ -231,14 +242,14 @@ def GenerateTextTranslation(Doctype, Text):
                 "content": """
                     Sure, What is the JSON Object?
                     
-                    I will keep the same object as it is, I will not change the object keys or anything except the alue of each key.
+                    I will read the RAW OCR Text to use it in case a value is missing in the JSON Object.
+                    
+                    I will keep the same object as it is, I will not change the object keys or anything except the value of each key.
                     
                     I will translate the values of the object from non-English to English.
                     
                     I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
-                    
-                    I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
-                    
+                                        
                     I will act as if I am a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
                     
                     Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
@@ -246,7 +257,13 @@ def GenerateTextTranslation(Doctype, Text):
             },
             {
                 "role": "user",
-                "content": str(Text),
+                "content": f"""
+                    JSON Object (Task: Translate Values, Keep Keys as they are, and return a valid Translated Values JSON Object):
+                    {Text}
+                    
+                    Text String (RAW OCR to use as Data Fallback, in case of missing values in the JSON Object):
+                    {RAW_OCR}
+                """,
             },
         ],
     )
