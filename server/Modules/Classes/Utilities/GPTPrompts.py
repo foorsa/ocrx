@@ -253,6 +253,8 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
                     I will act as if I am a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
                     
                     Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
+                    
+                    Whatever "UNKNOWN" or "NULL" or "EMPTY" or "INVALID", and any other form of empty value indication, I will replace it with the right information from the RAW OCR Text, I will never leave any value undefined.
                     """,
             },
             {
@@ -312,9 +314,9 @@ def GenerateTableCorrection(Doctype, Table):
                             ```json
                             {
                                 "Transcript":[
-                                    ["...", "...", "...", "...", "...", "...", "...", "...", "..."],
-                                    ["...", "...", "...", "...", "...", "...", "...", "...", "..."], // Row Extracted from OCR Table filled with Columns, all english.
-                                            // More Rows from all extracted Information from the first table but every word that is non-English should be translated to English, but corrected and fixed grammarly, all rows shall have the same count of columns ...
+                                    ["...", "...", "...", "...", "...", "...", "...", "...", "...", // Row Extracted from OCR Table filled with Columns, all english.],
+                                    ["...", "...", "...", "...", "...", "...", "...", "...", "...", // Row Extracted from OCR Table filled with Columns, all english.],
+                                    // More Rows from all extracted Information from the first table but every word that is non-English should be translated to English, but corrected and fixed grammarly, all rows shall have the same count of columns and the same count of cells.
                                 ],
                                 "Overall":[
                                     ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"],
@@ -322,6 +324,8 @@ def GenerateTableCorrection(Doctype, Table):
                                 ]
                             }
                             ```
+                            
+                            I need just these two tables, please do not add anything else.
                             
                             I want you to fix every word and every row in that Transcripts Table, if the row doesn't make sense, please do something about it, if the row is just empty and doesn't make sense, delete it, convert every word to English, and make sure that the table is a Transcript of Marks.
 
