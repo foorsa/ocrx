@@ -3,10 +3,11 @@ import requests
 import openai
 import os
 
-# from Utilities.GPTPrompts import GeneratePrompt, GenerateTabularPrompt
+from dotenv import load_dotenv, find_dotenv
 
-# Load your API key from an environment variable or secret management service
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+_ = load_dotenv(find_dotenv())
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def PromptString(Doctype, AvailableDoctypes, PromptOptions):
