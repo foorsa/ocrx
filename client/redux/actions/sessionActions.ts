@@ -18,7 +18,7 @@ export const processDocument
         }
     ) => {
         const MINUTE_MS = 60000; // 1 minute in milliseconds
-        const REQUESTS_PER_MINUTE = 3; // Number of requests allowed per minute
+        const REQUESTS_PER_MINUTE = 1; // Number of requests allowed per minute
         const REQUEST_DELAY = MINUTE_MS / REQUESTS_PER_MINUTE; // Delay between requests
 
         let requestCount = 0;
