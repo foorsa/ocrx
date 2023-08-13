@@ -146,12 +146,19 @@ def GeneratePrompt(Doctype):
     return Prompt
 
 
+print(GeneratePrompt("Master-Transcript-of-Marks"))
+
+
 # Text Correction
 def GenerateTextCorrection(Doctype, Text):
     Response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",
-        temperature=0.9,
+        model="gpt-3.5-turbo-0301",
+        temperature=0,
         messages=[
+            {
+                "role": "system",
+                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+            },
             {
                 "role": "user",
                 "content": GeneratePrompt(Doctype),
@@ -183,9 +190,13 @@ def GenerateTextCorrection(Doctype, Text):
 # Text Translation
 def GenerateTextTranslation(Doctype, Text, RAW_OCR):
     Response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-0613",
-        temperature=0.9,
+        model="gpt-3.5-turbo-0301",
+        temperature=0,
         messages=[
+            {
+                "role": "system",
+                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+            },
             {
                 "role": "user",
                 "content": """
@@ -236,6 +247,10 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
                     Translate all the values from Non-English to English, and make sure the output JSON is valid and well-formatted.
                     
                     Please, do not change the object keys, just translate the values. 
+                    
+                    I don't want any comments or explanations, just translate it and return it.
+                    
+                    Act as if you are a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
                 """,
             },
             {
@@ -256,12 +271,14 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
                     Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
                     
                     Whatever "UNKNOWN" or "NULL" or "EMPTY" or "INVALID", and any other form of empty value indication, I will replace it with the right information from the RAW OCR Text, I will never leave any value undefined.
+                    
+                    I will not add any comments or explanations, I will just translate it and return it, as a valid JSON Object, I don't speak any human language, I only speak JSON.
                     """,
             },
             {
                 "role": "user",
                 "content": f"""
-                    JSON Object (Task: Translate Values, Keep Keys as they are, and return a valid Translated Values JSON Object):
+                    JSON Object:
                     {Text}
                     
                     Text String (RAW OCR to use as Data Fallback, in case of missing values in the JSON Object):
@@ -529,12 +546,12 @@ def GenerateTableCorrection(Doctype, Table):
             )
 
             Response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-16k-0613",
-                temperature=0.2,
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
                 messages=[
                     {
                         "role": "system",
-                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
                     },
                     {
                         "role": "user",
@@ -565,21 +582,18 @@ def GenerateTableCorrection(Doctype, Table):
                 ],
             )
 
-            print(
-                "[INFO] AI Correction Generated Successfully: ",
-                str(Response.choices[0].message.content),
-            )
+            print("[DEBUG] Response: ", str(Response.choices[0].message.content))
             return Response.choices[0].message.content
 
         case "Master-Transcript-of-Marks":
             print("[INFO] Generating AI Correction for: Master Transcript of Marks")
             Response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-16k-0613",
-                temperature=0.2,
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
                 messages=[
                     {
                         "role": "system",
-                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
                     },
                     {
                         "role": "user",
@@ -760,17 +774,49 @@ def GenerateTableCorrection(Doctype, Table):
 
 # Table Translation
 def GenerateTableTranslation(Doctype, Table):
-    print("[GPT PROMPT] Generating Table Translation Prompt...")
+    print("[GPT] Generating AI Table Translation...")
     match Doctype:
         case "Baccalaureate-Transcript-of-Notes":
             # Baccalaureate-Transcript-of-Notes Prompt Generation
             TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0613",
-                temperature=0.2,
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
                 messages=[
                     {
                         "role": "system",
-                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                    },
+                    {
+                        "role": "user",
+                        "content": f"""
+                            From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
+                            
+                            No explanations, no comments, no text, you only speak JSON.
+                            
+                            I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
+                            
+                            All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
+                            
+                            The JSON Object:
+                            
+                            {str(Table)}
+                        """,
+                    },
+                ],
+            )
+            print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
+
+            return TableResponse.choices[0].message.content
+
+        case "Master-Transcript-of-Marks":
+            # Master-Transcript-of-Marks Prompt Generation
+            TableResponse = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
                     },
                     {
                         "role": "user",
@@ -791,119 +837,7 @@ def GenerateTableTranslation(Doctype, Table):
                 ],
             )
 
-            return TableResponse.choices[0].message.content
-
-        case "Master-Transcript-of-Marks":
-            # Master-Transcript-of-Marks Prompt Generation
-            TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0613",
-                temperature=0.2,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
-                    },
-                    {
-                        "role": "user",
-                        "content": """
-                            We are working on a Python project and need help with translating a non-English JSON object to English.
-
-                            Your task is to translate every non-English, French, or Arabic word in the JSON object to English while keeping the same object format and keys. If you encounter any errors, typos, or empty values, correct them to make the object valid and meaningful.
-
-                            Your function should take a JSON object as input and return the translated JSON object in English.
-
-                            Please ensure that all object values are capitalized, and if any value is empty or invalid, replace it with a valid value or "NULL".
-
-                            Remember to translate every non-English, French, or Arabic word to English accurately.
-
-                            Respond with the translated JSON object only, without adding any additional arguments or comments.
-
-                            Your response should be in the form of a JSON object.
-
-                            Example input JSON:
-                            [
-                                {
-                                    "Mark": "14.022 / 20",
-                                    "Result": "Validated",
-                                    "Session": "S12016/17",
-                                    "Subject": "Semestre 1"
-                                },
-                                {
-                                    "Mark": "11.31 / 20",
-                                    "Result": "Validated AR",
-                                    "Session": "S1 2016/17",
-                                    "Subject": "Langue et Terminologie II"
-                                },
-                                {
-                                    "Mark": "10.75 / 20",
-                                    "Result": "Validated",
-                                    "Session": "S1 2016/17",
-                                    "Subject": "Algèbre 2"
-                                },
-                                {
-                                    "Mark": "10.75 / 20",
-                                    "Result": "Validated",
-                                    "Session": "S1 2016/17",
-                                    "Subject": "Francais"
-                                },
-                            ]
-
-                            Expected output JSON:
-                            [
-                                {
-                                    "Subject": "Semester 1",
-                                    "Mark": "14.022/20",
-                                    "Result": "Validated",
-                                    "Session": "S12016/17",
-                                },
-                                {
-                                    "Subject": "Language and Terminology II",
-                                    "Mark": "11.31/20",
-                                    "Result": "Validated AR",
-                                    "Session": "S1 2016/17",
-                                },
-                                {
-                                    "Subject": "Algebra 2",
-                                    "Mark": "10.75/20",
-                                    "Result": "Validated",
-                                    "Session": "S1 2016/17",
-                                },
-                                {
-                                    "Subject": "French"
-                                    "Result": "Validated",
-                                    "Session": "S1 2016/17",
-                                    "Mark": "10.75/20",
-                                },
-                            ]
-
-                            Translate all the values from French or Arabic to English, and make sure the output JSON is valid and well-formatted.
-                        """,
-                    },
-                    {
-                        "role": "assistant",
-                        "content": """
-                            Sure, What is the JSON Data?
-                            
-                            I will keep the same object as it is, I will not change the object keys or anything except the value of each key.
-                            
-                            I will translate the values of the object from non-English to English.
-                            
-                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
-                            
-                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
-                            
-                            I will act as if I am a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
-                            
-                            Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
-                    """,
-                    },
-                    {
-                        "role": "user",
-                        "content": f"{Table}",
-                    },
-                ],
-            )
-
+            print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
             return TableResponse.choices[0].message.content
         case _:
             print(
