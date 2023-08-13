@@ -17,20 +17,21 @@ export const processDocument
             UploadedFile: FileType;
         }
     ) => {
+        // Constants for rate limiting
         const MINUTE_MS = 60000; // 1 minute in milliseconds
         const REQUESTS_PER_MINUTE = 3; // Number of requests allowed per minute
         const REQUEST_DELAY = MINUTE_MS / REQUESTS_PER_MINUTE; // Delay between requests
 
         let requestCount = 0;
-        let lastRequestTime = 0;
+        let lastMinute = 0;
 
         // Function to wait for the remaining time in the minute if needed
         const waitForRemainingTime = async () => {
             const currentTime = Date.now();
-            const elapsedSinceLastRequest = currentTime - lastRequestTime;
+            const elapsedSinceLastMinute = currentTime - lastMinute;
 
-            if (requestCount >= REQUESTS_PER_MINUTE && elapsedSinceLastRequest < MINUTE_MS) {
-                const remainingTime = MINUTE_MS - elapsedSinceLastRequest;
+            if (requestCount >= REQUESTS_PER_MINUTE && elapsedSinceLastMinute < MINUTE_MS) {
+                const remainingTime = MINUTE_MS - elapsedSinceLastMinute;
                 await toast.promise(new Promise((resolve) => setTimeout(resolve, remainingTime)), {
                     loading: 'Hold on...',
                     success: 'Time waited successfully. ',
@@ -41,9 +42,10 @@ export const processDocument
             }
 
             requestCount++;
-            lastRequestTime = Date.now();
-
-            return;
+            if (elapsedSinceLastMinute >= MINUTE_MS) {
+                lastMinute = currentTime;
+                requestCount = 1; // Reset the request count for a new minute
+            }
         };
 
 
