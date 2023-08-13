@@ -176,7 +176,7 @@ def GenerateTextCorrection(Doctype, Text):
             },
         ],
     )
-
+    print("[DEBUG] Response: ", str(Response.choices[0].message.content))
     return Response.choices[0].message.content
 
 
@@ -271,6 +271,7 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
         ],
     )
 
+    print("[INFO] Translation Response: ", str(Response.choices[0].message.content))
     return Response.choices[0].message.content
 
 
@@ -564,7 +565,10 @@ def GenerateTableCorrection(Doctype, Table):
                 ],
             )
 
-            print("[INFO] AI Correction Generated Successfully.")
+            print(
+                "[INFO] AI Correction Generated Successfully: ",
+                str(Response.choices[0].message.content),
+            )
             return Response.choices[0].message.content
 
         case "Master-Transcript-of-Marks":
@@ -745,6 +749,7 @@ def GenerateTableCorrection(Doctype, Table):
                 ],
             )
 
+            print("[DEBUG] Response: ", str(Response.choices[0].message.content))
             return Response.choices[0].message.content
         case _:
             print(
