@@ -42,6 +42,8 @@ export const processDocument
 
             requestCount++;
             lastRequestTime = Date.now();
+
+            return;
         };
 
 
