@@ -183,7 +183,7 @@ def GenerateTextCorrection(Doctype, Text):
 # Text Translation
 def GenerateTextTranslation(Doctype, Text, RAW_OCR):
     Response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",
+        model="gpt-3.5-turbo-0613",
         temperature=0.9,
         messages=[
             {
@@ -765,7 +765,7 @@ def GenerateTableTranslation(Doctype, Table):
         case "Baccalaureate-Transcript-of-Notes":
             # Baccalaureate-Transcript-of-Notes Prompt Generation
             TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-16k-0613",
+                model="gpt-3.5-turbo-0613",
                 temperature=0.2,
                 messages=[
                     {
@@ -796,7 +796,7 @@ def GenerateTableTranslation(Doctype, Table):
         case "Master-Transcript-of-Marks":
             # Master-Transcript-of-Marks Prompt Generation
             TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-16k-0613",
+                model="gpt-3.5-turbo-0613",
                 temperature=0.2,
                 messages=[
                     {
