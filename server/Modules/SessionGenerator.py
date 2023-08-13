@@ -411,15 +411,11 @@ class SessionGenerator:
         )
 
         if self.session["Information Type"] == "Tabular":
-            TABLES = self.session["Correction"]["Tables"]
-
-            TranslatedTables = GPT.TranslateTable(TABLES, Doctype)
+            TranslatedTables = GPT.TranslateTable(Tables, Doctype)
 
             JSON_TABLE = json.loads(TranslatedTables)
 
             self.session["Translation"]["Tables"] = JSON_TABLE
-
-            # self.session["Translation"]["Tables"] = self.session["Correction"]["Tables"]
 
         # Update the Status of the Session
         self.session["Status"] = "Translated"

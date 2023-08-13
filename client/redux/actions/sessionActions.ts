@@ -17,6 +17,34 @@ export const processDocument
             UploadedFile: FileType;
         }
     ) => {
+        const MINUTE_MS = 60000; // 1 minute in milliseconds
+        const REQUESTS_PER_MINUTE = 3; // Number of requests allowed per minute
+        const REQUEST_DELAY = MINUTE_MS / REQUESTS_PER_MINUTE; // Delay between requests
+
+        let requestCount = 0;
+        let lastRequestTime = 0;
+
+        // Function to wait for the remaining time in the minute if needed
+        const waitForRemainingTime = async () => {
+            const currentTime = Date.now();
+            const elapsedSinceLastRequest = currentTime - lastRequestTime;
+
+            if (requestCount >= REQUESTS_PER_MINUTE && elapsedSinceLastRequest < MINUTE_MS) {
+                const remainingTime = MINUTE_MS - elapsedSinceLastRequest;
+                await toast.promise(new Promise((resolve) => setTimeout(resolve, remainingTime)), {
+                    loading: 'Hold on...',
+                    success: 'Time waited successfully. ',
+                    error: 'Failed to wait for remaining time.',
+                }).then((Result) => {
+                    return Result
+                });
+            }
+
+            requestCount = 0;
+            lastRequestTime = Date.now();
+        };
+
+
         // STEP ONE: Initialize the Operation
         const InitializeResponse = await toast.promise(initializeSessionAPI(Doctype, UploadedFile), {
             loading: 'Initializing Session...',
@@ -66,6 +94,7 @@ export const processDocument
         }
 
         // Step FOUR: Correct Text
+        await waitForRemainingTime();
         const CorrectTextResponse = await toast.promise(correctTextAPI(ExtractTableResponse.Session), {
             loading: 'Correcting Text...',
             success: 'Text corrected successfully.',
@@ -81,6 +110,7 @@ export const processDocument
         }
 
         // Step FIVE: Correct Table
+        await waitForRemainingTime();
         const CorrectTableResponse = CorrectTextResponse;
 
         if (CorrectTextResponse.Session["Information Type"] == "Tabular") {
@@ -99,6 +129,7 @@ export const processDocument
         }
 
         // Step SIX: Translate Text
+        await waitForRemainingTime();
         const TranslateTextResponse = await toast.promise(translateTextAPI(CorrectTableResponse.Session), {
             loading: 'Translating Text...',
             success: 'Text translated successfully.',
@@ -113,6 +144,7 @@ export const processDocument
         }
 
         // Step SEVEN: Translate Table
+        await waitForRemainingTime();
         const TranslateTableResponse = TranslateTextResponse;
 
         if (TranslateTextResponse.Session["Information Type"] == "Tabular") {

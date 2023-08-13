@@ -149,9 +149,13 @@ def GeneratePrompt(Doctype):
 # Text Correction
 def GenerateTextCorrection(Doctype, Text):
     Response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",
-        temperature=0.9,
+        model="gpt-3.5-turbo-0301",
+        temperature=0,
         messages=[
+            {
+                "role": "system",
+                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+            },
             {
                 "role": "user",
                 "content": GeneratePrompt(Doctype),
@@ -176,16 +180,20 @@ def GenerateTextCorrection(Doctype, Text):
             },
         ],
     )
-
+    print("[DEBUG] Response: ", str(Response.choices[0].message.content))
     return Response.choices[0].message.content
 
 
 # Text Translation
 def GenerateTextTranslation(Doctype, Text, RAW_OCR):
     Response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",
-        temperature=0.9,
+        model="gpt-3.5-turbo-0301",
+        temperature=0,
         messages=[
+            {
+                "role": "system",
+                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+            },
             {
                 "role": "user",
                 "content": """
@@ -236,6 +244,10 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
                     Translate all the values from Non-English to English, and make sure the output JSON is valid and well-formatted.
                     
                     Please, do not change the object keys, just translate the values. 
+                    
+                    I don't want any comments or explanations, just translate it and return it.
+                    
+                    Act as if you are a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
                 """,
             },
             {
@@ -256,12 +268,14 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
                     Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
                     
                     Whatever "UNKNOWN" or "NULL" or "EMPTY" or "INVALID", and any other form of empty value indication, I will replace it with the right information from the RAW OCR Text, I will never leave any value undefined.
+                    
+                    I will not add any comments or explanations, I will just translate it and return it, as a valid JSON Object, I don't speak any human language, I only speak JSON.
                     """,
             },
             {
                 "role": "user",
                 "content": f"""
-                    JSON Object (Task: Translate Values, Keep Keys as they are, and return a valid Translated Values JSON Object):
+                    JSON Object:
                     {Text}
                     
                     Text String (RAW OCR to use as Data Fallback, in case of missing values in the JSON Object):
@@ -271,7 +285,10 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
         ],
     )
 
-    return Response.choices[0].message.content
+    JSON_OBJECT = "{" + Response.choices[0].message.content.split("{", 1)[1]
+
+    print("[INFO] Translation Response: ", str(JSON_OBJECT))
+    return JSON_OBJECT
 
 
 # Table Correction
@@ -281,126 +298,301 @@ def GenerateTableCorrection(Doctype, Table):
             print(
                 "[INFO] Generating AI Correction for: Baccalaureate Transcript of Notes"
             )
+
+            DesiredJSONTable = (
+                "{"
+                + '\n    "Transcript": {'
+                + '\n        "Columns": ['
+                + '\n            "Subjects",'
+                + '\n            "2019/2020 S1",'
+                + '\n            "2019/2020 S2",'
+                + '\n            "2020/2021 S1",'
+                + '\n            "2020/2021 S2",'
+                + '\n            "2021/2022 S1",'
+                + '\n            "2021/2022 S2",'
+                + '\n            "Regional Exam",'
+                + '\n            "National Exam"'
+                + "\n        ],"
+                + '\n        "Rows": ['
+                + "\n            ["
+                + '\n                "LANGUE ARABE",'
+                + '\n                "08,00",'
+                + '\n                "",'
+                + '\n                "13,56",'
+                + '\n                "13,16",'
+                + '\n                "18,53",'
+                + '\n                "",'
+                + '\n                "14,00",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "LANGUE FRANCAISE",'
+                + '\n                "10,70",'
+                + '\n                "",'
+                + '\n                "10,85",'
+                + '\n                "11,20",'
+                + '\n                "19,15",'
+                + '\n                "",'
+                + '\n                "05,00",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "LANGUE ANGLAISE",'
+                + '\n                "15,75",'
+                + '\n                "",'
+                + '\n                "12,80",'
+                + '\n                "15,80",'
+                + '\n                "18,48",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "HISTOIRE GEOGRAPHIE",'
+                + '\n                "10,78",'
+                + '\n                "",'
+                + '\n                "16,50",'
+                + '\n                "17,62",'
+                + '\n                "19,31",'
+                + '\n                "",'
+                + '\n                "04,00",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "MATHEMATIQUES",'
+                + '\n                "12,50",'
+                + '\n                "",'
+                + '\n                "09,00",'
+                + '\n                "14,33",'
+                + '\n                "20,00",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "SC. DE LA VIE ET DE LA TERRE",'
+                + '\n                "07,06",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "PHYSIQUE CHIMIE",'
+                + '\n                "05,00",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "INSTRUCTION ISLAMIQUE",'
+                + '\n                "10,00",'
+                + '\n                "",'
+                + '\n                "15,00",'
+                + '\n                "11,38",'
+                + '\n                "19,38",'
+                + '\n                "",'
+                + '\n                "08,00",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "EDUCATION PHYSIQUE",'
+                + '\n                "15,00",'
+                + '\n                "",'
+                + '\n                "18,00",'
+                + '\n                "17,83",'
+                + '\n                "20,00",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "INFORMATIQUE",'
+                + '\n                "10,80",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "PHILOSOPHIE",'
+                + '\n                "10,88",'
+                + '\n                "",'
+                + '\n                "12,50",'
+                + '\n                "14,50",'
+                + '\n                "17,44",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "ASSIDUITE ET CONDUITE",'
+                + '\n                "20,00",'
+                + '\n                "",'
+                + '\n                "20,00",'
+                + '\n                "20,00",'
+                + '\n                "20,00",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "DROIT",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "13,56",'
+                + '\n                "15,12",'
+                + '\n                "19,22",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "COMPTA. ET MATHS. FINANCIERES",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "14,06",'
+                + '\n                "14,38",'
+                + '\n                "19,06",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "ECO. GENERALE ET STATISTIQUES",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "12,38",'
+                + '\n                "13,38",'
+                + '\n                "18,75",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "ECO. ET ORG. ADMIN. ENTREPRISE",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "15,19",'
+                + '\n                "13,31",'
+                + '\n                "18,03",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "INFORMATIQUE DE GESTION",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "18,00",'
+                + '\n                "17,88",'
+                + '\n                "19,25",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "Moyenne Semestrielle",'
+                + '\n                "10,60",'
+                + '\n                "10,67",'
+                + '\n                "13,47",'
+                + '\n                "14,34",'
+                + '\n                "19,09",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "Moyenne Annuelle",'
+                + '\n                "",'
+                + '\n                "10,67",'
+                + '\n                "",'
+                + '\n                "13,90",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                ""'
+                + "\n            ]"
+                + "\n        ]"
+                + "\n    },"
+                + '\n    "Overall" : {'
+                + '\n        "Columns": ['
+                + '\n            "Average of Continuous Control",'
+                + '\n            "Regional Exam Average",'
+                + '\n            "National Exam Average",'
+                + '\n            "Overall Average"'
+                + "\n        ],"
+                + '\n        "Rows": ['
+                + "\n            ["
+                + '\n                "",'
+                + '\n                "",'
+                + '\n                "07,10",'
+                + '\n                ""'
+                + "\n            ]"
+                + "\n        ]"
+                + "\n    }"
+                + "\n}"
+            )
+
             Response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-16k-0613",
-                temperature=0.2,
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
                 messages=[
                     {
                         "role": "system",
-                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
                     },
                     {
                         "role": "user",
-                        "content": """
-                            We are working on a Python project and need help with getting precise output from the OCR processor.
-
-                            Our app extracts information from student-related documents using OCR, such as Baccalaureate Certificates and Master Certificates.
-
-                            We are currently processing the tabular information of the Baccalaureate Transcript of Marks in this function of the Web App.
-
-                            I will provide you with a JSON Table extracted from the document using more precise technology.
-
-                            The JSON Table contains two tables. The first table has the transcript of grades, and the second table is the second detected OCR table, which contains the overall results of the transcript.
-
-                            Your task is to produce a better-shaped JSON for the two tables, with every single word translated accurately and precisely into English. Please correct any typos or detected problems in the table without altering the original scanned document.
-
-                            I will provide you with more information required for the current document to process, which is a Baccalaureate Transcript of Marks.
-
-                            The JSON Data I will be giving you is extracted with OCR, so, it will be mostly having wrong values cells, that have some weird characters or words, use your own intelligence to fix the content off each cell, and make sure to translate every non-English word to English.
-
-                            Make sure, that all cell values and words make sense, fix everything to English, and remember the table is a Transcript of Marks.
-
-                            Your JSON Output should be this way:
-
-                            ```json
-                            {
-                                "Transcript":[
-                                    ["...", "...", "...", "...", "...", "...", "...", "...", "...", // Row Extracted from OCR Table filled with Columns, all english.],
-                                    ["...", "...", "...", "...", "...", "...", "...", "...", "...", // Row Extracted from OCR Table filled with Columns, all english.],
-                                    // More Rows from all extracted Information from the first table but every word that is non-English should be translated to English, but corrected and fixed grammarly, all rows shall have the same count of columns and the same count of cells.
-                                ],
-                                "Overall":[
-                                    ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"],
-                                    ["...", "...", "...", "..."] // Overall Averages for each column value
-                                ]
-                            }
-                            ```
-                            
-                            I need just these two tables, please do not add anything else.
-                            
-                            I want you to fix every word and every row in that Transcripts Table, if the row doesn't make sense, please do something about it, if the row is just empty and doesn't make sense, delete it, convert every word to English, and make sure that the table is a Transcript of Marks.
-
-                            NOTICE:
-                            No need to comment or explain, just translate each word in both tables to English and then return the JSON object.
-
-                            This means I need JSON object as output from your response: has key one for the first table and another for the second table.
-
-                            Any additional text will be considered an error.
-
-                            Reply with each JSON object ONLY.
-
-                            So please do not add anything to the objects, use the JSON object as valid output that should not be changed.
-
-                            DO NOT ADD ANYTHING TO THE JSON OBJECT, JUST TRANSLATE IT AND RETURN IT.
-
-                            NO COMMENTS, NO EXPLANATIONS, NO ADDITIONAL TEXT.
-
-                            THE JSON I WILL PROVIDE YOU ARE ONLY FOR DATA EXTRACTION USAGE!
-
-                            DO NOT USE THEIR STRUCTURES, USE THE ONES I TOLD YOU ABOVE AS STRUCTURES.
-
-                            Your response will be used a code part, please don't write anything but JSON.
-
-                            Act as you are a function that takes a table as a argument and returns a JSON of it.
-
-                            Don't explain anything or describe anything, do the ordered task and shut the fuck up.
-                        """,
-                    },
-                    {
-                        "role": "assistant",
-                        "content": """
-                            **AI:**
-                            Sure, what is the OCR output?
-
-                            I will provide you with the information extracted from the OCR as a JSON object without any comments.
-
-                            I will also translate every word accurately to its corresponding English term.
-
-                            I will be writing a JSON that has all the information mentioned in your description.
-
-                            A JSON of an object with two keys "Transcript" and "Overall".
-
-                            All their records will be accurately extracted from the Data you will be giving me in your next response.
-
-                            I will make sure to only send a valid JSON output, no additional words, and no additional comments, I will send a response entirely as JSON, and I will not provide anything with the JSON I will be giving.
-                            I will act as a function that only returns a response of a JSON type in my next responses.
-
-                            If there are any keywords in French or Arabic, I will translate them into English with accuracy.
-
-                            I will provide you with the OCR output in a JSON format that is valid to copy and use directly from my text response, I won't be writing anything above or below the JSON Response I give you.
-
-                            I will act as a function that only returns JSON, and nothing but JSON in my next replies.
-                        """,
-                    },
-                    {
-                        "role": "user",
-                        "content": str(Table),
+                        "content": (
+                            "Please take the following RAW OCR table as input, which might contain errors, typos, and incorrect formatting. "
+                            "Your task is to fix any issues while preserving the grades intact. Once set, provide the resulting Table in the specified JSON format without explanations. Treat this as a functional task.\n\n"
+                            "Please be careful; sometimes, the OCR_TABLE could have multiple arrays of tables; we only need a valid JSON, precisely like the Desired JSON Output Format.\n\n"
+                            "This OCR Tables Extraction is not per-processed grammatically; there is a high chance the Subject Names will be messed up; You have to fix everything, typos and non-sense words to be removed, or any off-context comments inside each cell.\n\n"
+                            "E.g. 'Spinelli Jerall Moyenne Annuelle' Should be fixed to 'Moyenne Annuelle', 'Moyenne Ex. Régional SHN Ulaisy Jies' Should be fixed to 'Moyenne Ex. Régional', 'Sugar Iseall Moyenne Semestrielle' Should be set to 'Moyenne Semestrielle', 'ECO. ET ORG. ADMIN. ENTREPRISE or tell' should be fixed to 'ECO. ET ORG. ADMIN. ENTERPRISE', etc.\n\n"
+                            "Any non-sense-related cells should be corrected; we only need the information required to fill the two tables inside the desired JSON Format.\n\n"
+                            "The desired JSON Format is an Object with two keys; the first is [Transcript], which contains information about each of the three high-school years and then the regional and national exam grades.\n\n"
+                            "Let’s break down the content of the first Table, Transcript.\n\n"
+                            "The columns should be as follows: Subjects, 2019/2020 S1, 2019/2020 S2, 2020/2021 S1, 2020/2021 S2, 2021/2022 S1, 2021/2022 S2, Regional Exam, and National Exam.\n\n"
+                            "The years should be extracted from the original transcript, E.g., 2022/2023, 2023/2024, etc.\n\n"
+                            "And then, there are the rows of the first table.\n\n"
+                            "These rows should have the information about the subjects, first their names, and then the grades convenient to each column; the last row cell belongs to the National Exam.\n\n"
+                            "The last 2 rows of the transcript table are special; the last row is for the Annual Average for each year and the regional and national exams, and then the one before the last row is for the semestrial average of each year; each year has 2 semesters.\n\n"
+                            "The second table in the desired JSON Output has the key [Overall].\n\n"
+                            "It is a table of 4 columns: Average of Continuous Control, Regional Exam Average, National Exam Average, and Overall Average.\n\n"
+                            "And have one row containing the grade that belongs to each Average.\n\n"
+                            "Now, I will provide you with the OCR Table and the Desired JSON Format; all you have to do is act as a functional task and execute what is ordered in this prompt without messing or forgetting anything ordered above.\n\n"
+                            "OCR Tables Extraction:\n\n"
+                            f"{str(Table)}\n\n"
+                            "Desired JSON Table Output Format (Example):\n\n"
+                            f"{str(DesiredJSONTable)}\n\n"
+                        ),
                     },
                 ],
             )
 
-            print("[INFO] AI Correction Generated Successfully.")
+            print("[DEBUG] Response: ", str(Response.choices[0].message.content))
             return Response.choices[0].message.content
 
         case "Master-Transcript-of-Marks":
             print("[INFO] Generating AI Correction for: Master Transcript of Marks")
             Response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-16k-0613",
-                temperature=0.2,
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
                 messages=[
                     {
                         "role": "system",
-                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
                     },
                     {
                         "role": "user",
@@ -570,6 +762,7 @@ def GenerateTableCorrection(Doctype, Table):
                 ],
             )
 
+            print("[DEBUG] Response: ", str(Response.choices[0].message.content))
             return Response.choices[0].message.content
         case _:
             print(
@@ -580,349 +773,70 @@ def GenerateTableCorrection(Doctype, Table):
 
 # Table Translation
 def GenerateTableTranslation(Doctype, Table):
-    print("[GPT PROMPT] Generating Table Translation Prompt...")
+    print("[GPT] Generating AI Table Translation...")
     match Doctype:
         case "Baccalaureate-Transcript-of-Notes":
             # Baccalaureate-Transcript-of-Notes Prompt Generation
             TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-16k-0613",
-                temperature=0.2,
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
                 messages=[
                     {
                         "role": "system",
-                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
                     },
                     {
                         "role": "user",
-                        "content": """
-                            We are working on a Python project and need help with translating a non-English JSON object to English.
-
-                            Your task is to translate every non-English, French, or Arabic word in the JSON object to English while keeping the same object format and keys. If you encounter any errors, typos, or empty values, correct them to make the object valid and meaningful.
-
-                            Your function should take a JSON object as input and return the translated JSON object in English.
-
-                            Please ensure that all object values are capitalized, and if any value is empty or invalid, replace it with a valid value or "NULL".
-
-                            Remember to translate every non-English, French, or Arabic word to English accurately.
-
-                            Respond with the translated JSON object only, without adding any additional arguments or comments.
-
-                            Your response should be in the form of a JSON object.
-
-                            Example input JSON:
-                            {
-                                "Overall": [
-                                    [
-                                        "Average Continuous Control",
-                                        "Regional Exam Average",
-                                        "National Exam Average",
-                                        "Overall Average"
-                                    ],
-                                    [
-                                        "",
-                                        "07.10",
-                                        "",
-                                        ""
-                                    ]
-                                ],
-                                "Transcript": [
-                                    [
-                                        "",
-                                        "",
-                                        "5 minutes",
-                                        "Final CONTROL",
-                                        "CONTINUE",
-                                        "",
-                                        "",
-                                        "",
-                                        ""
-                                    ],
-                                    [
-                                        "",
-                                        "",
-                                        "",
-                                        "YEARS",
-                                        "SCHOOL",
-                                        "",
-                                        "",
-                                        "Exam",
-                                        "Exam"
-                                    ],
-                                    [
-                                        "",
-                                        "31/01/2020",
-                                        "",
-                                        "",
-                                        "2021/2022",
-                                        "2022/2023",
-                                        "",
-                                        "Regional",
-                                        "National"
-                                    ],
-                                    [
-                                        "Courses",
-                                        "Core",
-                                        "common",
-                                        "1 year",
-                                        "Bac cycle",
-                                        "2 years",
-                                        "Bac cycle",
-                                        "grade",
-                                        "grade"
-                                    ],
-                                    [
-                                        "",
-                                        "1st semester",
-                                        "2nd semester",
-                                        "1st semester",
-                                        "2nd semester",
-                                        "1st semester",
-                                        "Avg. CC",
-                                        "SHN",
-                                        "ibell"
-                                    ],
-                                    [
-                                        "Arabe gdge",
-                                        "08.00",
-                                        "",
-                                        "13.56",
-                                        "13.16",
-                                        "18.53",
-                                        "",
-                                        "14.00",
-                                        ""
-                                    ],
-                                    [
-                                        "Francais ffdg",
-                                        "10.70",
-                                        "",
-                                        "10.85",
-                                        "11.20",
-                                        "19.15",
-                                        "",
-                                        "05.00",
-                                        ""
-                                    ],
-                                ]
-                            }
-
-                            Expected output JSON:
-                            {
-                                "Overall": [
-                                    [
-                                        "Average Continuous Control",
-                                        "Regional Exam Average",
-                                        "National Exam Average",
-                                        "Overall Average"
-                                    ],
-                                    [
-                                        "",
-                                        "07.10",
-                                        "",
-                                        ""
-                                    ]
-                                ],
-                                "Transcript": [
-                                    // First and Second rows seem to not make sense: DELETED
-                                    [
-                                        "",
-                                        "2019/2020",
-                                        "",
-                                        "2021/2022",
-                                        "",
-                                        "2022/2023",
-                                        "",
-                                        "Regional",
-                                        "National"
-                                    ],
-                                    [
-                                        "Courses",
-                                        "Common Core",
-                                        "",
-                                        "1st Bac cycle",
-                                        "",
-                                        "2nd Bac cycle",
-                                        "",
-                                        "",
-                                        ""
-                                    ],
-                                    [
-                                        "",
-                                        "1st semester",
-                                        "2nd semester",
-                                        "1st semester",
-                                        "2nd semester",
-                                        "1st semester",
-                                        "Avg. CC",
-                                        "",
-                                        ""
-                                    ],
-                                    [
-                                        "ARABIC LANGUAGE",
-                                        "08.00",
-                                        "",
-                                        "13.56",
-                                        "13.16",
-                                        "18.53",
-                                        "",
-                                        "14.00",
-                                        ""
-                                    ],
-                                    [
-                                        "FRENCH LANGUAGE",
-                                        "10.70",
-                                        "",
-                                        "10.85",
-                                        "11.20",
-                                        "19.15",
-                                        "",
-                                        "05.00",
-                                        ""
-                                    ],
-                                ]
-                            }
-
-                            Translate all the values from French or Arabic to English, and make sure the output JSON is valid and well-formatted.
+                        "content": f"""
+                            From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
+                            
+                            No explanations, no comments, no text, you only speak JSON.
+                            
+                            I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
+                            
+                            All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
+                            
+                            The JSON Object:
+                            
+                            {str(Table)}
                         """,
-                    },
-                    {
-                        "role": "assistant",
-                        "content": """
-                            Sure, What is the JSON Data?
-                            
-                            I will keep the same object as it is, I will not change the object keys or anything except the value of each key.
-                            
-                            I will translate the values of the object from non-English to English.
-                            
-                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
-                            
-                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
-                            
-                            I will act as if I am a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
-                            
-                            Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
-                    """,
-                    },
-                    {
-                        "role": "user",
-                        "content": f"{Table}",
                     },
                 ],
             )
+            print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
 
             return TableResponse.choices[0].message.content
 
         case "Master-Transcript-of-Marks":
             # Master-Transcript-of-Marks Prompt Generation
             TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-16k-0613",
-                temperature=0.2,
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
                 messages=[
                     {
                         "role": "system",
-                        "content": "We are in a Python Software, its name is OCRX, and we are using the OCR output to correct it and extract the information from it, and translate it to English, in this Software, it is restricted and illegal for the AI to respond with Anything but JSON Formats !",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
                     },
                     {
                         "role": "user",
-                        "content": """
-                            We are working on a Python project and need help with translating a non-English JSON object to English.
-
-                            Your task is to translate every non-English, French, or Arabic word in the JSON object to English while keeping the same object format and keys. If you encounter any errors, typos, or empty values, correct them to make the object valid and meaningful.
-
-                            Your function should take a JSON object as input and return the translated JSON object in English.
-
-                            Please ensure that all object values are capitalized, and if any value is empty or invalid, replace it with a valid value or "NULL".
-
-                            Remember to translate every non-English, French, or Arabic word to English accurately.
-
-                            Respond with the translated JSON object only, without adding any additional arguments or comments.
-
-                            Your response should be in the form of a JSON object.
-
-                            Example input JSON:
-                            [
-                                {
-                                    "Mark": "14.022 / 20",
-                                    "Result": "Validated",
-                                    "Session": "S12016/17",
-                                    "Subject": "Semestre 1"
-                                },
-                                {
-                                    "Mark": "11.31 / 20",
-                                    "Result": "Validated AR",
-                                    "Session": "S1 2016/17",
-                                    "Subject": "Langue et Terminologie II"
-                                },
-                                {
-                                    "Mark": "10.75 / 20",
-                                    "Result": "Validated",
-                                    "Session": "S1 2016/17",
-                                    "Subject": "Algèbre 2"
-                                },
-                                {
-                                    "Mark": "10.75 / 20",
-                                    "Result": "Validated",
-                                    "Session": "S1 2016/17",
-                                    "Subject": "Francais"
-                                },
-                            ]
-
-                            Expected output JSON:
-                            [
-                                {
-                                    "Subject": "Semester 1",
-                                    "Mark": "14.022/20",
-                                    "Result": "Validated",
-                                    "Session": "S12016/17",
-                                },
-                                {
-                                    "Subject": "Language and Terminology II",
-                                    "Mark": "11.31/20",
-                                    "Result": "Validated AR",
-                                    "Session": "S1 2016/17",
-                                },
-                                {
-                                    "Subject": "Algebra 2",
-                                    "Mark": "10.75/20",
-                                    "Result": "Validated",
-                                    "Session": "S1 2016/17",
-                                },
-                                {
-                                    "Subject": "French"
-                                    "Result": "Validated",
-                                    "Session": "S1 2016/17",
-                                    "Mark": "10.75/20",
-                                },
-                            ]
-
-                            Translate all the values from French or Arabic to English, and make sure the output JSON is valid and well-formatted.
+                        "content": f"""
+                            From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
+                            
+                            No explanations, no comments, no text, you only speak JSON.
+                            
+                            I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
+                            
+                            All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
+                            
+                            The JSON Object:
+                            
+                            {str(Table)}
                         """,
-                    },
-                    {
-                        "role": "assistant",
-                        "content": """
-                            Sure, What is the JSON Data?
-                            
-                            I will keep the same object as it is, I will not change the object keys or anything except the value of each key.
-                            
-                            I will translate the values of the object from non-English to English.
-                            
-                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
-                            
-                            I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
-                            
-                            I will act as if I am a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
-                            
-                            Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
-                    """,
-                    },
-                    {
-                        "role": "user",
-                        "content": f"{Table}",
                     },
                 ],
             )
 
+            print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
             return TableResponse.choices[0].message.content
         case _:
             print(
