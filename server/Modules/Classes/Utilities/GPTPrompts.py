@@ -146,9 +146,6 @@ def GeneratePrompt(Doctype):
     return Prompt
 
 
-print(GeneratePrompt("Master-Transcript-of-Marks"))
-
-
 # Text Correction
 def GenerateTextCorrection(Doctype, Text):
     Response = openai.ChatCompletion.create(
@@ -288,8 +285,10 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
         ],
     )
 
-    print("[INFO] Translation Response: ", str(Response.choices[0].message.content))
-    return Response.choices[0].message.content
+    JSON_OBJECT = "{" + Response.choices[0].message.content.split("{", 1)[1]
+
+    print("[INFO] Translation Response: ", str(JSON_OBJECT))
+    return JSON_OBJECT
 
 
 # Table Correction
