@@ -18,7 +18,7 @@ export const processDocument
         }
     ) => {
         const MINUTE_MS = 60000; // 1 minute in milliseconds
-        const REQUESTS_PER_MINUTE = 1; // Number of requests allowed per minute
+        const REQUESTS_PER_MINUTE = 3; // Number of requests allowed per minute
         const REQUEST_DELAY = MINUTE_MS / REQUESTS_PER_MINUTE; // Delay between requests
 
         let requestCount = 0;
@@ -31,7 +31,7 @@ export const processDocument
 
             if (requestCount >= REQUESTS_PER_MINUTE && elapsedSinceLastRequest < MINUTE_MS) {
                 const remainingTime = MINUTE_MS - elapsedSinceLastRequest;
-                await toast.promise(new Promise((resolve) => setTimeout(resolve, remainingTime + 10000)), {
+                await toast.promise(new Promise((resolve) => setTimeout(resolve, remainingTime)), {
                     loading: 'Hold on...',
                     success: 'Time waited successfully. ',
                     error: 'Failed to wait for remaining time.',
