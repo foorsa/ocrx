@@ -536,7 +536,7 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n            ["
                 + '\n                "",'
                 + '\n                "",'
-                + '\n                "07,10",'
+                + '\n                "",'
                 + '\n                ""'
                 + "\n            ]"
                 + "\n        ]"
@@ -571,6 +571,7 @@ def GenerateTableCorrection(Doctype, Table):
                             "The second table in the desired JSON Output has the key [Overall].\n\n"
                             "It is a table of 4 columns: Average of Continuous Control, Regional Exam Average, National Exam Average, and Overall Average.\n\n"
                             "And have one row containing the grade that belongs to each Average.\n\n"
+                            "Note that the desired JSON Table Output format that I will provide you is just for you to have an idea of the Object Strcture, and not to take the data, you should include the Grades and the Subjects or any other information from the given OCR Data to you.\n\n"
                             "Now, I will provide you with the OCR Table and the Desired JSON Format; all you have to do is act as a functional task and execute what is ordered in this prompt without messing or forgetting anything ordered above.\n\n"
                             "OCR Tables Extraction:\n\n"
                             f"{str(Table)}\n\n"
