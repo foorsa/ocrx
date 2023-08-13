@@ -31,7 +31,7 @@ export const processDocument
 
             if (requestCount >= REQUESTS_PER_MINUTE && elapsedSinceLastRequest < MINUTE_MS) {
                 const remainingTime = MINUTE_MS - elapsedSinceLastRequest;
-                await toast.promise(new Promise((resolve) => setTimeout(resolve, remainingTime)), {
+                await toast.promise(new Promise((resolve) => setTimeout(resolve, remainingTime + 10000)), {
                     loading: 'Hold on...',
                     success: 'Time waited successfully. ',
                     error: 'Failed to wait for remaining time.',
@@ -40,7 +40,7 @@ export const processDocument
                 });
             }
 
-            requestCount = 0;
+            requestCount++;
             lastRequestTime = Date.now();
         };
 
