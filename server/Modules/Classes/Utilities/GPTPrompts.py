@@ -351,23 +351,23 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n            // Semestrial Averages"
                 + "\n            ["
                 + '\n                "Moyenne Semestrielle",'
-                + '\n                "..., E.g. 10/20, etc.",'
-                + '\n                "...",'
-                + '\n                "...",'
-                + '\n                "...",'
-                + '\n                "...",'
-                + '\n                "...",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
                 + '\n                "",'
-                + '\n                ""'
+                + '\n                "",'
                 + "\n            ],"
                 + "\n            ["
                 + '\n                "Moyenne Annuelle",'
                 + '\n                "",'
-                + '\n                "..., E.g. 10/20, etc.",'
+                + '\n                "{{...}}",'
                 + '\n                "",'
-                + '\n                "...",'
+                + '\n                "{{...}}",'
                 + '\n                "",'
-                + '\n                "...",'
+                + '\n                "{{...}}",'
                 + '\n                "",'
                 + '\n                ""'
                 + "\n            ]"
@@ -381,11 +381,11 @@ def GenerateTableCorrection(Doctype, Table):
                 + '\n            "Overall Average"'
                 + "\n        ],"
                 + '\n        "Rows": ['
-                + "\n            [ // Contains the averages, in the same order as the columns above"
-                + '\n                "..., E.g. 10/20, etc. ",'
-                + '\n                "..., E.g. 10/20, etc.",'
-                + '\n                "..., E.g. 10/20, etc.",'
-                + '\n                "..., E.g. 10/20, etc."'
+                + "\n            ["
+                + '\n                "{{Continuous Control Average ...}}",'
+                + '\n                "{{Regional Exam Average ...}}",'
+                + '\n                "{{National Exam Average ...}}",'
+                + '\n                "{{Overall Average ...}}"'
                 + "\n            ]"
                 + "\n        ]"
                 + "\n    }"
