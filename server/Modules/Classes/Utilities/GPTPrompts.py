@@ -534,10 +534,10 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n        ],"
                 + '\n        "Rows": ['
                 + "\n            ["
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
+                + '\n                "", // Grade of Continuous Control'
+                + '\n                "", // Grade of Regional Exam'
+                + '\n                "", // Grade of National Exam'
+                + '\n                "" // Overall Grade'
                 + "\n            ]"
                 + "\n        ]"
                 + "\n    }"
