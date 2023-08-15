@@ -19,103 +19,100 @@ class OCRProcessor:
 
     # Read the Image File
     def ExtractTextFromImage(self, InformationType, SessionId, Image):
-        Extracted = ""
-
         try:
             TextContent = pytesseract.image_to_string(
                 Image,
                 lang="fra+ara",
                 config="",
             )
-
-            Extracted = TextContent
+            return TextContent
         except Exception as e:
             print(f"[OCR ERROR] Error reading image file: {str(e)}")
-
-        return Extracted
+            return ""
 
     def ExtractTextFromPDF(self, InformationType, SessionId, PDFBytes):
-        Extracted = ""
-
-        # Temporary File Path
-        TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
-
-        # Write the PDF Bytes to a Temporary File
-        with open(TEMPORARY_PDF_PATH, "wb") as f:
-            f.write(PDFBytes.getbuffer())
-
-        # Convert each Page to an Image
         try:
-            Pages = convert_from_path(TEMPORARY_PDF_PATH, 500)
-            for Page in Pages:
-                # Add the Extracted Text to the Extracted RAW Key
-                Extracted += pytesseract.image_to_string(
-                    Page,
-                    lang="fra+ara",
-                    config="",
-                )
+            TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
 
-            return Extracted
+            # Write the PDF Bytes to a Temporary File
+            with open(TEMPORARY_PDF_PATH, "wb") as f:
+                f.write(PDFBytes.getbuffer())
+
+            extracted_text = ""
+
+            # Convert each Page to an Image and extract text
+            with convert_from_path(TEMPORARY_PDF_PATH, 500) as pages:
+                for page in pages:
+                    page_text = pytesseract.image_to_string(
+                        page, lang="fra+ara", config=""
+                    )
+                    extracted_text += page_text
+                    # Clear memory for the current page
+                    page.close()
+
+            # Clean up: remove the temporary PDF file
+            os.remove(TEMPORARY_PDF_PATH)
+
+            return extracted_text
+
         except Exception as e:
             print(f"Error reading PDF file: {str(e)}")
+            return ""
 
     def ExtractTableFromImage(self, InformationType, SessionId, Image):
         print("[...] Extracting Table from Image ...")
         try:
-            # Save Image to a temporary file - this will be used by the ExtractTable library
-
             # Temporary File Path
             TEMPORARY_IMAGE_PATH = os.path.join(
                 tempfile.gettempdir(), f"{SessionId}.png"
             )
 
-            # Write the Image to a Temporary File
+            # Save the Image to a Temporary File
             Image.save(TEMPORARY_IMAGE_PATH, "PNG")
-
-            # Process the Table
-            TABLES = self.ET_SESSION.process_file(
-                TEMPORARY_IMAGE_PATH, output_format="json"
-            )
-
-            print("[OK] Extracting Table from Image Finished !")
-
-            # DEBUG PRINT
-            print(f"[COUNT] {len(TABLES)} Table(s) Found !")
 
             PROCESSED_TABLES = []
 
-            for TABLE in TABLES:
-                print(f"[...] Processing Table No. {TABLES.index(TABLE) + 1}.")
+            with self.ET_SESSION.process_file(
+                TEMPORARY_IMAGE_PATH, output_format="json"
+            ) as TABLES:
+                print("[OK] Extracting Table from Image Finished !")
 
-                JSON_TABLE = json.loads(TABLE)  # Load JSON string to a dictionary
+                for TABLE in TABLES:
+                    print(f"[...] Processing Table No. {TABLES.index(TABLE) + 1}.")
 
-                TABLE_DATA = []
+                    JSON_TABLE = json.loads(TABLE)  # Load JSON string to a dictionary
 
-                # Get the Columns Count
-                COL_COUNT = len(JSON_TABLE)
+                    TABLE_DATA = []
 
-                # Get the Rows Count
-                ROW_COUNT = len(next(iter(JSON_TABLE.values())))
+                    # Get the Columns Count
+                    COL_COUNT = len(JSON_TABLE)
 
-                # Concat Columns to Array of Rows
-                for ROW in range(ROW_COUNT):
-                    ROW_DATA = []
-                    for COL in range(COL_COUNT):
-                        try:
-                            ROW_DATA.append(JSON_TABLE[str(COL)][str(ROW)])
-                        except KeyError:
-                            ROW_DATA.append("")  # Handle missing data as empty string
-                    TABLE_DATA.append(ROW_DATA)
+                    # Get the Rows Count
+                    ROW_COUNT = len(next(iter(JSON_TABLE.values())))
 
-                PROCESSED_TABLES.append(TABLE_DATA)
+                    # Concatenate Columns to Array of Rows
+                    for ROW in range(ROW_COUNT):
+                        ROW_DATA = []
+                        for COL in range(COL_COUNT):
+                            try:
+                                ROW_DATA.append(JSON_TABLE[str(COL)][str(ROW)])
+                            except KeyError:
+                                ROW_DATA.append(
+                                    ""
+                                )  # Handle missing data as empty string
+                        TABLE_DATA.append(ROW_DATA)
+
+                    PROCESSED_TABLES.append(TABLE_DATA)
+
+            # Clean up: remove the temporary image file
+            os.remove(TEMPORARY_IMAGE_PATH)
 
             return PROCESSED_TABLES
         except Exception as e:
             print(f"Error processing table: {str(e)}")
-            return f"Error processing table: {str(e)}"
+            return []
 
     def ExtractTableFromPDF(self, InformationType, SessionId, PDFBytes):
-        # Extract information from PDF (Table Information)
         try:
             print("[...] Extracting Table from PDF ...")
 
@@ -126,45 +123,47 @@ class OCRProcessor:
             with open(TEMPORARY_PDF_PATH, "wb") as f:
                 f.write(PDFBytes.getbuffer())
 
-            # Process the Table
-            TABLES = self.ET_SESSION.process_file(
-                TEMPORARY_PDF_PATH, output_format="json"
-            )
-
-            print("[OK] Extracting Table from PDF Finished !")
-
-            # DEBUG PRINT
-            print(f"[COUNT] {len(TABLES)} Table(s) Found !")
-
             PROCESSED_TABLES = []
 
-            for TABLE in TABLES:
-                print(f"[...] Processing Table No. {TABLES.index(TABLE) + 1}.")
+            with self.ET_SESSION.process_file(
+                TEMPORARY_PDF_PATH, output_format="json"
+            ) as TABLES:
+                print("[OK] Extracting Table from PDF Finished !")
 
-                JSON_TABLE = json.loads(TABLE)
+                for TABLE in TABLES:
+                    print(f"[...] Processing Table No. {TABLES.index(TABLE) + 1}.")
 
-                TABLE_DATA = []
+                    JSON_TABLE = json.loads(TABLE)
 
-                # Get the Columns Count
-                COL_COUNT = len(JSON_TABLE)
+                    TABLE_DATA = []
 
-                # Get the Rows Count
-                ROW_COUNT = len(next(iter(JSON_TABLE.values())))
+                    # Get the Columns Count
+                    COL_COUNT = len(JSON_TABLE)
 
-                # Concat Columns to Array of Rows
-                for ROW in range(ROW_COUNT):
-                    ROW_DATA = []
-                    for COL in range(COL_COUNT):
-                        try:
-                            ROW_DATA.append(JSON_TABLE[str(COL)][str(ROW)])
-                        except KeyError:
-                            ROW_DATA.append("")  # Handle missing data as empty string
-                    TABLE_DATA.append(ROW_DATA)
+                    # Get the Rows Count
+                    ROW_COUNT = len(next(iter(JSON_TABLE.values())))
 
-                PROCESSED_TABLES.append(TABLE_DATA)
+                    # Concatenate Columns to Array of Rows
+                    for ROW in range(ROW_COUNT):
+                        ROW_DATA = []
+                        for COL in range(COL_COUNT):
+                            try:
+                                ROW_DATA.append(JSON_TABLE[str(COL)][str(ROW)])
+                            except KeyError:
+                                ROW_DATA.append(
+                                    ""
+                                )  # Handle missing data as empty string
+                        TABLE_DATA.append(ROW_DATA)
+
+                    PROCESSED_TABLES.append(TABLE_DATA)
+
+            # Clean up: remove the temporary PDF file
+            os.remove(TEMPORARY_PDF_PATH)
+
+            return PROCESSED_TABLES
         except Exception as e:
             print(f"[ERROR] Error processing table: {str(e)}")
-            return f"Error processing table: {str(e)}"
+            return []
 
     def Check_API_USAGE(self):
         return self.ET_SESSION.check_usage()
