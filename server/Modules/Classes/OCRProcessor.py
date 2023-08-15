@@ -41,14 +41,12 @@ class OCRProcessor:
             extracted_text = ""
 
             # Convert each Page to an Image and extract text
-            with convert_from_path(TEMPORARY_PDF_PATH, 500) as pages:
-                for page in pages:
-                    page_text = pytesseract.image_to_string(
-                        page, lang="fra+ara", config=""
-                    )
-                    extracted_text += page_text
-                    # Clear memory for the current page
-                    page.close()
+            pages = convert_from_path(TEMPORARY_PDF_PATH, 200)
+            for page in pages:
+                page_text = pytesseract.image_to_string(page, lang="fra+ara", config="")
+                extracted_text += page_text
+                # Close the image object
+                page.close()
 
             # Clean up: remove the temporary PDF file
             os.remove(TEMPORARY_PDF_PATH)
@@ -125,37 +123,37 @@ class OCRProcessor:
 
             PROCESSED_TABLES = []
 
-            with self.ET_SESSION.process_file(
+            # Process the Table
+            TABLES = self.ET_SESSION.process_file(
                 TEMPORARY_PDF_PATH, output_format="json"
-            ) as TABLES:
-                print("[OK] Extracting Table from PDF Finished !")
+            )
 
-                for TABLE in TABLES:
-                    print(f"[...] Processing Table No. {TABLES.index(TABLE) + 1}.")
+            print("[OK] Extracting Table from PDF Finished !")
 
-                    JSON_TABLE = json.loads(TABLE)
+            for TABLE in TABLES:
+                print(f"[...] Processing Table No. {TABLES.index(TABLE) + 1}.")
 
-                    TABLE_DATA = []
+                JSON_TABLE = json.loads(TABLE)
 
-                    # Get the Columns Count
-                    COL_COUNT = len(JSON_TABLE)
+                TABLE_DATA = []
 
-                    # Get the Rows Count
-                    ROW_COUNT = len(next(iter(JSON_TABLE.values())))
+                # Get the Columns Count
+                COL_COUNT = len(JSON_TABLE)
 
-                    # Concatenate Columns to Array of Rows
-                    for ROW in range(ROW_COUNT):
-                        ROW_DATA = []
-                        for COL in range(COL_COUNT):
-                            try:
-                                ROW_DATA.append(JSON_TABLE[str(COL)][str(ROW)])
-                            except KeyError:
-                                ROW_DATA.append(
-                                    ""
-                                )  # Handle missing data as empty string
-                        TABLE_DATA.append(ROW_DATA)
+                # Get the Rows Count
+                ROW_COUNT = len(next(iter(JSON_TABLE.values())))
 
-                    PROCESSED_TABLES.append(TABLE_DATA)
+                # Concatenate Columns to Array of Rows
+                for ROW in range(ROW_COUNT):
+                    ROW_DATA = []
+                    for COL in range(COL_COUNT):
+                        try:
+                            ROW_DATA.append(JSON_TABLE[str(COL)][str(ROW)])
+                        except KeyError:
+                            ROW_DATA.append("")  # Handle missing data as empty string
+                    TABLE_DATA.append(ROW_DATA)
+
+                PROCESSED_TABLES.append(TABLE_DATA)
 
             # Clean up: remove the temporary PDF file
             os.remove(TEMPORARY_PDF_PATH)

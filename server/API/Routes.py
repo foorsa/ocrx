@@ -13,6 +13,7 @@ from flask import (
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
 import json
+import datetime
 from flask import Blueprint, jsonify, request
 
 # Import any other required modules
@@ -78,8 +79,11 @@ def Initialize():
     SavedFiles = []
     print("[...] Saving Files to Temporary Directory [...]")
     for File in Files:
-        filename = secure_filename(File.filename)
-        FilePath = os.path.join(UPLOAD_FOLDER, filename)
+        # Filename should be the unique identifier of the file
+        ID = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+        Filename = secure_filename(ID + "." + File.filename.rsplit(".", 1)[1].lower())
+
+        FilePath = os.path.join(UPLOAD_FOLDER, Filename)
         File.save(FilePath)
 
         WindowsPath = FilePath
