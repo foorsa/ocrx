@@ -51,11 +51,18 @@ export default function LoadingScreens({
     const Screens =
         Type === "Processing" ? ProcessingScreens : GenerationScreens;
 
+    const ShuffledAssets: ScreensAssetType = Assets.sort(
+        () => Math.random() - 0.5
+    );
+
+    const ShuffledScreens: ScreensType = Screens.sort(
+        () => Math.random() - 0.5
+    );
     useEffect(() => {
         if (isLoading) {
             const timer = setTimeout(() => {
                 setProcess((prev) => (prev + 1) % Screens.length);
-                setAssetsProcess((prev) => (prev + 1) % Assets.length);
+                setAssetsProcess((prev) => (prev + 1) % ShuffledAssets.length);
             }, Math.max(5000)); // Change Screen every 2 seconds
 
             return () => clearTimeout(timer);
@@ -65,10 +72,10 @@ export default function LoadingScreens({
     return (
         <div className="relative w-full">
             <div className="relative w-full h-auto flex flex-col justify-center items-center min-h-36 mb-6">
-                {Assets[AssetsProcess].type === "svg" ? (
+                {ShuffledAssets[AssetsProcess].type === "svg" ? (
                     <Image
                         className="w-2/3 h-auto bg-transparent object-contain"
-                        src={Assets[AssetsProcess].source}
+                        src={ShuffledAssets[AssetsProcess].source}
                         alt="Loading Screen"
                     />
                 ) : (
@@ -82,10 +89,10 @@ export default function LoadingScreens({
                 )}
             </div>
             <h5 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                {Screens[Process]?.name}
+                {ShuffledScreens[Process]?.name}
             </h5>
             <p className="mb-6 text-xs font-normal text-zinc-700 dark:text-zinc-400">
-                {Screens[Process]?.description}
+                {ShuffledScreens[Process]?.description}
             </p>
         </div>
     );

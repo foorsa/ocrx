@@ -125,7 +125,7 @@ const DynamicField = ({ XField }: { XField: Field }) => {
                     onClick={() =>
                         handleValueTranslation(XField.name, Values[XField.name])
                     }
-                    className="h-full text-zinc-500 ring-0 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:outline-none rounded-lg text-sm p-2.5 bg-zinc-50 dark:bg-zinc-900"
+                    className="h-full text-zinc-500 ring-0 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:outline-none rounded-lg text-sm p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600"
                 >
                     <Translate variant="Bulk" />
                 </button>
