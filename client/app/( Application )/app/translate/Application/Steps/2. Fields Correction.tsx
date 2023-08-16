@@ -20,11 +20,6 @@ export default function Second_CorrectData() {
     const Session = useAppSelector((state) => state.session);
     const File = useAppSelector((state) => state.file);
 
-    const handleCancelOperation = () => {
-        // Reset the process
-        dispatch(cancelSession());
-    };
-
     const handleResetOperation = () => {
         dispatch(clearSession());
         dispatch(resetStep());
@@ -114,7 +109,7 @@ export default function Second_CorrectData() {
                     </button>
                     <button
                         type="button"
-                        className="inline-flex w-full justify-center gap-1 items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-blue-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
+                        className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-blue-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
                         onClick={handleResetOperation}
                     >
                         <ArrowLeft3 color="currentColor" variant="Bulk" />
@@ -148,18 +143,6 @@ export default function Second_CorrectData() {
                             />
                         </svg>
                         Processing...
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleCancelOperation}
-                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-blue-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
-                    >
-                        <CloseSquare
-                            color="currentColor"
-                            variant="Bulk"
-                            className="inline w-4 h-4 mr-3"
-                        />
-                        Cancel Operation
                     </button>
                 </>
             )}

@@ -72,11 +72,6 @@ export default function First_DocumentUpload() {
         }
     };
 
-    const handleCancelOperation = () => {
-        toast.dismiss();
-        Dispatch(clearSession());
-    };
-
     return (
         <div className="relative w-full">
             {/* Step Title */}
@@ -128,18 +123,6 @@ export default function First_DocumentUpload() {
                             />
                         </svg>
                         Processing...
-                    </button>
-                    <button
-                        type="button"
-                        className="inline-flex w-full justify-center items-center font-medium text-sm px-5 py-2.5 text-center bg-white rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-blue-700 focus:z-10 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-700"
-                        onClick={handleCancelOperation}
-                    >
-                        <CloseSquare
-                            color="currentColor"
-                            variant="Bulk"
-                            className="inline w-4 h-4 mr-3"
-                        />
-                        Cancel Operation
                     </button>
                 </>
             )}
