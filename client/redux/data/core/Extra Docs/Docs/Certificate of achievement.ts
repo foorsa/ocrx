@@ -6,7 +6,7 @@ import {
 export const CertificateOfAchievement: DocumentType = {
     "id": "Certificate-of-Achievement",
     "name": "Certificate of Achievement",
-    "description": "A certificate of achievement is a tool to help recognize the accomplishment or obtainement of a diploma to a student.",
+    "description": "A certificate of achievement is a valuable tool designed to acknowledge and celebrate a student's successful accomplishment or attainment of a diploma. This document serves as a formal recognition of the individual's dedication, hard work, and commitment to their academic or personal goals.",
     "tags": ["Regular"],
     "state": "Available",
     "templateId": "168Q9wIx0aiGOp6Fco4EDac_867xDNq41JLFW57IJh58",

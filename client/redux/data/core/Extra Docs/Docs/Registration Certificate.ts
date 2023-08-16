@@ -6,7 +6,7 @@ import {
 export const RegistrationCertificate: DocumentType = {
     "id": "Registration-Certificate",
     "name": "Registration Certificate",
-    "description": "Registration Certificate of a student in a Moroccan University.",
+    "description": "A Student Registration Certificate from a Moroccan University is an official document that confirms a student's enrollment and active status within the institution. This certificate serves as proof of the student's affiliation with the university and includes essential details about their academic journey.",
     "tags": ["Regular"],
     "state": "Available",
     "templateId": "1O_7KR2t0m4eSPbCsSCu5uhuUasn7e-Vxo3TIfJHmUKA",

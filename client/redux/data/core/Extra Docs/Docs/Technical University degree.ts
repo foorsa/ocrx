@@ -5,7 +5,7 @@ import {
 export const TechnicalUniversityDegree: DocumentType = {
     "id": "Technical-University-Degree",
     "name": "Technical University Degree",
-    "description": "Technical University Degree Certificate for Moroccan Students.",
+    "description": "A Technical University Degree Certificate for Moroccan Students is an official document issued by a university upon successful completion of a technical degree program. This certificate holds significant value as it validates the recipient's educational accomplishments and technical expertise in a specific field.",
     "tags": ["Regular"],
     "state": "Available",
     "templateId": "1O_7KR2t0m4eSPbCsSCu5uhuUasn7e-Vxo3TIfJHmUKA",
