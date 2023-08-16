@@ -23,14 +23,12 @@ export const CertificateOfSuccessAtDiploma: DocumentType = {
             type: "text",
             description: "University of the Candidate",
             required: true,
-
         },
         {
             name: "Student Name",
             type: "text",
             description: "Student's Full Name",
             required: true,
-
         },
         {
             name: "Student Number",

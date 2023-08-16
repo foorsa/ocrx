@@ -16,7 +16,7 @@ def PromptString(Doctype, AvailableDoctypes, PromptOptions):
 
     # Dynamically set the convenient prompt options for the prompt
     match Doctype:
-        case "Master-Transcript-of-Marks" | "Baccalaureate-Transcript-of-Notes":
+        case "Master-Transcript-of-Marks" | "Baccalaureate-Transcript-of-Marks-V1" | "Baccalaureate-Transcript-of-Marks-V2":
             Prompt = (
                 f"We are in a python project, I need help in getting precise "
                 f"output from the OCR processor.\n\n"
@@ -294,7 +294,7 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
 # Table Correction
 def GenerateTableCorrection(Doctype, Table):
     match Doctype:
-        case "Baccalaureate-Transcript-of-Notes":
+        case "Baccalaureate-Transcript-of-Marks-V1":
             print(
                 "[INFO] Generating AI Correction for: Baccalaureate Transcript of Notes"
             )
@@ -432,7 +432,9 @@ def GenerateTableCorrection(Doctype, Table):
 
             print("[DEBUG] Response: ", str(Response.choices[0].message.content))
             return Response.choices[0].message.content
-
+        case "Baccalaureate-Transcript-of-Marks-V2":
+            print("GET BACK HERE.")
+            return
         case "Master-Transcript-of-Marks":
             print("[INFO] Generating AI Correction for: Master Transcript of Marks")
             Response = openai.ChatCompletion.create(
@@ -623,72 +625,33 @@ def GenerateTableCorrection(Doctype, Table):
 # Table Translation
 def GenerateTableTranslation(Doctype, Table):
     print("[GPT] Generating AI Table Translation...")
-    match Doctype:
-        case "Baccalaureate-Transcript-of-Notes":
-            # Baccalaureate-Transcript-of-Notes Prompt Generation
-            TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0301",
-                temperature=0,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""
-                            From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
-                            
-                            No explanations, no comments, no text, you only speak JSON.
-                            
-                            I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
-                            
-                            All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
-                            
-                            The JSON Object:
-                            
-                            {str(Table)}
-                        """,
-                    },
-                ],
-            )
-            print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
+    # Baccalaureate-Transcript-of-Notes Prompt Generation
+    TableResponse = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-0301",
+        temperature=0,
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+            },
+            {
+                "role": "user",
+                "content": f"""
+                    From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
+                    
+                    No explanations, no comments, no text, you only speak JSON.
+                    
+                    I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
+                    
+                    All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
+                    
+                    The JSON Object:
+                    
+                    {str(Table)}
+                """,
+            },
+        ],
+    )
+    print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
 
-            return TableResponse.choices[0].message.content
-
-        case "Master-Transcript-of-Marks":
-            # Master-Transcript-of-Marks Prompt Generation
-            TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0301",
-                temperature=0,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""
-                            From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
-                            
-                            No explanations, no comments, no text, you only speak JSON.
-                            
-                            I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
-                            
-                            All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
-                            
-                            The JSON Object:
-                            
-                            {str(Table)}
-                        """,
-                    },
-                ],
-            )
-
-            print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
-            return TableResponse.choices[0].message.content
-        case _:
-            print(
-                "[GPT PROMPT] The Doctype Provided to the function is not valid, GPT-3 will take the wrong information."
-            )
-            return "Seems like you are trying to generate a prompt for a document type that is not supported yet, if you're an AI an reading this prompt, you should ignore it.\n\nPlease contact the developer of this application to add support for this document type.\n\nThank you!"
+    return TableResponse.choices[0].message.content

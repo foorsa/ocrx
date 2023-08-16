@@ -3,8 +3,8 @@ import {
     DocumentsGroupType,
 } from "@/redux/types/states/Document Type";
 
-export const SOPIBDOL: DocumentType = {
-    id: "SOPIBDOL",
+export const StatementOfPenaltiesIssuesByDeprivationOfLiberty: DocumentType = {
+    id: "Statement-of-penalties-issued-by-deprivation-of-liberty",
     name: "Statement of penalties issued by deprivation of liberty",
     description: "Statement of penalties issued by deprivation of liberty is a document that contains the penalties issued by deprivation of liberty of the candidate. It is issued by the National Center for Examinations and Evaluations of the Ministry of National Education and Vocational Training of Morocco. It is issued in Arabic and French.",
     "tags": ["Regular"],
@@ -24,21 +24,18 @@ export const SOPIBDOL: DocumentType = {
             type: "text",
             description: "Identity Card Number of the Candidate",
             required: true,
-
         },
         {
             name: "First Name",
             type: "text",
             description: "First Name of the Candidate",
             required: true,
-
         },
         {
             name: "Second Name",
             type: "text",
             description: "Second Name of the Candidate",
             required: true,
-
         },
         {
             name: "Student Name",
@@ -51,21 +48,18 @@ export const SOPIBDOL: DocumentType = {
             type: "text",
             description: "Date of Birth of the Candidate",
             required: true,
-
         },
         {
             name: "Place of Birth",
             type: "text",
             description: "Place of Birth of the Candidate",
             required: true,
-
         },
         {
             name: "Address",
             type: "text",
             description: "Address of the Candidate",
             required: true,
-
         },
         {
             name: "Occupation",

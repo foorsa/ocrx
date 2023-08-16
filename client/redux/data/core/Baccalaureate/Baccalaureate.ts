@@ -3,7 +3,8 @@ import {
     DocumentsGroupType,
 } from "@/redux/types/states/Document Type"; import { BaccalaureateCertificate } from "./Docs/Baccalaureate Certificate";
 import { SchoolCertificate } from "./Docs/School Certificate";
-import { TranscriptOfNotes } from "./Docs/Transcript of notes";
+import { TranscriptOfMarksV1 } from "./Docs/Transcript of Marks (V1)";
+import { TranscriptOfMarksV2 } from "./Docs/Transcript of Marks (V2)";
 
 export const Baccalaureate: DocumentsGroupType = {
     name: "Baccalaureate Degrees",
@@ -12,6 +13,7 @@ export const Baccalaureate: DocumentsGroupType = {
     documents: [
         BaccalaureateCertificate,
         SchoolCertificate,
-        TranscriptOfNotes
+        TranscriptOfMarksV1,
+        TranscriptOfMarksV2
     ]
 }
