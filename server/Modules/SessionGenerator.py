@@ -152,7 +152,8 @@ class SessionGenerator:
 
         TabularDocumentTypes = [
             "Master-Transcript-of-Marks",
-            "Baccalaureate-Transcript-of-Notes",
+            "Baccalaureate-Transcript-of-Marks-V1",
+            "Baccalaureate-Transcript-of-Marks-V2",
         ]
 
         # Create session document

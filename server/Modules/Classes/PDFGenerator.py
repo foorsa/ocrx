@@ -11,7 +11,8 @@ TemplateIDs = {
     # Baccalaureate
     "Baccalaureate-Certificate": "1M5M-Xe3fBOk0zXydJU4_js5N1jXSxtEh0WEcQxUv7b0",
     "Baccalaureate-School-Certificate": "1hmTI94rg7lNjyLDR6LOwCex7N7mJLzZeTrgQb7isgdY",
-    "Baccalaureate-Transcript-of-Notes": "1Z3iGEgvJ84Ab5oQMN8zkkEKkkdYvjNcrlMv-J7fE0nA",
+    "Baccalaureate-Transcript-of-Marks-V1": "1Z3iGEgvJ84Ab5oQMN8zkkEKkkdYvjNcrlMv-J7fE0nA",
+    "Baccalaureate-Transcript-of-Marks-V2": "19azfA-YJqDNzl0gCKLjGtxchc8EqeeVhRv7e-sdmrBs",
     # Master
     "Master-Certificate": "1U2z7kfFQyeAI5ahMd1ClIKN7aI2SAxX81p_rnOa4Qp8",
     "Master-Transcript-of-Marks": "1p5Sy4TAThedWGTeqpxR9xJYUFj-6FlQEIxN7mDRi41c",
@@ -20,6 +21,9 @@ TemplateIDs = {
     # Extra Docs
     "ExtraDocs-Police-Record-Checks": "1sA8WiOhsj8MnEFXen9yg__wa93KgZJAGdoBZrsOvnvk",
     "SOPIBDOL": "18jxxLVJEGgcXNjP0HLt6OEhCJurCbbzw_qhOem7cy00",
+    "Registration-Certificate": "1vfPYiiQfAyOyPgA4AfZpoMHb-NPTBw2aSN1FLMepDjE",
+    "Technical-University-Degree": "1O_7KR2t0m4eSPbCsSCu5uhuUasn7e-Vxo3TIfJHmUKA",
+    "Certificate-of-Achievement": "168Q9wIx0aiGOp6Fco4EDac_867xDNq41JLFW57IJh58",
 }
 
 
@@ -43,7 +47,7 @@ class PDFGenerator:
 
         # [2] Store the Script ID: we execute the Apps Script to Generate the Document.
         print("[...] Getting the Script ID...")
-        URL = "https://script.google.com/macros/s/AKfycbzx8PqBDbLX9aQMQty2plhGT4_BeeB_OFnycIunGk2ZqGqEikQPz2e0u82m3MeUvCES/exec"
+        URL = "https://script.google.com/macros/s/AKfycbxARH7ft0lYbaZbJR_91V256Rwlyyhtr2zwzHcgf00sKmpCFYpUWJ6Cnr1Qs-fIO8Rz/exec"
 
         # [3] Gather the information to fill in the template.
         print("[...] Gathering the information to fill in the template...")

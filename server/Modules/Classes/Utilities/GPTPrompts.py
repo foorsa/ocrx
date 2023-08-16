@@ -16,7 +16,7 @@ def PromptString(Doctype, AvailableDoctypes, PromptOptions):
 
     # Dynamically set the convenient prompt options for the prompt
     match Doctype:
-        case "Master-Transcript-of-Marks" | "Baccalaureate-Transcript-of-Notes":
+        case "Master-Transcript-of-Marks" | "Baccalaureate-Transcript-of-Marks-V1" | "Baccalaureate-Transcript-of-Marks-V2":
             Prompt = (
                 f"We are in a python project, I need help in getting precise "
                 f"output from the OCR processor.\n\n"
@@ -294,7 +294,7 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
 # Table Correction
 def GenerateTableCorrection(Doctype, Table):
     match Doctype:
-        case "Baccalaureate-Transcript-of-Notes":
+        case "Baccalaureate-Transcript-of-Marks-V1":
             print(
                 "[INFO] Generating AI Correction for: Baccalaureate Transcript of Notes"
             )
@@ -304,222 +304,70 @@ def GenerateTableCorrection(Doctype, Table):
                 + '\n    "Transcript": {'
                 + '\n        "Columns": ['
                 + '\n            "Subjects",'
-                + '\n            "2019/2020 S1",'
-                + '\n            "2019/2020 S2",'
-                + '\n            "2020/2021 S1",'
-                + '\n            "2020/2021 S2",'
-                + '\n            "2021/2022 S1",'
-                + '\n            "2021/2022 S2",'
+                + '\n            "{{ First Year, E.g. 2020/2021 }} S1",'
+                + '\n            "{{ First Year, E.g. 2020/2021 }} S2",'
+                + '\n            "{{ Second Year, E.g. 2021/2022 }} S1",'
+                + '\n            "{{ Second Year, E.g. 2021/2022 }} S2",'
+                + '\n            "{{ Third Year, E.g. 2022/2023 }} S1",'
+                + '\n            "{{ Third Year, E.g. 2022/2023 }} S2",'
                 + '\n            "Regional Exam",'
                 + '\n            "National Exam"'
                 + "\n        ],"
                 + '\n        "Rows": ['
                 + "\n            ["
-                + '\n                "LANGUE ARABE",'
-                + '\n                "08,00",'
-                + '\n                "",'
-                + '\n                "13,56",'
-                + '\n                "13,16",'
-                + '\n                "18,53",'
-                + '\n                "",'
-                + '\n                "14,00",'
-                + '\n                ""'
+                + '\n                "{{SUBJECT 1, E.g. French, Mathematics, etc.}}",'
+                + '\n                "{{MARK OF SUBJECT 2, E.g. 10/20, etc.}}",'
+                + '\n                "{{MARK OF SUBJECT 1, E.g. 10/20, etc.}}",'
+                + '\n                "{{MARK OF SUBJECT 1}}",'
+                + '\n                "{{MARK OF SUBJECT 1}}",'
+                + '\n                "{{MARK OF SUBJECT 1}}",'
+                + '\n                "{{MARK OF SUBJECT 1}}",'
+                + '\n                "{{MARK OF SUBJECT 1}}",'
+                + '\n                "{{MARK OF SUBJECT 1}}",'
                 + "\n            ],"
                 + "\n            ["
-                + '\n                "LANGUE FRANCAISE",'
-                + '\n                "10,70",'
-                + '\n                "",'
-                + '\n                "10,85",'
-                + '\n                "11,20",'
-                + '\n                "19,15",'
-                + '\n                "",'
-                + '\n                "05,00",'
-                + '\n                ""'
+                + '\n                "{{SUBJECT 2}}",'
+                + '\n                "{{MARK OF SUBJECT 2, E.g. 10/20, etc.}}",'
+                + '\n                "{{MARK OF SUBJECT 2, E.g. 10/20, etc.}}",'
+                + '\n                "{{MARK OF SUBJECT 2}}",'
+                + '\n                "{{MARK OF SUBJECT 2}}",'
+                + '\n                "{{MARK OF SUBJECT 2}}",'
+                + '\n                "{{MARK OF SUBJECT 2}}",'
+                + '\n                "{{MARK OF SUBJECT 2}}",'
+                + '\n                "{{MARK OF SUBJECT 2}}",'
                 + "\n            ],"
+                + "\n            // More Subjects ..."
                 + "\n            ["
-                + '\n                "LANGUE ANGLAISE",'
-                + '\n                "15,75",'
-                + '\n                "",'
-                + '\n                "12,80",'
-                + '\n                "15,80",'
-                + '\n                "18,48",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
                 + "\n            ],"
-                + "\n            ["
-                + '\n                "HISTOIRE GEOGRAPHIE",'
-                + '\n                "10,78",'
-                + '\n                "",'
-                + '\n                "16,50",'
-                + '\n                "17,62",'
-                + '\n                "19,31",'
-                + '\n                "",'
-                + '\n                "04,00",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "MATHEMATIQUES",'
-                + '\n                "12,50",'
-                + '\n                "",'
-                + '\n                "09,00",'
-                + '\n                "14,33",'
-                + '\n                "20,00",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "SC. DE LA VIE ET DE LA TERRE",'
-                + '\n                "07,06",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "PHYSIQUE CHIMIE",'
-                + '\n                "05,00",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "INSTRUCTION ISLAMIQUE",'
-                + '\n                "10,00",'
-                + '\n                "",'
-                + '\n                "15,00",'
-                + '\n                "11,38",'
-                + '\n                "19,38",'
-                + '\n                "",'
-                + '\n                "08,00",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "EDUCATION PHYSIQUE",'
-                + '\n                "15,00",'
-                + '\n                "",'
-                + '\n                "18,00",'
-                + '\n                "17,83",'
-                + '\n                "20,00",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "INFORMATIQUE",'
-                + '\n                "10,80",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "PHILOSOPHIE",'
-                + '\n                "10,88",'
-                + '\n                "",'
-                + '\n                "12,50",'
-                + '\n                "14,50",'
-                + '\n                "17,44",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "ASSIDUITE ET CONDUITE",'
-                + '\n                "20,00",'
-                + '\n                "",'
-                + '\n                "20,00",'
-                + '\n                "20,00",'
-                + '\n                "20,00",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "DROIT",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "13,56",'
-                + '\n                "15,12",'
-                + '\n                "19,22",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "COMPTA. ET MATHS. FINANCIERES",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "14,06",'
-                + '\n                "14,38",'
-                + '\n                "19,06",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "ECO. GENERALE ET STATISTIQUES",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "12,38",'
-                + '\n                "13,38",'
-                + '\n                "18,75",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "ECO. ET ORG. ADMIN. ENTREPRISE",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "15,19",'
-                + '\n                "13,31",'
-                + '\n                "18,03",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
-                + "\n            ["
-                + '\n                "INFORMATIQUE DE GESTION",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "18,00",'
-                + '\n                "17,88",'
-                + '\n                "19,25",'
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                ""'
-                + "\n            ],"
+                + "\n            // Semestrial Averages"
                 + "\n            ["
                 + '\n                "Moyenne Semestrielle",'
-                + '\n                "10,60",'
-                + '\n                "10,67",'
-                + '\n                "13,47",'
-                + '\n                "14,34",'
-                + '\n                "19,09",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
+                + '\n                "{{...}}",'
                 + '\n                "",'
                 + '\n                "",'
-                + '\n                ""'
                 + "\n            ],"
                 + "\n            ["
                 + '\n                "Moyenne Annuelle",'
                 + '\n                "",'
-                + '\n                "10,67",'
+                + '\n                "{{...}}",'
                 + '\n                "",'
-                + '\n                "13,90",'
+                + '\n                "{{...}}",'
                 + '\n                "",'
-                + '\n                "",'
+                + '\n                "{{...}}",'
                 + '\n                "",'
                 + '\n                ""'
                 + "\n            ]"
@@ -534,10 +382,10 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n        ],"
                 + '\n        "Rows": ['
                 + "\n            ["
-                + '\n                "",'
-                + '\n                "",'
-                + '\n                "07,10",'
-                + '\n                ""'
+                + '\n                "{{Continuous Control Average ...}}",'
+                + '\n                "{{Regional Exam Average ...}}",'
+                + '\n                "{{National Exam Average ...}}",'
+                + '\n                "{{Overall Average ...}}"'
                 + "\n            ]"
                 + "\n        ]"
                 + "\n    }"
@@ -571,12 +419,119 @@ def GenerateTableCorrection(Doctype, Table):
                             "The second table in the desired JSON Output has the key [Overall].\n\n"
                             "It is a table of 4 columns: Average of Continuous Control, Regional Exam Average, National Exam Average, and Overall Average.\n\n"
                             "And have one row containing the grade that belongs to each Average.\n\n"
+                            "Note that the desired JSON Table Output format that I will provide you is just for you to have an idea of the Object Strcture, and not to take the data, you should include the Grades and the Subjects or any other information from the given OCR Data to you.\n\n"
                             "Now, I will provide you with the OCR Table and the Desired JSON Format; all you have to do is act as a functional task and execute what is ordered in this prompt without messing or forgetting anything ordered above.\n\n"
                             "OCR Tables Extraction:\n\n"
                             f"{str(Table)}\n\n"
                             "Desired JSON Table Output Format (Example):\n\n"
                             f"{str(DesiredJSONTable)}\n\n"
                         ),
+                    },
+                ],
+            )
+
+            print("[DEBUG] Response: ", str(Response.choices[0].message.content))
+            return Response.choices[0].message.content
+        case "Baccalaureate-Transcript-of-Marks-V2":
+            print(
+                "[DEBUG] Generating AI Correction for: Baccalaureate-Transcript-of-Marks-V2"
+            )
+
+            DesiredJSONTable = (
+                "{"
+                + '\n    "Transcript": {'
+                + '\n        "Columns": ['
+                + '\n            "TOPIC",'
+                + '\n            "NATIONAL EXAM",'
+                + '\n            "CONTINUOUS MONITORING",'
+                + "\n        ],"
+                + '\n        "Rows": ['
+                + "\n            ["
+                + '\n                "{{TOPIC 1, E.g. French, Mathematic, etc.}}",'
+                + '\n                "{{MARK OF TOPIC 1 IN NATIONAL EXAM, E.g. 10/20, etc.}}",'
+                + '\n                "{{MARK OF TOPIC 1 IN CONTINUOUS MONITORING, E.g. 10/20, etc.}}",'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "{{TOPIC 2, E.g. French, Mathematic, etc.}}",'
+                + '\n                "{{MARK OF TOPIC 2 IN NATIONAL EXAM, E.g. 10/20, etc.}}",'
+                + '\n                "{{MARK OF TOPIC 2 IN CONTINUOUS MONITORING, E.g. 10/20, etc.}}",'
+                + "\n            ],"
+                + "\n            // More Topics Marks ..."
+                + "\n        ]"
+                + "\n    },"
+                + '\n    "Overall" : {'
+                + '\n        "Columns": ['
+                + '\n            "Average of Continuous Control",'
+                + '\n            "Regional Exam Average",'
+                + '\n            "National Exam Average",'
+                + '\n            "Overall Average"'
+                + "\n        ],"
+                + '\n        "Rows": ['
+                + "\n            ["
+                + '\n                "{{Continuous Control Average ...}}",'
+                + '\n                "{{Regional Exam Average ...}}",'
+                + '\n                "{{National Exam Average ...}}",'
+                + '\n                "{{Overall Average ...}}"'
+                + "\n            ]"
+                + "\n        ]"
+                + "\n    }"
+                + "\n}"
+            )
+
+            Response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                    },
+                    {
+                        "role": "user",
+                        "content": f"""
+                        Please take the following RAW OCR table as input, which might contain errors, typos, and incorrect formatting.
+
+                        Your task is to fix any issues while preserving the grades intact. Once set, provide the resulting Table in the specified JSON format without explanations. Treat this as a functional task.
+
+                        Please be careful; sometimes, the OCR Table could have multiple arrays of tables; we only need a valid JSON, precisely like the Desired JSON Output Format.
+
+                        This OCR Tables Extraction is not per-processed grammatically; there is a high chance the Subject Names will be messed up; You have to fix everything, typos and non-sense words to be removed, or any off-context comments inside each cell.
+
+                        E.g. 'Spinelli Jerall Moyenne Annuelle' Should be fixed to 'Moyenne Annuelle', 'Moyenne Ex. Régional SHN Ulaisy Jies' Should be fixed to 'Moyenne Ex. Régional', 'Sugar Iseall Moyenne Semestrielle' Should be set to 'Moyenne Semestrielle', 'ECO. ET ORG. ADMIN. ENTREPRISE or tell' should be fixed to 'ECO. ET ORG. ADMIN. ENTERPRISE', and more.
+
+                        Please correct non-sense-related cells; we only need the information required to fill the two tables in the desired JSON Format.
+
+                        The desired JSON Format is an Object with two keys; the first is [Transcript], which contains information about national exam marks and continuous monitoring marks.
+
+                        Let's break down the content of the first Table, Transcript.
+
+                        The columns should be TOPIC, NATIONAL EXAM, and CONTINUOUS MONITORING.
+
+                        And then, there are the rows of the first Table.
+
+                        These rows should have the information about the subjects, first their names, and then the grades convenient to each column;
+
+                        Please keep in mind that the given OCR Table could have more than just the Marks of each subject in the National Exam and Continous Monitoring; it could mostly have the Coefficient columns and Marks multiplied by the coefficient; we don't need any of that; all you have to do is take the Mark of each subject in the National Exam, and the Continous monitoring, everything should be correct, do not miss.
+
+
+                        The second table in the desired JSON Output has the key [Overall].
+
+
+                        It is a table of 4 columns: Average of Continuous Control, Regional Exam Average, National Exam Average, and Overall Average.
+
+                        And have one row containing the grade that belongs to each Average.
+
+                        Note that the desired JSON Table Output format I will provide you is just for you to have an idea of the Object structure and not to take the data; you should include the Grades and the Subjects or any other information from the given OCR Data.
+
+                        Now, I will provide you with the OCR Table and the Desired JSON Format; all you have to do is act as a functional task and execute what is ordered in this prompt without messing or forgetting anything above.
+
+                        OCR Tables Extraction:
+                        {str(Table)}
+                        
+                        Desired JSON Table Output Format (Example):
+                        {str(DesiredJSONTable)}
+                        
+                        """,
                     },
                 ],
             )
@@ -774,72 +729,33 @@ def GenerateTableCorrection(Doctype, Table):
 # Table Translation
 def GenerateTableTranslation(Doctype, Table):
     print("[GPT] Generating AI Table Translation...")
-    match Doctype:
-        case "Baccalaureate-Transcript-of-Notes":
-            # Baccalaureate-Transcript-of-Notes Prompt Generation
-            TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0301",
-                temperature=0,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""
-                            From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
-                            
-                            No explanations, no comments, no text, you only speak JSON.
-                            
-                            I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
-                            
-                            All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
-                            
-                            The JSON Object:
-                            
-                            {str(Table)}
-                        """,
-                    },
-                ],
-            )
-            print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
+    # Baccalaureate-Transcript-of-Notes Prompt Generation
+    TableResponse = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-0301",
+        temperature=0,
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+            },
+            {
+                "role": "user",
+                "content": f"""
+                    From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
+                    
+                    No explanations, no comments, no text, you only speak JSON.
+                    
+                    I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
+                    
+                    All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
+                    
+                    The JSON Object:
+                    
+                    {str(Table)}
+                """,
+            },
+        ],
+    )
+    print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
 
-            return TableResponse.choices[0].message.content
-
-        case "Master-Transcript-of-Marks":
-            # Master-Transcript-of-Marks Prompt Generation
-            TableResponse = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0301",
-                temperature=0,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""
-                            From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
-                            
-                            No explanations, no comments, no text, you only speak JSON.
-                            
-                            I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
-                            
-                            All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
-                            
-                            The JSON Object:
-                            
-                            {str(Table)}
-                        """,
-                    },
-                ],
-            )
-
-            print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
-            return TableResponse.choices[0].message.content
-        case _:
-            print(
-                "[GPT PROMPT] The Doctype Provided to the function is not valid, GPT-3 will take the wrong information."
-            )
-            return "Seems like you are trying to generate a prompt for a document type that is not supported yet, if you're an AI an reading this prompt, you should ignore it.\n\nPlease contact the developer of this application to add support for this document type.\n\nThank you!"
+    return TableResponse.choices[0].message.content
