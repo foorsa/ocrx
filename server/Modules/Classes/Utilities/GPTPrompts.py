@@ -647,3 +647,31 @@ def GenerateTableTranslation(Doctype, Table):
     print("[DEBUG] Response: ", str(TableResponse.choices[0].message.content))
 
     return TableResponse.choices[0].message.content
+
+
+# # OpenAI API Usage
+# def CheckOpenAIKeyUsage():
+#     USAGE_INFO = openai.Usage.create()
+
+#     TOTAL_REQS = USAGE_INFO["data"]["usage"]["total_requests"]
+#     TOATAL_TOKENS = USAGE_INFO["data"]["usage"]["total_tokens"]
+#     AMOUNT_SPENT = USAGE_INFO["data"]["usage"]["total_usage"]
+
+#     REMAINNG_TOKENS = USAGE_INFO["data"]["usage"]["available_tokens"]
+#     REMAINING_AMOUNT = USAGE_INFO["data"]["usage"]["remaining_billing_cycle_amount"]
+
+#     INFO_STRING = (
+#         f"OpenAI API Key Usage Information:\n %s" % USAGE_INFO
+#         + "\n\n"
+#         + f"API Key Usage Information:\n"
+#         f"Total Requests: {TOTAL_REQS}\n"
+#         f"Total Tokens: {TOATAL_TOKENS}\n"
+#         f"Amount Spent: ${AMOUNT_SPENT:.2f}\n"
+#         f"Remaining Tokens: {REMAINNG_TOKENS}\n"
+#         f"Remaining Amount: ${REMAINING_AMOUNT:.2f}"
+#     )
+
+#     print(INFO_STRING)
+
+
+# CheckOpenAIKeyUsage()

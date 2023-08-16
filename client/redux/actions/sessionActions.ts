@@ -116,14 +116,14 @@ export const processDocument
         const TranslateTableResponse = TranslateTextResponse;
 
         if (TranslateTextResponse.Session["Information Type"] == "Tabular") {
-            // Wait for 20 seconds before continuing
-            await toast.promise(new Promise((resolve) => setTimeout(resolve, 20000)), {
-                loading: 'Hold on...',
-                success: 'Proceeding...',
-                error: "Failed to wait for 20 seconds."
-            }).then((Result) => {
-                return Result
-            });
+            // // Wait for 20 seconds before continuing
+            // await toast.promise(new Promise((resolve) => setTimeout(resolve, 20000)), {
+            //     loading: 'Hold on...',
+            //     success: 'Proceeding...',
+            //     error: "Failed to wait for 20 seconds."
+            // }).then((Result) => {
+            //     return Result
+            // });
 
             const TranslateTableResponse = await toast.promise(translateTableAPI(TranslateTextResponse.Session), {
                 loading: 'Translating Tables...',
