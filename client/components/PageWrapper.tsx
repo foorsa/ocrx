@@ -9,7 +9,7 @@ export default function Page({ children }: { children: React.ReactNode }) {
     const Pathname = usePathname();
 
     return (
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="sync">
             <motion.div
                 initial="initial"
                 animate="animate"
