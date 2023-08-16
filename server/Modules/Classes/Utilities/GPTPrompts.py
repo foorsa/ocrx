@@ -315,8 +315,8 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n        ],"
                 + '\n        "Rows": ['
                 + "\n            ["
-                + '\n                "{{SUBJECT 1}}",'
-                + '\n                "{{MARK OF SUBJECT 1, E.g. French, etc.}}",'
+                + '\n                "{{SUBJECT 1, E.g. French, Mathematics, etc.}}",'
+                + '\n                "{{MARK OF SUBJECT 2, E.g. 10/20, etc.}}",'
                 + '\n                "{{MARK OF SUBJECT 1, E.g. 10/20, etc.}}",'
                 + '\n                "{{MARK OF SUBJECT 1}}",'
                 + '\n                "{{MARK OF SUBJECT 1}}",'
@@ -327,7 +327,7 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n            ],"
                 + "\n            ["
                 + '\n                "{{SUBJECT 2}}",'
-                + '\n                "{{MARK OF SUBJECT 2, E.g. Arabic, etc.}}",'
+                + '\n                "{{MARK OF SUBJECT 2, E.g. 10/20, etc.}}",'
                 + '\n                "{{MARK OF SUBJECT 2, E.g. 10/20, etc.}}",'
                 + '\n                "{{MARK OF SUBJECT 2}}",'
                 + '\n                "{{MARK OF SUBJECT 2}}",'
@@ -433,8 +433,112 @@ def GenerateTableCorrection(Doctype, Table):
             print("[DEBUG] Response: ", str(Response.choices[0].message.content))
             return Response.choices[0].message.content
         case "Baccalaureate-Transcript-of-Marks-V2":
-            print("GET BACK HERE.")
-            return
+            print(
+                "[DEBUG] Generating AI Correction for: Baccalaureate-Transcript-of-Marks-V2"
+            )
+
+            DesiredJSONTable = (
+                "{"
+                + '\n    "Transcript": {'
+                + '\n        "Columns": ['
+                + '\n            "TOPIC",'
+                + '\n            "NATIONAL EXAM",'
+                + '\n            "CONTINUOUS MONITORING",'
+                + "\n        ],"
+                + '\n        "Rows": ['
+                + "\n            ["
+                + '\n                "{{TOPIC 1, E.g. French, Mathematic, etc.}}",'
+                + '\n                "{{MARK OF TOPIC 1 IN NATIONAL EXAM, E.g. 10/20, etc.}}",'
+                + '\n                "{{MARK OF TOPIC 1 IN CONTINUOUS MONITORING, E.g. 10/20, etc.}}",'
+                + "\n            ],"
+                + "\n            ["
+                + '\n                "{{TOPIC 2, E.g. French, Mathematic, etc.}}",'
+                + '\n                "{{MARK OF TOPIC 2 IN NATIONAL EXAM, E.g. 10/20, etc.}}",'
+                + '\n                "{{MARK OF TOPIC 2 IN CONTINUOUS MONITORING, E.g. 10/20, etc.}}",'
+                + "\n            ],"
+                + "\n            // More Topics Marks ..."
+                + "\n        ]"
+                + "\n    },"
+                + '\n    "Overall" : {'
+                + '\n        "Columns": ['
+                + '\n            "Average of Continuous Control",'
+                + '\n            "Regional Exam Average",'
+                + '\n            "National Exam Average",'
+                + '\n            "Overall Average"'
+                + "\n        ],"
+                + '\n        "Rows": ['
+                + "\n            ["
+                + '\n                "{{Continuous Control Average ...}}",'
+                + '\n                "{{Regional Exam Average ...}}",'
+                + '\n                "{{National Exam Average ...}}",'
+                + '\n                "{{Overall Average ...}}"'
+                + "\n            ]"
+                + "\n        ]"
+                + "\n    }"
+                + "\n}"
+            )
+
+            Response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo-0301",
+                temperature=0,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                    },
+                    {
+                        "role": "user",
+                        "content": f"""
+                        Please take the following RAW OCR table as input, which might contain errors, typos, and incorrect formatting.
+
+                        Your task is to fix any issues while preserving the grades intact. Once set, provide the resulting Table in the specified JSON format without explanations. Treat this as a functional task.
+
+                        Please be careful; sometimes, the OCR Table could have multiple arrays of tables; we only need a valid JSON, precisely like the Desired JSON Output Format.
+
+                        This OCR Tables Extraction is not per-processed grammatically; there is a high chance the Subject Names will be messed up; You have to fix everything, typos and non-sense words to be removed, or any off-context comments inside each cell.
+
+                        E.g. 'Spinelli Jerall Moyenne Annuelle' Should be fixed to 'Moyenne Annuelle', 'Moyenne Ex. Régional SHN Ulaisy Jies' Should be fixed to 'Moyenne Ex. Régional', 'Sugar Iseall Moyenne Semestrielle' Should be set to 'Moyenne Semestrielle', 'ECO. ET ORG. ADMIN. ENTREPRISE or tell' should be fixed to 'ECO. ET ORG. ADMIN. ENTERPRISE', and more.
+
+                        Please correct non-sense-related cells; we only need the information required to fill the two tables in the desired JSON Format.
+
+                        The desired JSON Format is an Object with two keys; the first is [Transcript], which contains information about national exam marks and continuous monitoring marks.
+
+                        Let's break down the content of the first Table, Transcript.
+
+                        The columns should be TOPIC, NATIONAL EXAM, and CONTINUOUS MONITORING.
+
+                        And then, there are the rows of the first Table.
+
+                        These rows should have the information about the subjects, first their names, and then the grades convenient to each column;
+
+                        Please keep in mind that the given OCR Table could have more than just the Marks of each subject in the National Exam and Continous Monitoring; it could mostly have the Coefficient columns and Marks multiplied by the coefficient; we don't need any of that; all you have to do is take the Mark of each subject in the National Exam, and the Continous monitoring, everything should be correct, do not miss.
+
+
+                        The second table in the desired JSON Output has the key [Overall].
+
+
+                        It is a table of 4 columns: Average of Continuous Control, Regional Exam Average, National Exam Average, and Overall Average.
+
+                        And have one row containing the grade that belongs to each Average.
+
+                        Note that the desired JSON Table Output format I will provide you is just for you to have an idea of the Object structure and not to take the data; you should include the Grades and the Subjects or any other information from the given OCR Data.
+
+                        Now, I will provide you with the OCR Table and the Desired JSON Format; all you have to do is act as a functional task and execute what is ordered in this prompt without messing or forgetting anything above.
+
+                        OCR Tables Extraction:
+                        {str(Table)}
+                        
+                        Desired JSON Table Output Format (Example):
+                        {str(DesiredJSONTable)}
+                        
+                        """,
+                    },
+                ],
+            )
+
+            print("[DEBUG] Response: ", str(Response.choices[0].message.content))
+            return Response.choices[0].message.content
+
         case "Master-Transcript-of-Marks":
             print("[INFO] Generating AI Correction for: Master Transcript of Marks")
             Response = openai.ChatCompletion.create(
