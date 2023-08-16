@@ -13,6 +13,8 @@ TemplateIDs = {
     "Baccalaureate-School-Certificate": "1hmTI94rg7lNjyLDR6LOwCex7N7mJLzZeTrgQb7isgdY",
     "Baccalaureate-Transcript-of-Marks-V1": "1Z3iGEgvJ84Ab5oQMN8zkkEKkkdYvjNcrlMv-J7fE0nA",
     "Baccalaureate-Transcript-of-Marks-V2": "19azfA-YJqDNzl0gCKLjGtxchc8EqeeVhRv7e-sdmrBs",
+    # Bachelor
+    "Bachelor-Certificate": "1JkiIBZWXZNxdfH3z5mPitwdInyNphkPP2rCW557oABM",
     # Master
     "Master-Certificate": "1U2z7kfFQyeAI5ahMd1ClIKN7aI2SAxX81p_rnOa4Qp8",
     "Master-Transcript-of-Marks": "1p5Sy4TAThedWGTeqpxR9xJYUFj-6FlQEIxN7mDRi41c",
