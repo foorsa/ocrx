@@ -5,7 +5,7 @@ import {
 
 export const TranscriptOfMarksV1: DocumentType = {
     "id": "Baccalaureate-Transcript-of-Marks-V1",
-    "name": "Transcript of Notes [V1]",
+    "name": "Transcript of Marks [V1]",
     "tags": ["Regular", "Tabular"],
     "description": "An academic transcript states the candidate name, the institution he studied at, and a list of all courses taken, all grades received and degrees conferred.",
     "state": "Available",
