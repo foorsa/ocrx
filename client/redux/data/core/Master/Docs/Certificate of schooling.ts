@@ -4,9 +4,9 @@ import {
 } from "@/redux/types/states/Document Type";
 
 export const CertificateOfSchooling: DocumentType = {
-    id: "Certificate-of-schooling",
-    name: "Certificate of schooling",
-    description: "Certificate of schooling is a document that contains the schooling data of the candidate.",
+    id: "Master-Certificate-of-Schooling",
+    name: "Certificate of Schooling",
+    description: "The certificate of schooling is a document that contains the schooling data of the candidate.",
     "tags": ["Regular"],
     state: "Available",
     templateId: "1tWVsD9xKxVLYlM4FwnsHsIkEyVLPj0X_hcyqitvFhHM",

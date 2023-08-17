@@ -4,10 +4,10 @@ import {
 } from "@/redux/types/states/Document Type";
 
 export const CertificateOfSuccessAtDiploma: DocumentType = {
-    id: "Certificate-of-success-at-diploma",
-    name: "Certificate of success at diploma",
+    id: "Master-Certificate-of-Success-at-Diploma",
+    name: "Certificate of Success at Diploma",
     description: "Certificate of success at diploma is a document that certifies that the candidate has successfully completed his studies at a particular institute and has obtained a diploma.",
-    "tags": ["Regular"],
+    tags: ["Regular"],
     state: "Available",
     templateId: "1TFocZylhyKTNXlvZ8Bz-sKJAPOdpIdx1w37-Kyw7rJk",
     fields: [
