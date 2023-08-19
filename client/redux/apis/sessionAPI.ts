@@ -8,14 +8,14 @@ import { Session as SessionType } from '@/redux/types/states/Session';
 const SERVER_API = getApiServerUrl();
 
 
-async function executeOperationWithRetry(operationFunction: () => Promise<
+const executeOperationWithRetry: any = async (operationFunction: () => Promise<
     {
         Status: "Initialized" | "Extracted" | "Corrected" | "Translated" | "Generated" | "Failed";
-        Error?: string | null;
+        Error: string | null;
         Session: SessionType | null;
     }
->) {
-    const maxRetryAttempts = 3;
+>) => {
+    const maxRetryAttempts = 8;
     let retryAttempts = 0;
     let response = null;
 

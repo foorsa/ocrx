@@ -393,9 +393,8 @@ def GenerateTableCorrection(Doctype, Table):
             )
 
             Response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0301",
+                model="gpt-3.5-turbo-301",
                 temperature=0,
-                stream=False,
                 messages=[
                     {
                         "role": "system",
