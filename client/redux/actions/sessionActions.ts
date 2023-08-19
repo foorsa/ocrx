@@ -188,5 +188,3 @@ export const generateDocument
 
         return ProcessedSession
     })
-
-
