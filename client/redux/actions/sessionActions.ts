@@ -18,7 +18,7 @@ export const processDocument
         }
     ) => {
         // STEP ONE: Initialize the Operation
-        const InitializeResponse = await toast.promise(initializeSessionAPI(Doctype, UploadedFile), {
+        const InitializeResponse: any = await toast.promise(initializeSessionAPI(Doctype, UploadedFile), {
             loading: 'Initializing Session...',
             success: 'Session initialized successfully.',
             error: 'Failed to initialize session.',
@@ -188,5 +188,3 @@ export const generateDocument
 
         return ProcessedSession
     })
-
-
