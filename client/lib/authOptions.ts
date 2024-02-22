@@ -7,6 +7,7 @@ export const authOptions: NextAuthOptions = {
         signIn: '/auth/sign-in',  // Displays signin buttons
         signOut: '/auth/sign-out', // Signs out user and displays message
         error: '/auth/error', // Error code passed in query string as ?error=
+        newUser: "/app",
     },
     theme: {
         colorScheme: 'light',

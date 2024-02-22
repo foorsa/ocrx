@@ -10,7 +10,7 @@ export default async function Login() {
 	// Note: Make sure not to redirect to the same page
 	// To avoid an infinite loop!
 	if (session) {
-		return redirect("/dashboard");
+		return redirect("/app");
 	}
 
 	return <LoginPage />;
