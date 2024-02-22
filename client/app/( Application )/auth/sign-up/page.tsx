@@ -1,6 +1,5 @@
 "use client";
 
-import Particles from "@/app/Components/Layout/Particles";
 import { BackSquare, Home } from "iconsax-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,11 +8,8 @@ import React from "react";
 export default function Register() {
 	const Router = useRouter();
 	return (
-		<main className="grid min-h-full place-items-center w-full px-6 py-24 sm:py-32 lg:px-8 flex-1">
-			<div className="text-center max-w-xs md:max-w-xl">
-				<div className="fixed -z-10 top-0 left-0 w-full h-screen pointer-events-none">
-					<Particles />
-				</div>
+		<main className="grid flex-1 w-full min-h-full px-6 py-24 place-items-center sm:py-32 lg:px-8">
+			<div className="max-w-xs text-center md:max-w-xl">
 				<p className="text-base font-semibold text-green-600 uppercase">
 					Coming Soon
 				</p>
@@ -26,12 +22,12 @@ export default function Register() {
 					check back later.
 				</p>
 
-				<div className="mt-10 flex flex-wrap items-center justify-between gap-3">
+				<div className="flex flex-wrap items-center justify-between gap-3 mt-10">
 					<Link
 						href="/"
-						className="flex-1 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-xl bg-green-600 hover:bg-green-800"
+						className="inline-flex items-center justify-center flex-1 px-5 py-3 text-base font-medium text-center text-white bg-green-600 rounded-3xl hover:bg-green-800"
 					>
-						<span className="mr-2 text-md font-semibold whitespace-nowrap">
+						<span className="mr-2 font-semibold text-md whitespace-nowrap">
 							Go back home
 						</span>
 						<Home variant="Bulk" color="currentColor" />
@@ -40,9 +36,9 @@ export default function Register() {
 						onClick={() => {
 							Router.back();
 						}}
-						className="flex-1 md:mt-0 inline-flex justify-center items-center py-3 px-5 text-base font-medium whitespace-nowrap text-center rounded-xl text-green-800 bg-green-600/25 hover:bg-green-600/50 dark:text-green-300 dark:bg-green-600/50 dark:hover:bg-green-600/75"
+						className="inline-flex items-center justify-center flex-1 px-5 py-3 text-base font-medium text-center text-green-800 md:mt-0 whitespace-nowrap rounded-3xl bg-green-500/25 hover:bg-green-500/40 dark:text-green-300 dark:bg-green-950/50 dark:hover:bg-green-950/75"
 					>
-						<span className="mr-2 text-md font-semibold">
+						<span className="mr-2 font-semibold text-md">
 							Go Back
 						</span>
 						<BackSquare variant="Bulk" color="currentColor" />

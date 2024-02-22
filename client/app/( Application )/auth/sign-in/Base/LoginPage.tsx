@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { Eye, EyeSlash, LoginCurve } from "iconsax-react";
-import Particles from "@/app/Components/Layout/Particles";
 import { authErrorCodes } from "../../error/errors/authErrors";
 import { SignInResponse } from "next-auth/react/types";
 import { signIn } from "next-auth/react";
@@ -41,6 +40,13 @@ export default function LoginPage() {
 
 	// Show/hide password
 	const [showPassword, setShowPassword] = useState(false);
+
+	// Handle Login if Pressed Enter
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+		if (e.key === "Enter") {
+			handleLogin(e);
+		}
+	};
 
 	// Handle login
 	const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -107,9 +113,6 @@ export default function LoginPage() {
 
 	return (
 		<section className="z-10 flex flex-col items-center justify-center flex-1 w-full min-h-full">
-			<div className="fixed top-0 left-0 w-full h-screen pointer-events-none -z-10">
-				<Particles />
-			</div>
 			<div className="flex flex-col items-center justify-center h-auto gap-3 p-5 mx-auto lg:py-0">
 				<OCRX_ICON isLoading={false} />
 				<div className="flex flex-col items-center justify-center w-full max-w-lg gap-5">
@@ -128,6 +131,7 @@ export default function LoginPage() {
 						action="#"
 						autoComplete="on"
 						onSubmit={handleLogin}
+						onKeyDown={handleKeyDown}
 					>
 						<div className="w-full">
 							<label
@@ -141,7 +145,7 @@ export default function LoginPage() {
 								name="email"
 								id="email"
 								ref={emailRef}
-								className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500"
+								className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-3xl focus:ring-green-500 focus:border-green-500 block w-full py-2.5 px-3.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500"
 								placeholder="name@foorsa.ma"
 								required={false}
 								autoComplete={"email"}
@@ -160,7 +164,7 @@ export default function LoginPage() {
 									name="password"
 									id="password"
 									ref={passwordRef}
-									className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500"
+									className="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-3xl focus:ring-green-500 focus:border-green-500 block w-full py-2.5 px-3.5 dark:bg-zinc-950 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500"
 									required={false}
 									placeholder="••••••••"
 									autoComplete={"current-password"}

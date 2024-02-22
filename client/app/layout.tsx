@@ -8,7 +8,8 @@ import Colors from "tailwindcss/colors";
 import { Analytics } from "@vercel/analytics/react";
 import SearchModal from "./Components/Modals/Search.modal";
 import { Documents } from "@/redux/data/Documents";
-import { SessionProvider } from "next-auth/react";
+import SessionProvider from "@/app/sessionProvider";
+import { getServerSession } from "next-auth";
 
 const prombt: any = Prompt({
 	subsets: ["latin"],
@@ -45,6 +46,7 @@ export default async function RootLayout({
 	children: React.ReactNode;
 }) {
 	const Documents = await fetchData();
+	const session = await getServerSession();
 
 	return (
 		<html lang="en">
@@ -76,9 +78,12 @@ export default async function RootLayout({
 					<Providers>
 						{/* Page content */}
 						<SearchModal />
-						{children}
+						<SessionProvider session={session} basePath="/api/auth">
+							{children}
+						</SessionProvider>
 					</Providers>
 				</ReduxProvider>
+
 				<Analytics />
 			</body>
 		</html>

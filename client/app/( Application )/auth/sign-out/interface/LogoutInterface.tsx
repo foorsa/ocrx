@@ -13,7 +13,7 @@ export default function LogoutInterface() {
 
 	useEffect(() => {
 		if (count === 3) {
-			return router.back();
+			return router.push("/");
 		}
 
 		const interval = setInterval(() => {
