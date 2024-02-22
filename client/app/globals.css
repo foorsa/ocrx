@@ -3,113 +3,113 @@
 @tailwind utilities;
 
 @layer utilities {
-    @layer responsive {
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
+	@layer responsive {
+		/* Hide scrollbar for Chrome, Safari and Opera */
+		.no-scrollbar::-webkit-scrollbar {
+			display: none;
+		}
 
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .no-scrollbar {
-            -ms-overflow-style: none; /* IE and Edge */
-            scrollbar-width: none; /* Firefox */
-        }
-    }
+		/* Hide scrollbar for IE, Edge and Firefox */
+		.no-scrollbar {
+			-ms-overflow-style: none; /* IE and Edge */
+			scrollbar-width: none; /* Firefox */
+		}
+	}
 }
 
 :root {
-    --foreground-rgb: 0, 0, 0;
-    --background-start-rgb: 214, 219, 220;
-    --background-end-rgb: 255, 255, 255;
+	--foreground-rgb: 0, 0, 0;
+	--background-start-rgb: 214, 219, 220;
+	--background-end-rgb: 255, 255, 255;
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
-        --foreground-rgb: 255, 255, 255;
-        --background-start-rgb: 0, 0, 0;
-        --background-end-rgb: 0, 0, 0;
-    }
+	:root {
+		--foreground-rgb: 255, 255, 255;
+		--background-start-rgb: 0, 0, 0;
+		--background-end-rgb: 0, 0, 0;
+	}
 }
 
 * {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
 }
 
 html {
-    scroll-behavior: smooth;
+	scroll-behavior: smooth;
 }
 
 body {
-    color: rgb(var(--foreground-rgb));
-    transition: background 0.5s ease;
-    will-change: background;
-    z-index: -50;
-    overflow-x: hidden;
+	color: rgb(var(--foreground-rgb));
+	/* transition: background 0.5s ease; */
+	/* will-change: background; */
+	z-index: -50;
+	overflow-x: hidden;
 }
 
 @layer base {
-    body {
-        @apply dark:bg-black bg-white scroll-smooth;
-    }
+	body {
+		@apply dark:bg-black bg-white scroll-smooth;
+	}
 }
 
 /* Animate Gradient using CSS Variables */
 
 @property --pc {
-    /* blue/coral */
-    syntax: "<percentage>";
-    inherits: false;
-    initial-value: 30%;
+	/* sky/coral */
+	syntax: "<percentage>";
+	inherits: false;
+	initial-value: 30%;
 }
 @property --co {
-    /* coral/orange */
-    syntax: "<percentage>";
-    inherits: false;
-    initial-value: 100%;
+	/* coral/orange */
+	syntax: "<percentage>";
+	inherits: false;
+	initial-value: 100%;
 }
 
 .Container {
-    @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 mx-auto rounded-2xl flex items-center justify-center overflow-hidden bg-white dark:bg-gray-800;
-    z-index: 0;
+	@apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 mx-auto rounded-3xl flex items-center justify-center overflow-hidden bg-white dark:bg-gray-800;
+	z-index: 0;
 }
 
 .Container::before {
-    content: "";
-    position: absolute;
-    z-index: -2;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 200%;
-    height: 200%;
-    background-color: black;
-    background-repeat: no-repeat;
-    background-size: 100%;
-    background-position: center center;
-    background-image: conic-gradient(black, darkgray, white);
-    animation: backgroundRotate2 4s linear infinite;
-    @apply rounded-2xl;
+	content: "";
+	position: absolute;
+	z-index: -2;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 200%;
+	height: 200%;
+	background-color: black;
+	background-repeat: no-repeat;
+	background-size: 100%;
+	background-position: center center;
+	background-image: conic-gradient(black, darkgray, white);
+	animation: backgroundRotate2 4s linear infinite;
+	@apply rounded-3xl;
 }
 
 .Container::after {
-    content: "";
-    position: absolute;
-    z-index: 0;
-    left: 1px;
-    top: 1px;
-    width: calc(100% - 2px);
-    height: calc(100% - 2px);
-    border-radius: 5px;
-    @apply rounded-2xl bg-white dark:bg-black;
+	content: "";
+	position: absolute;
+	z-index: 0;
+	left: 1px;
+	top: 1px;
+	width: calc(100% - 2px);
+	height: calc(100% - 2px);
+	border-radius: 5px;
+	@apply rounded-3xl bg-white dark:bg-black;
 }
 
 @keyframes backgroundRotate2 {
-    0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
+	0% {
+		transform: translate(-50%, -50%) rotate(0deg);
+	}
+	100% {
+		transform: translate(-50%, -50%) rotate(360deg);
+	}
 }
