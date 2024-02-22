@@ -76,7 +76,7 @@ export default function LoginPage() {
 			redirect: false,
 			email,
 			password,
-			callbackUrl: "/dashboard",
+			callbackUrl: "/app",
 		})) as SignInResponse;
 
 		if (
@@ -201,7 +201,7 @@ export default function LoginPage() {
 										id="remember"
 										aria-describedby="remember"
 										type="checkbox"
-										className="w-4 h-4 rounded text-green-600 bg-zinc-100 border-zinc-300 focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-zinc-950 focus:ring-2 dark:bg-zinc-900 dark:border-zinc-950"
+										className="w-4 h-4 text-green-600 rounded bg-zinc-100 border-zinc-300 focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-zinc-950 focus:ring-2 dark:bg-zinc-900 dark:border-zinc-950"
 										required={false}
 										ref={rememberRef}
 									/>
