@@ -15,7 +15,6 @@ import { useAppDispatch } from "@/redux/hooks";
 import { resetFile } from "@/redux/actions/fileActions";
 import { clearSession } from "@/redux/slices/sessionSlice";
 import { resetStep } from "@/redux/actions/stepActions";
-import PageWrapper from "../components/PageWrapper";
 import { toast } from "react-hot-toast";
 import colors from "tailwindcss/colors";
 
