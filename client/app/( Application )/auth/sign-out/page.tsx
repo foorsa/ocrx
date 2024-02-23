@@ -14,9 +14,5 @@ export default async function LogoutPage() {
 		return <LoadingPage />;
 	}
 
-	return (
-		<React.Fragment>
-			<LogoutInterface />
-		</React.Fragment>
-	);
+	return <LogoutInterface />;
 }
