@@ -2,7 +2,7 @@ import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: NextAuthOptions = {
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET ?? "my-secret",
     pages: {
         signIn: '/auth/sign-in',  // Displays signin buttons
         signOut: '/auth/sign-out', // Signs out user and displays message
@@ -21,7 +21,7 @@ export const authOptions: NextAuthOptions = {
             name: 'Credentials',
             type: "credentials",
             credentials: {
-                email: { name: "email", label: "Email", type: "text", placeholder: "yassine@skymap.net" },
+                email: { name: "email", label: "Email", type: "text", placeholder: "yassine@foorsa.co" },
                 password: { name: "password", label: "Password", type: "password" }
             },
             async authorize(credentials: any, req: any): Promise<any> {
@@ -35,18 +35,18 @@ export const authOptions: NextAuthOptions = {
 
                 const validCredentials = email === "staff@foorsa.co" && password === "SR{y9,Wp)m#,m8o>";
 
-                if (!validCredentials) {
-                    throw new Error("Invalid credentials");
+                if (validCredentials) {
+                    // I will use a single user for this example - and later will implement a real authentication
+                    const validUser = {
+                        id: 1,
+                        name: "Foorsa Staff.",
+                        email: "staff@foorsa.co",
+                    }
+
+                    return validUser;
                 }
 
-                // I will use a single user for this example - and later will implement a real authentication
-                const validUser = {
-                    id: 1,
-                    name: "Foorsa Staff.",
-                    email: "staff@foorsa.co",
-                }
-
-                return validUser;
+                return null;
             }
         })
     ],

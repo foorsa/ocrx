@@ -10,6 +10,7 @@ import SearchModal from "./Components/Modals/Search.modal";
 import { Documents } from "@/redux/data/Documents";
 import SessionProvider from "@/app/sessionProvider";
 import { getServerSession } from "next-auth";
+import { authOptions } from "../lib/authOptions";
 
 const prombt: any = Prompt({
 	subsets: ["latin"],
