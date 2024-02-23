@@ -35,19 +35,12 @@ export const metadata = {
 	},
 };
 
-// Fake timeout to show up loading screen 300ms each time (server side function)
-export async function fetchData() {
-	await new Promise((resolve) => setTimeout(resolve, 2000));
-	return Documents;
-}
-
 export default async function RootLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
-	const Documents = await fetchData();
-	const session = await getServerSession();
+	const session = await getServerSession(authOptions);
 
 	return (
 		<html lang="en">
