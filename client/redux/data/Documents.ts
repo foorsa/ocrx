@@ -4,10 +4,9 @@ import { Bachelor } from "./core/Bachelor/Bachelor";
 import { Master } from "./core/Master/Master";
 import { ExtraDocs } from "./core/Extra Docs/ExtraDocs";
 
-
 export const Documents: DocumentsGroupType[] = [
-    Baccalaureate,
-    Bachelor,
-    Master,
-    ExtraDocs
-]
+	Baccalaureate,
+	Bachelor,
+	Master,
+	ExtraDocs,
+];
