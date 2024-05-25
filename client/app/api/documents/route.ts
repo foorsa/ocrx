@@ -6,7 +6,7 @@ export async function GET(Request: NextRequest) {
 }
 
 export const dynamic = "force-dynamic";
-export const revalidate = 60 * 60 * 24; // 24 hours
+export const revalidate = 60; // 1 minute
 export const fetchCache = "auto";
 export const runtime = "nodejs";
 export const preferredRegion = "auto";
