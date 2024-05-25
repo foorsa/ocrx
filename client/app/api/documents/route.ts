@@ -2,13 +2,11 @@ import { Documents } from "@/redux/data/Documents";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 60; // 1 minute
-export const fetchCache = "auto";
-export const runtime = "nodejs";
-export const preferredRegion = "auto";
-export const maxDuration = 60 * 1000;
 
 export async function GET(req: NextRequest, res: NextResponse) {
+	console.log(
+		`[${new Date().toLocaleTimeString()}] ${req.url} - ${req.method}`
+	);
 	return new Response(JSON.stringify(Documents), {
 		status: 200,
 		headers: {
