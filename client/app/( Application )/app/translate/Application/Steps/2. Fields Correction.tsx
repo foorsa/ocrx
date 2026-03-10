@@ -70,8 +70,6 @@ export default function Second_CorrectData() {
 				// Navigate to Finish only if generation succeeded
 				if (generateDocument.fulfilled.match(result)) {
 					dispatch(setStep(Steps.Finish));
-				} else {
-					toast.error("Failed to generate the document. Please try again.");
 				}
 			} else {
 				toast.error("Please fill the required fields.");
