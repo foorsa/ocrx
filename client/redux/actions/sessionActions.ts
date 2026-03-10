@@ -48,10 +48,10 @@ export const processDocument
         }
 
         // STEP THREE: Extract Table
-        const ExtractTableResponse = ExtractTextResponse;
+        let ExtractTableResponse = ExtractTextResponse;
 
         if (ExtractTextResponse.Session["Information Type"] == "Tabular") {
-            const ExtractTableResponse = await toast.promise(extractTableAPI(ExtractTextResponse.Session), {
+            ExtractTableResponse = await toast.promise(extractTableAPI(ExtractTextResponse.Session), {
                 loading: 'Extracting Tables...',
                 success: 'Tables extracted successfully.',
                 error: "Failed to extract tables from file."
@@ -81,10 +81,10 @@ export const processDocument
         }
 
         // Step FIVE: Correct Table
-        const CorrectTableResponse = CorrectTextResponse;
+        let CorrectTableResponse = CorrectTextResponse;
 
         if (CorrectTextResponse.Session["Information Type"] == "Tabular") {
-            const CorrectTableResponse = await toast.promise(correctTableAPI(CorrectTextResponse.Session), {
+            CorrectTableResponse = await toast.promise(correctTableAPI(CorrectTextResponse.Session), {
                 loading: 'Correcting Tables...',
                 success: 'Tables corrected successfully.',
                 error: "Failed to correct tables."
@@ -113,7 +113,7 @@ export const processDocument
         }
 
         // Step SEVEN: Translate Table
-        const TranslateTableResponse = TranslateTextResponse;
+        let TranslateTableResponse = TranslateTextResponse;
 
         if (TranslateTextResponse.Session["Information Type"] == "Tabular") {
             // // Wait for 20 seconds before continuing
@@ -125,7 +125,7 @@ export const processDocument
             //     return Result
             // });
 
-            const TranslateTableResponse = await toast.promise(translateTableAPI(TranslateTextResponse.Session), {
+            TranslateTableResponse = await toast.promise(translateTableAPI(TranslateTextResponse.Session), {
                 loading: 'Translating Tables...',
                 success: 'Tables translated successfully.',
                 error: "Failed to translate tables."
