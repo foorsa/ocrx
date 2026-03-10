@@ -71,7 +71,7 @@ const sessionSlice = createSlice({
         builder.addCase(generateDocument.rejected, (state, action) => {
             state.isLoading = false;
             state.Status = "failed";
-            state.Error = action.error.message || "Error generating document.";
+            state.Error = (action.payload as string) || action.error.message || "Error generating document.";
         });
     },
 },
