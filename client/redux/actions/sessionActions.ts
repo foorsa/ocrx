@@ -150,24 +150,25 @@ export const processDocument
 
 export const generateDocument
     = createAsyncThunk('session/generate', async (
-        { CorrectedSession }: { CorrectedSession: SessionType }
+        { CorrectedSession }: { CorrectedSession: SessionType },
+        { rejectWithValue }
     ) => {
         console.log("[OK] Generating Document Response: ", CorrectedSession["Session Id"]);
 
-        const GeneratedDocument = await toast.promise(generateDocumentAPI(CorrectedSession), {
-            loading: 'Generating Document...',
-            success: 'Document generated successfully.',
-            error: "Failed to generate document function."
-        }).then((Result) => {
-            return Result
-        });
+        const loadingToast = toast.loading('Generating Document...');
+
+        const GeneratedDocument = await generateDocumentAPI(CorrectedSession);
+
+        toast.dismiss(loadingToast);
 
         if (GeneratedDocument.Status === "Failed" || !GeneratedDocument.Session) {
-            toast.error(GeneratedDocument.Error);
-            return CorrectedSession
+            toast.error(GeneratedDocument.Error || "Failed to generate document.");
+            return rejectWithValue(GeneratedDocument.Error || "Failed to generate document.");
         }
 
         const ProcessedSession = GeneratedDocument.Session as SessionType;
+
+        toast.success('Document generated successfully.');
 
         console.log("[OK] Generated document successfully: " + GeneratedDocument.Session["Session Id"]);
 

@@ -67,11 +67,9 @@ export default function Second_CorrectData() {
 					generateDocument({ CorrectedSession: Session.Data })
 				);
 
-				// Only navigate to Finish if generation succeeded
-				if (generateDocument.fulfilled.match(result) && result.payload?.Generation) {
+				// Navigate to Finish only if generation succeeded
+				if (generateDocument.fulfilled.match(result)) {
 					dispatch(setStep(Steps.Finish));
-				} else {
-					toast.error("Failed to generate the document. Please try again.");
 				}
 			} else {
 				toast.error("Please fill the required fields.");
