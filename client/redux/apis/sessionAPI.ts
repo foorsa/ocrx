@@ -31,11 +31,7 @@ const executeOperationWithRetry: any = async (operationFunction: () => Promise<
 
     if (retryAttempts === maxRetryAttempts) {
         console.error(`Operation failed after ${maxRetryAttempts} attempts.`);
-        return {
-            Status: "Failed",
-            Error: "Failed after multiple attempts.",
-            Session: null,
-        };
+        throw new Error("Failed after multiple attempts.");
     }
 
     return response;

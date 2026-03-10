@@ -31,6 +31,10 @@ const sessionSlice = createSlice({
             state.Error = null;
         },
         cancelSession: (state) => initialState,
+        resetSessionStatus: (state) => {
+            state.Status = state.Data ? "succeeded" : "idle";
+            state.Error = null;
+        },
     },
     extraReducers(builder) {
         builder.addCase(processDocument.pending, (state) => {
@@ -51,7 +55,7 @@ const sessionSlice = createSlice({
         builder.addCase(processDocument.rejected, (state, action) => {
             state.isLoading = false;
             state.Status = "failed";
-            state.Error = action.error.message || "Error generating document.";
+            state.Error = (action.payload as string) || action.error.message || "Error processing document.";
         });
         builder.addCase(generateDocument.pending, (state) => {
             state.isLoading = true;
@@ -79,7 +83,8 @@ const sessionSlice = createSlice({
 
 export const { clearSession,
     setSession,
-    cancelSession
+    cancelSession,
+    resetSessionStatus,
 } = sessionSlice.actions;
 
 export default sessionSlice.reducer;

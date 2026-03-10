@@ -8,7 +8,7 @@ import Fields from "./Core/B. Correct/C. Fields";
 import Preview from "./Core/B. Correct/B. Preview";
 import { resetStep, setStep } from "@/redux/actions/stepActions";
 import { toast } from "react-hot-toast";
-import { cancelSession, clearSession } from "@/redux/slices/sessionSlice";
+import { cancelSession, clearSession, resetSessionStatus } from "@/redux/slices/sessionSlice";
 import { Steps } from "@/redux/types/states/Step";
 import { generateDocument } from "@/redux/actions/sessionActions";
 import LoadingScreens from "./Core/Utilities/Common";
@@ -85,6 +85,11 @@ export default function Second_CorrectData() {
 		}
 	};
 
+	const handleRetry = () => {
+		dispatch(resetSessionStatus());
+		handleNextStep();
+	};
+
 	return (
 		<div className="relative w-full">
 			{!Session.isLoading && (
@@ -98,6 +103,22 @@ export default function Second_CorrectData() {
 				</>
 			)}
 			{Session.isLoading && <LoadingScreens Type="Generating" />}
+			{/* Error State */}
+			{!Session.isLoading && Session.Status === "failed" && Session.Error && (
+				<div className="flex flex-col gap-2 w-full mb-3 p-3 rounded-xl border border-red-500 bg-red-950/30 text-red-400">
+					<div className="flex items-center gap-2">
+						<CloseSquare color="currentColor" variant="Bulk" size={18} />
+						<p className="text-sm font-medium">{Session.Error}</p>
+					</div>
+					<button
+						type="button"
+						onClick={handleRetry}
+						className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-700 rounded-lg hover:bg-red-600 focus:outline-none transition duration-150 ease-in-out"
+					>
+						Try Again
+					</button>
+				</div>
+			)}
 			{/* Next Step */}
 			{!Session.isLoading && (
 				<>
