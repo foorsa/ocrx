@@ -59,7 +59,7 @@ export default function First_DocumentUpload() {
 			return toast.error("Please select a document type");
 		}
 
-		// [STEP 1] Process the document (extract, correct, translate)
+		// Process the document (initialize, extract, correct, translate)
 		const result = await Dispatch(processDocument({ Doctype, UploadedFile }));
 
 		if (processDocument.fulfilled.match(result) && result.payload) {
