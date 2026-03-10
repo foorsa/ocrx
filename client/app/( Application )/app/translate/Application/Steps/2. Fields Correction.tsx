@@ -63,12 +63,16 @@ export default function Second_CorrectData() {
 
 			if (Session?.Data?.Translation?.Text) {
 				// Generate the document
-				await dispatch(
+				const result = await dispatch(
 					generateDocument({ CorrectedSession: Session.Data })
 				);
 
-				// Change the Step
-				dispatch(setStep(Steps.Finish));
+				// Only navigate to Finish if generation succeeded
+				if (generateDocument.fulfilled.match(result) && result.payload?.Generation) {
+					dispatch(setStep(Steps.Finish));
+				} else {
+					toast.error("Failed to generate the document. Please try again.");
+				}
 			} else {
 				toast.error("Please fill the required fields.");
 			}

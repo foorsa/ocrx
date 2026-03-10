@@ -59,16 +59,14 @@ export default function First_DocumentUpload() {
 			return toast.error("Please select a document type");
 		}
 
-		const SERVER_API: string = getApiServerUrl();
+		// [STEP 1] Process the document (extract, correct, translate)
+		const result = await Dispatch(processDocument({ Doctype, UploadedFile }));
 
-		// [STEP 1] Initialize the session
-		try {
-			await Dispatch(processDocument({ Doctype, UploadedFile }));
-		} catch {
-			toast.error("An error occured while processing your document.");
-		} finally {
-			console.log("Session has been processed: ", Session);
-			Dispatch(setStep(Steps.Finish));
+		if (processDocument.fulfilled.match(result) && result.payload) {
+			console.log("Session has been processed: ", result.payload);
+			Dispatch(setStep(Steps.Correct));
+		} else {
+			toast.error("An error occurred while processing your document.");
 		}
 	};
 

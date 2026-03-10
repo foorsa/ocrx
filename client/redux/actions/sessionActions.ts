@@ -139,22 +139,7 @@ export const processDocument
             }
         }
 
-        // Step EIGHT: Generate Document
-        const GenerateDocumentResponse = await toast.promise(generateDocumentAPI(TranslateTableResponse.Session), {
-            loading: 'Generating Document...',
-            success: 'Document generated successfully.',
-            error: "Failed to generate document."
-        }).then((Result) => {
-            return Result
-        });
-
-        if (GenerateDocumentResponse.Status === "Failed" || !GenerateDocumentResponse.Session) {
-            toast.error(GenerateDocumentResponse.Error);
-            return null
-
-        }
-
-        const ProcessedSession = GenerateDocumentResponse.Session as SessionType;
+        const ProcessedSession = TranslateTableResponse.Session as SessionType;
 
         console.log("[STEP ONE] Session Processed Successfully, setting Session in Redux Store.");
 
