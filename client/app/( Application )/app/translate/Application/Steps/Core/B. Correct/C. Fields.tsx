@@ -60,25 +60,36 @@ const DynamicField = ({ XField }: { XField: Field }) => {
 		const translateApiKey = process.env.NEXT_PUBLIC_GOOGLE_TRANSLATE_API_KEY;
 
 		if (!translateApiKey) {
-			toast.error("Google Translate API key is not configured.");
+			toast.error("Google Translate API key is not configured. Please set NEXT_PUBLIC_GOOGLE_TRANSLATE_API_KEY in your environment.");
 			return;
 		}
 
-		const TranslatedValue = await toast
-			.promise(
-				translate(Value, {
-					from: "fr",
-					to: "en",
-					engine: "google",
-					key: translateApiKey,
-				}),
-				{
-					loading: `Translating ${Name}...`,
-					success: `${Name} translated successfully.`,
-					error: `Couldn't translate ${Name}.`,
-				}
-			)
-			.then((res: string) => res);
+		if (!Value || Value.trim() === "") {
+			toast.error(`No value to translate for ${Name}.`);
+			return;
+		}
+
+		let TranslatedValue: string;
+		try {
+			TranslatedValue = await toast
+				.promise(
+					translate(Value, {
+						from: "fr",
+						to: "en",
+						engine: "google",
+						key: translateApiKey,
+					}),
+					{
+						loading: `Translating ${Name}...`,
+						success: `${Name} translated successfully.`,
+						error: `Couldn't translate ${Name}. The Google Translate API key may be invalid.`,
+					}
+				)
+				.then((res: string) => res);
+		} catch (error: any) {
+			console.error(`Translation failed for ${Name}:`, error);
+			return;
+		}
 
 		toast(`Translated ${Name} from "${Value}" to "${TranslatedValue}".`, {
 			icon: <Translate color="currentColor" variant="Bulk" />,
