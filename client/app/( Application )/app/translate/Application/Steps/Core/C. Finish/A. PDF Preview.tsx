@@ -22,20 +22,13 @@ const PDFPreview = () => {
 				<div className="overflow-hidden rounded-xl h-[140px] md:h-[262px] bg-zinc-400 dark:bg-zinc-600">
 					{PreviewLink && !isDocx && (
 						<div className="h-[140px] md:h-[262px] w-full rounded-xl">
-							<object
-								data={resolvedLink}
-								type="application/pdf"
-								className="w-full h-full flex flex-col justify-center items-center overflow-hidden no-scrollbar"
+							<iframe
+								src={resolvedLink}
+								className="w-full h-full overflow-hidden no-scrollbar"
 								title="PDF Preview"
 								width="100%"
 								height="100%"
-							>
-								<p>
-									Your browser does not support PDFs. Please
-									download the PDF to view it:
-									<a href={resolvedLink}>Download PDF</a>
-								</p>
-							</object>
+							/>
 						</div>
 					)}
 
