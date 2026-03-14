@@ -1,72 +1,29 @@
-"use client";
-import React, { useRef, useState } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import "react-pdf/dist/esm/Page/TextLayer.css";
+import React from "react";
 import { useAppSelector } from "@/redux/hooks";
-import { getApiServerUrl } from "@/utils/getApiServerUrl";
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 const PDFPreview = () => {
 	const Session = useAppSelector((state) => state.session);
 	const PreviewLink = Session?.Data?.Generation?.["Preview Link"];
-	const PYTHON_PUBLIC_URL = getApiServerUrl();
-	const containerRef = useRef<HTMLDivElement>(null);
-	const [containerWidth, setContainerWidth] = useState<number>(0);
-
-	const resolveLink = (link: string | undefined) => {
-		if (!link) return "";
-		if (link.startsWith("/")) return PYTHON_PUBLIC_URL + link;
-		return link;
-	};
-
-	const resolvedLink = resolveLink(PreviewLink);
-	const isDocx = PreviewLink?.endsWith(".docx");
-
-	const onContainerRef = (node: HTMLDivElement | null) => {
-		if (node) {
-			(containerRef as React.MutableRefObject<HTMLDivElement>).current = node;
-			setContainerWidth(node.clientWidth);
-		}
-	};
 
 	return (
 		<div className="w-full h-auto relative my-5">
 			<div className="relative mx-auto border-zinc-200 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-800 border-[16px] rounded-t-xl h-[172px] max-w-[301px] md:h-[294px] md:max-w-[512px]">
 				<div className="overflow-hidden rounded-xl h-[140px] md:h-[262px] bg-zinc-400 dark:bg-zinc-600">
-					{PreviewLink && !isDocx && (
-						<div
-							ref={onContainerRef}
-							className="h-[140px] md:h-[262px] w-full rounded-xl overflow-hidden"
-						>
-							<Document
-								file={resolvedLink}
-								loading={
-									<div className="h-full w-full flex items-center justify-center">
-										<p className="text-zinc-200 text-sm">Loading PDF...</p>
-									</div>
-								}
-								error={
-									<div className="h-full w-full flex items-center justify-center p-5">
-										<h4 className="text-white text-lg text-center font-bold uppercase">
-											Document Ready
-										</h4>
-									</div>
-								}
-							>
-								<Page
-									pageNumber={1}
-									width={containerWidth || undefined}
-									renderTextLayer={false}
-									renderAnnotationLayer={false}
-								/>
-							</Document>
-						</div>
-					)}
-
-					{PreviewLink && isDocx && (
+					{PreviewLink && PreviewLink !== "" ? (
 						<div className="h-[140px] md:h-[262px] w-full rounded-xl flex flex-col justify-center items-center p-5">
+							<svg
+								className="w-12 h-12 text-white mb-3"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={1.5}
+									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+								/>
+							</svg>
 							<h4 className="text-white text-lg text-center font-bold uppercase">
 								Document Ready
 							</h4>
@@ -77,9 +34,7 @@ const PDFPreview = () => {
 								Click &quot;Download Document&quot; below to save it.
 							</p>
 						</div>
-					)}
-
-					{(!PreviewLink || PreviewLink == "") && (
+					) : (
 						<div className="h-[140px] md:h-[262px] w-full rounded-xl flex flex-col justify-center items-center p-5">
 							<h4 className="text-zinc-500 text-lg dark:text-zinc-500 text-center font-bold uppercase">
 								PDF Preview
