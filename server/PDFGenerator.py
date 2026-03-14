@@ -5,6 +5,7 @@
 import os
 import requests
 import json
+from Modules.Classes.DocxTableGenerator import DocxTableGenerator
 
 
 TemplateIDs = {
@@ -51,6 +52,25 @@ TemplateIDs = {
 
 class PDFGenerator:
     def Generate(self, Session):
+        # Check if this is a tabular document - use DocxTableGenerator for compact tables
+        docx_gen = DocxTableGenerator()
+        if docx_gen.is_tabular(Session):
+            print("[...] Tabular document detected - using DocxTableGenerator for compact tables")
+            try:
+                filename = docx_gen.generate(Session)
+                print(f"[OK] Generated compact table document: {filename}")
+                # Return a download link instead of Google Drive links
+                server_url = os.environ.get("SERVER_URL", "")
+                download_path = f"/api/v1/download/{filename}"
+                return {
+                    "PDF Link": download_path,
+                    "Google Docs Link": download_path,
+                    "Preview Link": download_path,
+                }
+            except Exception as e:
+                print(f"[X] DocxTableGenerator failed: {e}")
+                print("[...] Falling back to Google Apps Script...")
+
         # [1] Get the Template ID: Used to Generate the Document with a Google Docs File.
 
         print("[...] Getting the Template ID...")
