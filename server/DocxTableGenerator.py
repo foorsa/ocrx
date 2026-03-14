@@ -19,7 +19,7 @@ TABULAR_TYPES = [
     "Baccalaureate-Transcript-of-Marks-V2",
 ]
 
-DOWNLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "..", "..", "Downloads")
+DOWNLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "..", "Downloads")
 
 
 def _set_cell_shading(cell, color_hex):
