@@ -1,11 +1,19 @@
-import React from "react";
+"use client";
+import React, { useRef, useState } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+import "react-pdf/dist/esm/Page/TextLayer.css";
 import { useAppSelector } from "@/redux/hooks";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 const PDFPreview = () => {
 	const Session = useAppSelector((state) => state.session);
 	const PreviewLink = Session?.Data?.Generation?.["Preview Link"];
 	const PYTHON_PUBLIC_URL = getApiServerUrl();
+	const containerRef = useRef<HTMLDivElement>(null);
+	const [containerWidth, setContainerWidth] = useState<number>(0);
 
 	const resolveLink = (link: string | undefined) => {
 		if (!link) return "";
@@ -16,19 +24,44 @@ const PDFPreview = () => {
 	const resolvedLink = resolveLink(PreviewLink);
 	const isDocx = PreviewLink?.endsWith(".docx");
 
+	const onContainerRef = (node: HTMLDivElement | null) => {
+		if (node) {
+			(containerRef as React.MutableRefObject<HTMLDivElement>).current = node;
+			setContainerWidth(node.clientWidth);
+		}
+	};
+
 	return (
 		<div className="w-full h-auto relative my-5">
 			<div className="relative mx-auto border-zinc-200 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-800 border-[16px] rounded-t-xl h-[172px] max-w-[301px] md:h-[294px] md:max-w-[512px]">
 				<div className="overflow-hidden rounded-xl h-[140px] md:h-[262px] bg-zinc-400 dark:bg-zinc-600">
 					{PreviewLink && !isDocx && (
-						<div className="h-[140px] md:h-[262px] w-full rounded-xl">
-							<iframe
-								src={resolvedLink}
-								className="w-full h-full overflow-hidden no-scrollbar"
-								title="PDF Preview"
-								width="100%"
-								height="100%"
-							/>
+						<div
+							ref={onContainerRef}
+							className="h-[140px] md:h-[262px] w-full rounded-xl overflow-hidden"
+						>
+							<Document
+								file={resolvedLink}
+								loading={
+									<div className="h-full w-full flex items-center justify-center">
+										<p className="text-zinc-200 text-sm">Loading PDF...</p>
+									</div>
+								}
+								error={
+									<div className="h-full w-full flex items-center justify-center p-5">
+										<h4 className="text-white text-lg text-center font-bold uppercase">
+											Document Ready
+										</h4>
+									</div>
+								}
+							>
+								<Page
+									pageNumber={1}
+									width={containerWidth || undefined}
+									renderTextLayer={false}
+									renderAnnotationLayer={false}
+								/>
+							</Document>
 						</div>
 					)}
 
