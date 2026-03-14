@@ -6,7 +6,10 @@ import Axios, { CancelTokenSource } from 'axios';
 import { Session as SessionType } from '@/redux/types/states/Session';
 
 const SERVER_API = getApiServerUrl();
+const REQUEST_TIMEOUT = 120000; // 2 minutes
 
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const executeOperationWithRetry: any = async (operationFunction: () => Promise<
     {
@@ -15,26 +18,29 @@ const executeOperationWithRetry: any = async (operationFunction: () => Promise<
         Session: SessionType | null;
     }
 >) => {
-    const maxRetryAttempts = 8;
+    const maxRetryAttempts = 5;
     let retryAttempts = 0;
-    let response = null;
+    let lastError: Error | null = null;
 
     while (retryAttempts < maxRetryAttempts) {
         try {
-            response = await operationFunction();
-            break; // Exit the loop if the operation is successful
-        } catch (error) {
-            console.error(`Operation failed. Retrying attempt ${retryAttempts + 1}. Error:`, error);
+            const response = await operationFunction();
+            return response;
+        } catch (error: any) {
+            lastError = error;
             retryAttempts++;
+            console.error(`Operation failed (attempt ${retryAttempts}/${maxRetryAttempts}). Error:`, error?.message || error);
+
+            if (retryAttempts < maxRetryAttempts) {
+                const backoffMs = Math.min(1000 * Math.pow(2, retryAttempts - 1), 16000);
+                console.log(`Retrying in ${backoffMs}ms...`);
+                await delay(backoffMs);
+            }
         }
     }
 
-    if (retryAttempts === maxRetryAttempts) {
-        console.error(`Operation failed after ${maxRetryAttempts} attempts.`);
-        throw new Error("Failed after multiple attempts.");
-    }
-
-    return response;
+    console.error(`Operation failed after ${maxRetryAttempts} attempts.`);
+    throw lastError || new Error("Failed after multiple attempts.");
 }
 
 
@@ -51,6 +57,7 @@ export const initializeSessionAPI = async (doctype: Doctype, uploadedFile: FileT
             headers: {
                 "Content-Type": "multipart/form-data",
             },
+            timeout: REQUEST_TIMEOUT,
         });
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Initialized") {
@@ -72,7 +79,7 @@ export const extractTextAPI = async (Session: SessionType) => {
     const PROCESS_URL = SERVER_API + "/api/v1/extract-text";
 
     return await executeOperationWithRetry(async () => {
-        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"]);
+        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], null, { timeout: REQUEST_TIMEOUT });
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Extracted") {
             return {
@@ -92,14 +99,14 @@ export const extractTableAPI = async (Session: SessionType) => {
 
     if (Session["Information Type"] === "Regular" || Session["Information Type"] !== "Tabular") {
         return {
-            Status: "Translated",
+            Status: "Extracted",
             Session: Session,
             Error: null,
         };
     }
 
     return await executeOperationWithRetry(async () => {
-        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"]);
+        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], null, { timeout: REQUEST_TIMEOUT });
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Extracted") {
             return {
@@ -119,7 +126,7 @@ export const correctTextAPI = async (Session: SessionType) => {
     const PROCESS_URL = SERVER_API + "/api/v1/correct-text";
 
     return await executeOperationWithRetry(async () => {
-        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"]);
+        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], null, { timeout: REQUEST_TIMEOUT });
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Corrected") {
             return {
@@ -133,20 +140,20 @@ export const correctTextAPI = async (Session: SessionType) => {
     });
 };
 
-// STEP FIVE: Extract Table (/api/v1/correct-table)
+// STEP FIVE: Correct Table (/api/v1/correct-table)
 export const correctTableAPI = async (Session: SessionType) => {
     const PROCESS_URL = SERVER_API + "/api/v1/correct-tables";
 
     if (Session["Information Type"] === "Regular" || Session["Information Type"] !== "Tabular") {
         return {
-            Status: "Translated",
+            Status: "Corrected",
             Session: Session,
             Error: null,
         };
     }
 
     return await executeOperationWithRetry(async () => {
-        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"]);
+        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], null, { timeout: REQUEST_TIMEOUT });
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Corrected") {
             return {
@@ -166,7 +173,7 @@ export const translateTextAPI = async (Session: SessionType) => {
     const PROCESS_URL = SERVER_API + "/api/v1/translate-text";
 
     return await executeOperationWithRetry(async () => {
-        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"]);
+        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], null, { timeout: REQUEST_TIMEOUT });
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Translated") {
             return {
@@ -193,7 +200,7 @@ export const translateTableAPI = async (Session: SessionType) => {
     }
 
     return await executeOperationWithRetry(async () => {
-        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"]);
+        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], null, { timeout: REQUEST_TIMEOUT });
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Translated") {
             return {
@@ -232,7 +239,7 @@ export const generateDocumentAPI = async (Session: SessionType, doctype?: Doctyp
     }
 
     return await executeOperationWithRetry(async () => {
-        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], payload);
+        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], payload, { timeout: REQUEST_TIMEOUT });
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Generated") {
             return {
