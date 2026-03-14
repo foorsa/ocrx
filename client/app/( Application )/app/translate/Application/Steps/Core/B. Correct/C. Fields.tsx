@@ -57,13 +57,20 @@ const DynamicField = ({ XField }: { XField: Field }) => {
 	};
 
 	const handleValueTranslation = async (Name: string, Value: string) => {
+		const translateApiKey = process.env.NEXT_PUBLIC_GOOGLE_TRANSLATE_API_KEY;
+
+		if (!translateApiKey) {
+			toast.error("Google Translate API key is not configured.");
+			return;
+		}
+
 		const TranslatedValue = await toast
 			.promise(
 				translate(Value, {
 					from: "fr",
 					to: "en",
 					engine: "google",
-					key: "AIzaSyA7RFTSzlS2x_UGZS1YX6olIQrdWwkT-Us",
+					key: translateApiKey,
 				}),
 				{
 					loading: `Translating ${Name}...`,

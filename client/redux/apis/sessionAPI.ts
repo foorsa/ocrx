@@ -242,13 +242,27 @@ export const generateDocumentAPI = async (Session: SessionType, doctype?: Doctyp
         const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], payload, { timeout: REQUEST_TIMEOUT });
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Generated") {
+            const generatedSession = Response.data.Session;
+
+            // Validate that the backend actually produced the document links
+            const pdfLink = generatedSession?.Generation?.["PDF Link"];
+            const googleDocsLink = generatedSession?.Generation?.["Google Docs Link"];
+
+            if (!pdfLink && !googleDocsLink) {
+                throw new Error(
+                    "Document generation completed but no PDF or Google Docs link was returned. " +
+                    "This may indicate an issue with the server's API credentials or template configuration."
+                );
+            }
+
             return {
                 Status: "Generated",
-                Session: Response.data.Session,
+                Session: generatedSession,
                 Error: null,
             };
         } else {
-            throw new Error("Failed to generate document.");
+            const serverError = Response.data?.Error || Response.data?.message;
+            throw new Error(serverError || "Failed to generate document.");
         }
     });
 };
