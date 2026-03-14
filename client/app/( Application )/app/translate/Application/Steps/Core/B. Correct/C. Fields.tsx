@@ -4,7 +4,7 @@ import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import { Doctype, Field } from "@/redux/types/states/Document Type";
 import { setSession } from "@/redux/slices/sessionSlice";
 import { Translate } from "iconsax-react";
-import translate from "translate";
+import { translateText } from "@/utils/translate";
 import toast from "react-hot-toast";
 
 export default function Fields() {
@@ -57,21 +57,26 @@ const DynamicField = ({ XField }: { XField: Field }) => {
 	};
 
 	const handleValueTranslation = async (Name: string, Value: string) => {
-		const TranslatedValue = await toast
-			.promise(
-				translate(Value, {
-					from: "fr",
-					to: "en",
-					engine: "google",
-					key: "AIzaSyA7RFTSzlS2x_UGZS1YX6olIQrdWwkT-Us",
-				}),
-				{
-					loading: `Translating ${Name}...`,
-					success: `${Name} translated successfully.`,
-					error: `Couldn't translate ${Name}.`,
-				}
-			)
-			.then((res: string) => res);
+		if (!Value || Value.trim() === "") {
+			toast.error(`No value to translate for ${Name}.`);
+			return;
+		}
+
+		let TranslatedValue: string;
+		try {
+			TranslatedValue = await toast
+				.promise(
+					translateText(Value, "French", "English"),
+					{
+						loading: `Translating ${Name}...`,
+						success: `${Name} translated successfully.`,
+						error: `Couldn't translate ${Name}. Check your OpenAI API key.`,
+					}
+				);
+		} catch (error: any) {
+			console.error(`Translation failed for ${Name}:`, error);
+			return;
+		}
 
 		toast(`Translated ${Name} from "${Value}" to "${TranslatedValue}".`, {
 			icon: <Translate color="currentColor" variant="Bulk" />,
