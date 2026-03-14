@@ -46,6 +46,8 @@ interface Session {
         "PDF Link": string;
         "Google Docs Link": string;
         "Preview Link": string;
+        "File Data"?: string;
+        "File Name"?: string;
     }
 }
 

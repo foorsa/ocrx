@@ -57,15 +57,16 @@ class PDFGenerator:
         if docx_gen.is_tabular(Session):
             print("[...] Tabular document detected - using DocxTableGenerator for compact tables")
             try:
-                filename = docx_gen.generate(Session)
+                filename, file_base64 = docx_gen.generate(Session)
                 print(f"[OK] Generated compact table document: {filename}")
-                # Return a download link instead of Google Drive links
-                server_url = os.environ.get("SERVER_URL", "")
+                # Return both a download link and base64 data for direct download
                 download_path = f"/api/v1/download/{filename}"
                 return {
                     "PDF Link": download_path,
                     "Google Docs Link": download_path,
                     "Preview Link": download_path,
+                    "File Data": file_base64,
+                    "File Name": filename,
                 }
             except Exception as e:
                 print(f"[X] DocxTableGenerator failed: {e}")
