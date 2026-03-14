@@ -146,7 +146,7 @@ export const processDocument
 
 export const generateDocument
     = createAsyncThunk('session/generate', async (
-        { CorrectedSession, Doctype }: { CorrectedSession: SessionType; Doctype?: import('../types/states/Document Type').Doctype },
+        { CorrectedSession }: { CorrectedSession: SessionType },
         { rejectWithValue }
     ) => {
         console.log("[OK] Generating Document Response: ", CorrectedSession["Session Id"]);
@@ -154,7 +154,7 @@ export const generateDocument
         const loadingToast = toast.loading('Generating Document...');
 
         try {
-            const GeneratedDocument = await generateDocumentAPI(CorrectedSession, Doctype);
+            const GeneratedDocument = await generateDocumentAPI(CorrectedSession);
 
             toast.dismiss(loadingToast);
 

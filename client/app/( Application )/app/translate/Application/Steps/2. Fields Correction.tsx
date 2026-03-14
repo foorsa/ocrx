@@ -64,7 +64,7 @@ export default function Second_CorrectData() {
 			if (Session?.Data?.Translation?.Text) {
 				// Generate the document
 				const result = await dispatch(
-					generateDocument({ CorrectedSession: Session.Data, Doctype })
+					generateDocument({ CorrectedSession: Session.Data })
 				);
 
 				// Navigate to Finish only if generation succeeded
