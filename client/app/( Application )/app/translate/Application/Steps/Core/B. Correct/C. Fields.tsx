@@ -4,7 +4,7 @@ import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import { Doctype, Field } from "@/redux/types/states/Document Type";
 import { setSession } from "@/redux/slices/sessionSlice";
 import { Translate } from "iconsax-react";
-import translate from "translate";
+import { translateText } from "@/utils/translate";
 import toast from "react-hot-toast";
 
 export default function Fields() {
@@ -57,13 +57,6 @@ const DynamicField = ({ XField }: { XField: Field }) => {
 	};
 
 	const handleValueTranslation = async (Name: string, Value: string) => {
-		const translateApiKey = process.env.NEXT_PUBLIC_GOOGLE_TRANSLATE_API_KEY;
-
-		if (!translateApiKey) {
-			toast.error("Google Translate API key is not configured. Please set NEXT_PUBLIC_GOOGLE_TRANSLATE_API_KEY in your environment.");
-			return;
-		}
-
 		if (!Value || Value.trim() === "") {
 			toast.error(`No value to translate for ${Name}.`);
 			return;
@@ -73,19 +66,13 @@ const DynamicField = ({ XField }: { XField: Field }) => {
 		try {
 			TranslatedValue = await toast
 				.promise(
-					translate(Value, {
-						from: "fr",
-						to: "en",
-						engine: "google",
-						key: translateApiKey,
-					}),
+					translateText(Value, "French", "English"),
 					{
 						loading: `Translating ${Name}...`,
 						success: `${Name} translated successfully.`,
-						error: `Couldn't translate ${Name}. The Google Translate API key may be invalid.`,
+						error: `Couldn't translate ${Name}. Check your OpenAI API key.`,
 					}
-				)
-				.then((res: string) => res);
+				);
 		} catch (error: any) {
 			console.error(`Translation failed for ${Name}:`, error);
 			return;
