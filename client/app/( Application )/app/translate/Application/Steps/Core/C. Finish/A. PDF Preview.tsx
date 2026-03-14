@@ -1,22 +1,29 @@
 import React from "react";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/redux/hooks";
+import { getApiServerUrl } from "@/utils/getApiServerUrl";
 
 const PDFPreview = () => {
-	const Dispatch = useAppDispatch();
 	const Session = useAppSelector((state) => state.session);
-	const PDFLink = Session?.Data?.Generation?.["Preview Link"];
+	const PreviewLink = Session?.Data?.Generation?.["Preview Link"];
+	const PYTHON_PUBLIC_URL = getApiServerUrl();
 
-	console.log("PDFLink", PDFLink);
+	const resolveLink = (link: string | undefined) => {
+		if (!link) return "";
+		if (link.startsWith("/")) return PYTHON_PUBLIC_URL + link;
+		return link;
+	};
+
+	const resolvedLink = resolveLink(PreviewLink);
+	const isDocx = PreviewLink?.endsWith(".docx");
 
 	return (
 		<div className="w-full h-auto relative my-5">
 			<div className="relative mx-auto border-zinc-200 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-800 border-[16px] rounded-t-xl h-[172px] max-w-[301px] md:h-[294px] md:max-w-[512px]">
 				<div className="overflow-hidden rounded-xl h-[140px] md:h-[262px] bg-zinc-400 dark:bg-zinc-600">
-					{PDFLink && (
+					{PreviewLink && !isDocx && (
 						<div className="h-[140px] md:h-[262px] w-full rounded-xl">
-							{/* PDF Here */}
 							<object
-								data={PDFLink}
+								data={resolvedLink}
 								type="application/pdf"
 								className="w-full h-full flex flex-col justify-center items-center overflow-hidden no-scrollbar"
 								title="PDF Preview"
@@ -26,20 +33,32 @@ const PDFPreview = () => {
 								<p>
 									Your browser does not support PDFs. Please
 									download the PDF to view it:
-									<a href={PDFLink}>Download PDF</a>
+									<a href={resolvedLink}>Download PDF</a>
 								</p>
 							</object>
 						</div>
 					)}
 
-					{(!PDFLink || PDFLink == "") && (
+					{PreviewLink && isDocx && (
+						<div className="h-[140px] md:h-[262px] w-full rounded-xl flex flex-col justify-center items-center p-5">
+							<h4 className="text-white text-lg text-center font-bold uppercase">
+								Document Ready
+							</h4>
+							<p className="text-zinc-200 dark:text-zinc-300 text-center text-sm mt-2">
+								Your translated document has been generated.
+							</p>
+							<p className="text-zinc-200 dark:text-zinc-300 text-center text-sm mt-1">
+								Click &quot;Download Document&quot; below to save it.
+							</p>
+						</div>
+					)}
+
+					{(!PreviewLink || PreviewLink == "") && (
 						<div className="h-[140px] md:h-[262px] w-full rounded-xl flex flex-col justify-center items-center p-5">
 							<h4 className="text-zinc-500 text-lg dark:text-zinc-500 text-center font-bold uppercase">
-								{/* Not Generated Yet */}
 								PDF Preview
 							</h4>
 							<p className="text-zinc-500 dark:text-zinc-500 text-center text-sm uppercase">
-								{/* Not Generated Yet */}
 								Please generate the PDF to view it.
 							</p>
 						</div>
