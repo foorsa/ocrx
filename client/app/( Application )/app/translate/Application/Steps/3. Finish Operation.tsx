@@ -40,14 +40,35 @@ export default function Third_FinishOperation() {
 	const isDocxDownload = Session?.Generation?.["PDF Link"]?.endsWith(".docx");
 
 	const handleDownloadDocument = () => {
-		if (
-			Session?.Generation?.["PDF Link"] &&
-			Session?.Generation["PDF Link"] != ""
-		) {
-			window.open(resolveLink(Session.Generation["PDF Link"]), "_blank");
-		} else {
+		if (!Session?.Generation?.["PDF Link"] || Session?.Generation["PDF Link"] === "") {
 			toast.error("The document is not ready yet.");
+			return;
 		}
+
+		// If base64 file data is available (locally generated DOCX), download directly
+		if (Session.Generation["File Data"]) {
+			const byteCharacters = atob(Session.Generation["File Data"]);
+			const byteNumbers = new Array(byteCharacters.length);
+			for (let i = 0; i < byteCharacters.length; i++) {
+				byteNumbers[i] = byteCharacters.charCodeAt(i);
+			}
+			const byteArray = new Uint8Array(byteNumbers);
+			const blob = new Blob([byteArray], {
+				type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			});
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = Session.Generation["File Name"] || "document.docx";
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+			return;
+		}
+
+		// For Google Drive links, open in new tab
+		window.open(resolveLink(Session.Generation["PDF Link"]), "_blank");
 	};
 
 	const handleCorrectDocument = () => {

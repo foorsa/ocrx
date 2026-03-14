@@ -3,6 +3,8 @@
 # Used as an alternative to Google Apps Script for table-heavy documents.
 
 import os
+import io
+import base64
 import tempfile
 import datetime
 from docx import Document
@@ -153,13 +155,19 @@ class DocxTableGenerator:
         date_run.font.size = Pt(7)
         date_run.font.color.rgb = RGBColor(0x88, 0x88, 0x88)
 
-        # Save the document
+        # Save the document to disk and also return base64 for direct download
         session_id = session.get("Session Id", "document")
         filename = f"{session_id}.docx"
         filepath = os.path.join(DOWNLOAD_FOLDER, filename)
         doc.save(filepath)
 
-        return filename
+        # Also save to memory buffer for base64 encoding
+        buffer = io.BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        file_base64 = base64.b64encode(buffer.read()).decode("utf-8")
+
+        return filename, file_base64
 
     def _add_compact_table(self, doc, headers, rows, title=None):
         if title:
