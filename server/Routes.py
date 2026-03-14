@@ -14,13 +14,7 @@ from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
 import json
 import datetime
-import io
-import gridfs
-import pymongo
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-from urllib.parse import quote_plus
-from flask import Blueprint, jsonify, request, send_file, Response
+from flask import Blueprint, jsonify, request
 
 # Import any other required modules
 from Modules.SessionGenerator import SessionGenerator
@@ -434,67 +428,3 @@ def TranslateTable():
     print("[OK] Translating Table from Session File Finished !")
 
     return jsonify({"Session": Session.Get()}), 200
-
-
-# PDF Download/Preview Routes for locally generated PDFs
-def _get_pdf_gridfs():
-    """Get GridFS connection for generated PDFs."""
-    username = quote_plus("yassinechettouch")
-    password = quote_plus("0tr7$F1m!@OCRX")
-    cluster = "ocrx-db.rpxyaec.mongodb.net"
-    uri = f"mongodb+srv://{username}:{password}@{cluster}/?retryWrites=true&w=majority"
-    client = MongoClient(uri, server_api=ServerApi("1"))
-    db = client.get_database("OCRX-db")
-    return gridfs.GridFS(db, collection="generated_pdfs")
-
-
-@API_BLUEPRINT.route("/api/v1/download-pdf", methods=["GET"])
-def DownloadPDF():
-    """Download a generated PDF by Session ID."""
-    Session_Id = request.args.get("Session_Id")
-    if not Session_Id:
-        return jsonify({"error": "No Session_Id provided."}), 400
-
-    try:
-        fs = _get_pdf_gridfs()
-        pdf_file = fs.find_one({"filename": f"{Session_Id}.pdf"})
-        if not pdf_file:
-            return jsonify({"error": "PDF not found."}), 404
-
-        return Response(
-            pdf_file.read(),
-            mimetype="application/pdf",
-            headers={
-                "Content-Disposition": f"attachment; filename=OCRX-{Session_Id}.pdf",
-                "Content-Type": "application/pdf",
-            },
-        )
-    except Exception as e:
-        print(f"[ERROR] Download PDF: {e}")
-        return jsonify({"error": str(e)}), 500
-
-
-@API_BLUEPRINT.route("/api/v1/preview-pdf", methods=["GET"])
-def PreviewPDF():
-    """Preview a generated PDF by Session ID (inline display)."""
-    Session_Id = request.args.get("Session_Id")
-    if not Session_Id:
-        return jsonify({"error": "No Session_Id provided."}), 400
-
-    try:
-        fs = _get_pdf_gridfs()
-        pdf_file = fs.find_one({"filename": f"{Session_Id}.pdf"})
-        if not pdf_file:
-            return jsonify({"error": "PDF not found."}), 404
-
-        return Response(
-            pdf_file.read(),
-            mimetype="application/pdf",
-            headers={
-                "Content-Disposition": f"inline; filename=OCRX-{Session_Id}.pdf",
-                "Content-Type": "application/pdf",
-            },
-        )
-    except Exception as e:
-        print(f"[ERROR] Preview PDF: {e}")
-        return jsonify({"error": str(e)}), 500
