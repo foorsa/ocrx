@@ -30,15 +30,23 @@ export default function Third_FinishOperation() {
 
 	const PYTHON_PUBLIC_URL = getApiServerUrl();
 
-	const handleDownloadPDF = () => {
-		// Open the PDF in a new tab
+	const resolveLink = (link: string | undefined) => {
+		if (!link) return "";
+		// If the link is a relative path (from backend-generated .docx), prepend server URL
+		if (link.startsWith("/")) return PYTHON_PUBLIC_URL + link;
+		return link;
+	};
+
+	const isDocxDownload = Session?.Generation?.["PDF Link"]?.endsWith(".docx");
+
+	const handleDownloadDocument = () => {
 		if (
 			Session?.Generation?.["PDF Link"] &&
 			Session?.Generation["PDF Link"] != ""
 		) {
-			window.open(Session.Generation["PDF Link"], "_blank");
+			window.open(resolveLink(Session.Generation["PDF Link"]), "_blank");
 		} else {
-			toast.error("The PDF is not ready yet.");
+			toast.error("The document is not ready yet.");
 		}
 	};
 
@@ -59,7 +67,7 @@ export default function Third_FinishOperation() {
 			Session?.Generation?.["Google Docs Link"] &&
 			Session?.Generation["Google Docs Link"] != ""
 		) {
-			window.open(Session.Generation["Google Docs Link"], "_blank");
+			window.open(resolveLink(Session.Generation["Google Docs Link"]), "_blank");
 		} else {
 			toast.error("The Google Docs link is not ready yet.");
 		}
@@ -84,27 +92,29 @@ export default function Third_FinishOperation() {
 				<button
 					type="button"
 					className="inline-flex text-center gap-3 w-full mb-2 items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-sky-700 rounded-xl hover:bg-sky-800 focus:outline-none dark:bg-sky-600 dark:hover:bg-sky-700 focus:bg-sky-500 active:bg-sky-900 transition duration-150 ease-in-out"
-					onClick={handleDownloadPDF}
+					onClick={handleDownloadDocument}
 				>
-					Download PDF
+					{isDocxDownload ? "Download Document" : "Download PDF"}
 					<DocumentDownload
 						color="currentColor"
 						variant="Bulk"
 						className="inline w-5 h-5"
 					/>
 				</button>
-				<button
-					type="button"
-					className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-xl border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-sky-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
-					onClick={handleEditDocument}
-				>
-					Edit in Google Docs
-					<Google
-						color="currentColor"
-						variant="Bulk"
-						className="inline w-5 h-5"
-					/>
-				</button>
+				{!isDocxDownload && (
+					<button
+						type="button"
+						className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-xl border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-sky-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
+						onClick={handleEditDocument}
+					>
+						Edit in Google Docs
+						<Google
+							color="currentColor"
+							variant="Bulk"
+							className="inline w-5 h-5"
+						/>
+					</button>
+				)}
 				<button
 					type="button"
 					className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-xl border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-sky-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
