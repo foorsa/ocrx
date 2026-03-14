@@ -1,6 +1,7 @@
 import {
     DocumentType,
     DocumentsGroupType,
+    DEFAULT_TABLE_OPTIONS,
 } from "@/redux/types/states/Document Type";
 
 export const TranscriptOfMarksV2: DocumentType = {
@@ -10,6 +11,7 @@ export const TranscriptOfMarksV2: DocumentType = {
     "description": "An academic transcript states the candidate name, the institution he studied at, and a list of all courses taken, all grades received and degrees conferred.",
     "state": "Available",
     "templateId": "",
+    "tableOptions": DEFAULT_TABLE_OPTIONS,
     "fields": [
         {
             name: "Province",
