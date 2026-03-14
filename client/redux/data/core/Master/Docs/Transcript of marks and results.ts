@@ -1,6 +1,7 @@
 import {
     DocumentType,
     DocumentsGroupType,
+    DEFAULT_TABLE_OPTIONS,
 } from "@/redux/types/states/Document Type";
 
 export const TranscriptOfMarks: DocumentType = {
@@ -10,6 +11,7 @@ export const TranscriptOfMarks: DocumentType = {
     "tags": ["Regular", "Tabular"],
     "state": "Available",
     "templateId": "",
+    "tableOptions": DEFAULT_TABLE_OPTIONS,
     "fields": [
         {
             name: "Start Semester",

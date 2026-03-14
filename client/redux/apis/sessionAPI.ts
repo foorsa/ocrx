@@ -1,6 +1,6 @@
 import { getApiServerUrl } from '@/utils/getApiServerUrl';
 import { FileType } from '../types/states/File';
-import { Doctype } from '../types/states/Document Type';
+import { Doctype, DEFAULT_TABLE_OPTIONS } from '../types/states/Document Type';
 import toast from 'react-hot-toast';
 import Axios, { CancelTokenSource } from 'axios';
 import { Session as SessionType } from '@/redux/types/states/Session';
@@ -210,13 +210,29 @@ export const translateTableAPI = async (Session: SessionType) => {
 
 
 // STEP EIGHT: Generate Document (/api/v1/generate-document)
-export const generateDocumentAPI = async (Session: SessionType) => {
+export const generateDocumentAPI = async (Session: SessionType, doctype?: Doctype) => {
     const PROCESS_URL = SERVER_API + "/api/v1/generate-document";
 
+    const tableOptions = doctype?.tableOptions ?? DEFAULT_TABLE_OPTIONS;
+
+    const payload: Record<string, any> = {
+        Values: Session?.Translation?.Text,
+    };
+
+    // Send tables data and layout options for tabular documents
+    if (Session["Information Type"] === "Tabular") {
+        payload.Tables = Session?.Translation?.Tables ?? [];
+        payload.TableOptions = {
+            auto_fit_cells: tableOptions.autoFitCells,
+            font_size: tableOptions.fontSize,
+            cell_padding: tableOptions.cellPadding,
+            max_column_width: tableOptions.maxColumnWidth,
+            fit_to_page_width: tableOptions.fitToPageWidth,
+        };
+    }
+
     return await executeOperationWithRetry(async () => {
-        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], {
-            Values: Session?.Translation?.Text
-        });
+        const Response = await Axios.post(PROCESS_URL + "?Session_Id=" + Session["Session Id"], payload);
 
         if (Response.status === 200 && Response.data?.Session?.Status === "Generated") {
             return {

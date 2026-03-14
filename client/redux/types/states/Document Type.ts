@@ -34,6 +34,21 @@ type TagType = "Regular" | "Tabular";
 type StateType = "Available" | "Unavailable";
 
 
+export type TableLayoutOptions = {
+    autoFitCells: boolean;
+    fontSize: number;
+    cellPadding: number;
+    maxColumnWidth?: number;
+    fitToPageWidth: boolean;
+};
+
+export const DEFAULT_TABLE_OPTIONS: TableLayoutOptions = {
+    autoFitCells: true,
+    fontSize: 8,
+    cellPadding: 2,
+    fitToPageWidth: true,
+};
+
 export type DocumentType = {
     name: string;
     id: string;
@@ -42,6 +57,7 @@ export type DocumentType = {
     state: StateType;
     templateId: string;
     fields: Field[];
+    tableOptions?: TableLayoutOptions;
 }
 
 export type DocumentsGroupType = {

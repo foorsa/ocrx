@@ -1,5 +1,18 @@
 import { Doctype } from "./Document Type";
 
+export type TableCell = {
+    value: string;
+    colspan?: number;
+    rowspan?: number;
+};
+
+export type TableRow = TableCell[] | string[];
+
+export type TableData = {
+    headers?: TableRow;
+    rows: TableRow[];
+};
+
 interface Session {
     "Session Id": string;
     "Operation Date"?: string;
@@ -15,19 +28,19 @@ interface Session {
     }[];
     "Extraction"?: {
         "Text": string;
-        "Tables"?: [];
+        "Tables"?: TableData[];
     },
     "Correction"?: {
         "Text": {
             [key: string]: string;
         };
-        "Tables"?: [];
+        "Tables"?: TableData[];
     },
     "Translation"?: {
         "Text": {
             [key: string]: string;
         };
-        "Tables"?: [];
+        "Tables"?: TableData[];
     },
     "Generation"?: {
         "PDF Link": string;
