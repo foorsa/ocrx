@@ -9,11 +9,13 @@ from flask import (
     jsonify,
     request,
     render_template,
+    send_from_directory,
 )
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
 import json
 import datetime
+import os
 from flask import Blueprint, jsonify, request
 
 # Import any other required modules
@@ -428,3 +430,17 @@ def TranslateTable():
     print("[OK] Translating Table from Session File Finished !")
 
     return jsonify({"Session": Session.Get()}), 200
+
+
+# Download endpoint for locally generated documents
+@API_BLUEPRINT.route("/api/v1/download/<filename>", methods=["GET"])
+def DownloadFile(filename):
+    download_folder = os.path.join(os.path.dirname(__file__), "..", "Downloads")
+    if not os.path.exists(os.path.join(download_folder, filename)):
+        return jsonify({"error": "File not found"}), 404
+    return send_from_directory(
+        download_folder,
+        filename,
+        as_attachment=True,
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
