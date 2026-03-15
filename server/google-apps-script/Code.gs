@@ -147,13 +147,25 @@ for (var key in replacements) {
 let placeholder = "{{" + key + "}}";
 body.replaceText(placeholder, replacements[key]);
     }
-const parent = doc.getHeader().getParent();
+// Replace session/date placeholders in body as well
+body.replaceText("{{Session Id}}", Session["Session Id"]);
+body.replaceText("{{Translation Date}}", Session["Operation Date"]);
+// Replace in header/footer if they exist
+var header = doc.getHeader();
+if (header) {
+const parent = header.getParent();
 for (let i = 0; i < parent.getNumChildren(); i += 1) {
 const child = parent.getChild(i);
 if (child.getType() === DocumentApp.ElementType.FOOTER_SECTION) {
 child.asFooterSection().replaceText("{{Session Id}}", Session["Session Id"]);
 child.asFooterSection().replaceText("{{Translation Date}}", Session["Operation Date"]);
+        }
       }
+    }
+var footer = doc.getFooter();
+if (footer) {
+footer.replaceText("{{Session Id}}", Session["Session Id"]);
+footer.replaceText("{{Translation Date}}", Session["Operation Date"]);
     }
 if (Session["Information Type"] == "Tabular") {
 var documentType = Session["Document Type"];
