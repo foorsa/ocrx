@@ -74,13 +74,6 @@ class PDFGenerator:
         DATA = {
             "TemplateId": Template_Id,
             "Session": Session,
-            "tableOptions": {
-                "fontSize": 8,
-                "headerFontSize": 8,
-                "cellPadding": 2,
-                "fitToPageWidth": False,
-                "autoFitColumns": True,
-            },
         }
 
         # [4] Send the POST Request to the Script
