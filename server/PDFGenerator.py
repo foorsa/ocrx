@@ -77,16 +77,8 @@ class PDFGenerator:
         }
 
         # [4] Send the POST Request to the Script
-        # Google Apps Script returns 302 redirects; requests converts POST→GET on 302,
-        # losing the body. We must follow redirects manually to preserve the POST method.
         try:
-            Response = requests.post(URL, json=DATA, allow_redirects=False)
-            while Response.status_code in (301, 302, 307, 308):
-                redirect_url = Response.headers.get("Location")
-                if not redirect_url:
-                    break
-                print(f"[...] Following redirect to: {redirect_url[:80]}...")
-                Response = requests.post(redirect_url, json=DATA, allow_redirects=False)
+            Response = requests.post(URL, json=DATA)
         except Exception as Error:
             print(f"[X] Error sending request to Google Apps Script: {Error}")
             return self._fallback_local_pdf(Session)
