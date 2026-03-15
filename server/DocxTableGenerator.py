@@ -1,18 +1,12 @@
 # DocxTableGenerator.py
-# Generates .docx documents with compact tables for tabular document types.
+# Generates PDF documents with compact tables for tabular document types.
 # Used as an alternative to Google Apps Script for table-heavy documents.
 
 import os
 import io
 import base64
-import tempfile
 import datetime
-from docx import Document
-from docx.shared import Inches, Pt, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.oxml.ns import qn, nsdecls
-from docx.oxml import parse_xml
+from fpdf import FPDF
 
 
 TABULAR_TYPES = [
@@ -24,44 +18,21 @@ TABULAR_TYPES = [
 DOWNLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "..", "Downloads")
 
 
-def _set_cell_shading(cell, color_hex):
-    shading = parse_xml(
-        f'<w:shd {nsdecls("w")} w:fill="{color_hex}" w:val="clear"/>'
-    )
-    cell._tc.get_or_add_tcPr().append(shading)
-
-
-def _set_cell_margins(cell, top=0, bottom=0, left=28, right=28):
-    tc = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    tcMar = parse_xml(
-        f'<w:tcMar {nsdecls("w")}>'
-        f'  <w:top w:w="{top}" w:type="dxa"/>'
-        f'  <w:bottom w:w="{bottom}" w:type="dxa"/>'
-        f'  <w:start w:w="{left}" w:type="dxa"/>'
-        f'  <w:end w:w="{right}" w:type="dxa"/>'
-        f'</w:tcMar>'
-    )
-    tcMar_existing = tcPr.find(qn("w:tcMar"))
-    if tcMar_existing is not None:
-        tcPr.remove(tcMar_existing)
-    tcPr.append(tcMar)
-
-
-def _set_row_height(row, height_pt):
-    tr = row._tr
-    trPr = tr.get_or_add_trPr()
-    trHeight = parse_xml(
-        f'<w:trHeight {nsdecls("w")} w:val="{int(height_pt * 20)}" w:hRule="atLeast"/>'
-    )
-    existing = trPr.find(qn("w:trHeight"))
-    if existing is not None:
-        trPr.remove(existing)
-    trPr.append(trHeight)
-
-
 def _format_document_type(doc_type):
     return doc_type.replace("-", " ").title()
+
+
+class _TranscriptPDF(FPDF):
+    """Custom PDF class for transcript documents."""
+
+    def header(self):
+        pass  # handled manually per page
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Helvetica", "I", 7)
+        self.set_text_color(136, 136, 136)
+        self.cell(0, 10, f"Page {self.page_no()}/{{nb}}", align="C")
 
 
 class DocxTableGenerator:
@@ -73,14 +44,10 @@ class DocxTableGenerator:
         if not os.path.exists(DOWNLOAD_FOLDER):
             os.makedirs(DOWNLOAD_FOLDER)
 
-        doc = Document()
-
-        # Page margins: narrower for more table space
-        for section in doc.sections:
-            section.top_margin = Cm(1.5)
-            section.bottom_margin = Cm(1.5)
-            section.left_margin = Cm(1.5)
-            section.right_margin = Cm(1.5)
+        pdf = _TranscriptPDF()
+        pdf.alias_nb_pages()
+        pdf.set_auto_page_break(auto=True, margin=20)
+        pdf.add_page()
 
         translation = session.get("Translation", {})
         text_fields = translation.get("Text", {})
@@ -88,13 +55,16 @@ class DocxTableGenerator:
         doc_type = session.get("Document Type", "")
 
         # Title
-        title = doc.add_heading(_format_document_type(doc_type), level=1)
-        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        for run in title.runs:
-            run.font.size = Pt(14)
-            run.font.color.rgb = RGBColor(0x1A, 0x1A, 0x2E)
+        pdf.set_font("Helvetica", "B", 16)
+        pdf.set_text_color(26, 26, 46)
+        pdf.cell(0, 12, _format_document_type(doc_type), align="C", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(4)
 
-        doc.add_paragraph("")  # spacer
+        # Horizontal rule under title
+        pdf.set_draw_color(26, 26, 46)
+        pdf.set_line_width(0.5)
+        pdf.line(pdf.l_margin, pdf.get_y(), pdf.w - pdf.r_margin, pdf.get_y())
+        pdf.ln(6)
 
         # Text fields section
         field_order = [
@@ -103,165 +73,140 @@ class DocxTableGenerator:
             "City of issue", "Date of issue", "Year"
         ]
 
+        fields_printed = False
         for key in field_order:
             value = text_fields.get(key, "")
             if value:
-                p = doc.add_paragraph()
-                p.paragraph_format.space_before = Pt(1)
-                p.paragraph_format.space_after = Pt(1)
-                label_run = p.add_run(f"{key}: ")
-                label_run.bold = True
-                label_run.font.size = Pt(9)
-                label_run.font.name = "Arial"
-                value_run = p.add_run(str(value))
-                value_run.font.size = Pt(9)
-                value_run.font.name = "Arial"
+                fields_printed = True
+                pdf.set_font("Helvetica", "B", 9)
+                pdf.set_text_color(33, 33, 33)
+                label_w = pdf.get_string_width(f"{key}: ") + 2
+                pdf.cell(label_w, 6, f"{key}: ")
+                pdf.set_font("Helvetica", "", 9)
+                pdf.set_text_color(60, 60, 60)
+                pdf.cell(0, 6, str(value), new_x="LMARGIN", new_y="NEXT")
 
         # Any remaining fields not in the order list
         for key, value in text_fields.items():
             if key not in field_order and value:
-                p = doc.add_paragraph()
-                p.paragraph_format.space_before = Pt(1)
-                p.paragraph_format.space_after = Pt(1)
-                label_run = p.add_run(f"{key}: ")
-                label_run.bold = True
-                label_run.font.size = Pt(9)
-                label_run.font.name = "Arial"
-                value_run = p.add_run(str(value))
-                value_run.font.size = Pt(9)
-                value_run.font.name = "Arial"
+                fields_printed = True
+                pdf.set_font("Helvetica", "B", 9)
+                pdf.set_text_color(33, 33, 33)
+                label_w = pdf.get_string_width(f"{key}: ") + 2
+                pdf.cell(label_w, 6, f"{key}: ")
+                pdf.set_font("Helvetica", "", 9)
+                pdf.set_text_color(60, 60, 60)
+                pdf.cell(0, 6, str(value), new_x="LMARGIN", new_y="NEXT")
 
-        doc.add_paragraph("")  # spacer before tables
+        if fields_printed:
+            pdf.ln(4)
 
         # Tables section
         if doc_type == "Master-Transcript-of-Marks":
-            self._add_master_table(doc, tables_data)
+            self._add_master_table(pdf, tables_data)
         elif doc_type in [
             "Baccalaureate-Transcript-of-Marks-V1",
             "Baccalaureate-Transcript-of-Marks-V2"
         ]:
-            self._add_baccalaureate_tables(doc, tables_data)
+            self._add_baccalaureate_tables(pdf, tables_data)
 
         # Footer info
-        doc.add_paragraph("")
-        footer_p = doc.add_paragraph()
-        footer_p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        footer_p.paragraph_format.space_before = Pt(4)
-        sid_run = footer_p.add_run(f"Session ID: {session.get('Session Id', '')}")
-        sid_run.font.size = Pt(7)
-        sid_run.font.color.rgb = RGBColor(0x88, 0x88, 0x88)
-        footer_p.add_run("    ")
-        date_run = footer_p.add_run(f"Date: {session.get('Operation Date', '')}")
-        date_run.font.size = Pt(7)
-        date_run.font.color.rgb = RGBColor(0x88, 0x88, 0x88)
+        pdf.ln(8)
+        pdf.set_font("Helvetica", "", 7)
+        pdf.set_text_color(136, 136, 136)
+        pdf.cell(0, 5, f"Session ID: {session.get('Session Id', '')}    Date: {session.get('Operation Date', '')}", align="L")
 
-        # Save the document to disk and also return base64 for direct download
+        # Save to file and buffer
         session_id = session.get("Session Id", "document")
-        filename = f"{session_id}.docx"
+        filename = f"{session_id}.pdf"
         filepath = os.path.join(DOWNLOAD_FOLDER, filename)
-        doc.save(filepath)
+        pdf.output(filepath)
 
-        # Also save to memory buffer for base64 encoding
-        buffer = io.BytesIO()
-        doc.save(buffer)
-        buffer.seek(0)
-        file_base64 = base64.b64encode(buffer.read()).decode("utf-8")
+        # Also get base64 for direct download
+        pdf_bytes = pdf.output()
+        file_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
 
         return filename, file_base64
 
-    def _add_compact_table(self, doc, headers, rows, title=None):
+    def _add_compact_table(self, pdf, headers, rows, title=None):
         if title:
-            heading = doc.add_heading(title, level=3)
-            heading.paragraph_format.space_before = Pt(4)
-            heading.paragraph_format.space_after = Pt(2)
-            for run in heading.runs:
-                run.font.size = Pt(10)
+            pdf.set_font("Helvetica", "B", 11)
+            pdf.set_text_color(0, 102, 153)
+            pdf.cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
+            pdf.ln(1)
 
         num_cols = len(headers)
-        num_rows = len(rows) + 1  # +1 for header
+        available_width = pdf.w - pdf.l_margin - pdf.r_margin
 
-        table = doc.add_table(rows=num_rows, cols=num_cols)
-        table.alignment = WD_TABLE_ALIGNMENT.CENTER
-        table.style = "Table Grid"
-
-        # Calculate column widths based on available page width (~18cm with 1.5cm margins)
-        available_width_cm = 18.0
+        # Calculate column widths
         if num_cols <= 4:
-            first_col_cm = available_width_cm * 0.40
-            other_col_cm = (available_width_cm - first_col_cm) / (num_cols - 1)
+            first_col_w = available_width * 0.40
+            other_col_w = (available_width - first_col_w) / max(num_cols - 1, 1)
         else:
-            first_col_cm = available_width_cm * 0.18
-            other_col_cm = (available_width_cm - first_col_cm) / (num_cols - 1)
+            first_col_w = available_width * 0.22
+            other_col_w = (available_width - first_col_w) / max(num_cols - 1, 1)
 
-        # Set column widths
-        for col_idx in range(num_cols):
-            width = Cm(first_col_cm if col_idx == 0 else other_col_cm)
-            table.columns[col_idx].width = width
+        col_widths = [first_col_w if i == 0 else other_col_w for i in range(num_cols)]
+        row_height = 7
 
         # Header row
-        header_row = table.rows[0]
-        _set_row_height(header_row, 12)
+        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_fill_color(217, 217, 217)
+        pdf.set_text_color(26, 26, 26)
+        pdf.set_draw_color(153, 153, 153)
+        pdf.set_line_width(0.2)
+
         for col_idx, header_text in enumerate(headers):
-            cell = header_row.cells[col_idx]
-            cell.text = ""
-            p = cell.paragraphs[0]
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-            p.paragraph_format.line_spacing = Pt(8)
-            run = p.add_run(str(header_text))
-            run.bold = True
-            run.font.size = Pt(6.5)
-            run.font.name = "Arial Narrow"
-            run.font.color.rgb = RGBColor(0x1A, 0x1A, 0x1A)
-            _set_cell_shading(cell, "D9D9D9")
-            _set_cell_margins(cell, top=10, bottom=10, left=20, right=20)
-            cell.width = Cm(first_col_cm if col_idx == 0 else other_col_cm)
+            pdf.cell(
+                col_widths[col_idx], row_height,
+                str(header_text),
+                border=1, fill=True, align="C",
+            )
+        pdf.ln()
 
         # Data rows
+        pdf.set_font("Helvetica", "", 7)
+        pdf.set_text_color(33, 33, 33)
+        pdf.set_draw_color(187, 187, 187)
+
         for row_idx, row_data in enumerate(rows):
-            table_row = table.rows[row_idx + 1]
-            _set_row_height(table_row, 10)
+            # Alternate row shading
+            if row_idx % 2 == 1:
+                pdf.set_fill_color(245, 245, 245)
+                fill = True
+            else:
+                pdf.set_fill_color(255, 255, 255)
+                fill = True
+
+            # Check if we need a page break
+            if pdf.get_y() + row_height > pdf.h - pdf.b_margin:
+                pdf.add_page()
+                # Reprint header on new page
+                pdf.set_font("Helvetica", "B", 7)
+                pdf.set_fill_color(217, 217, 217)
+                pdf.set_text_color(26, 26, 26)
+                pdf.set_draw_color(153, 153, 153)
+                for col_idx, header_text in enumerate(headers):
+                    pdf.cell(col_widths[col_idx], row_height, str(header_text), border=1, fill=True, align="C")
+                pdf.ln()
+                pdf.set_font("Helvetica", "", 7)
+                pdf.set_text_color(33, 33, 33)
+                pdf.set_draw_color(187, 187, 187)
+
             for col_idx in range(num_cols):
-                cell = table_row.cells[col_idx]
                 cell_value = ""
                 if col_idx < len(row_data):
                     cell_value = str(row_data[col_idx]) if row_data[col_idx] is not None else ""
-                cell.text = ""
-                p = cell.paragraphs[0]
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER if col_idx > 0 else WD_ALIGN_PARAGRAPH.LEFT
-                p.paragraph_format.space_before = Pt(0)
-                p.paragraph_format.space_after = Pt(0)
-                p.paragraph_format.line_spacing = Pt(7.5)
-                run = p.add_run(cell_value)
-                run.font.size = Pt(6.5)
-                run.font.name = "Arial Narrow"
-                _set_cell_margins(cell, top=8, bottom=8, left=20, right=20)
-                cell.width = Cm(first_col_cm if col_idx == 0 else other_col_cm)
 
-                # Alternate row shading
-                if row_idx % 2 == 1:
-                    _set_cell_shading(cell, "F5F5F5")
+                align = "L" if col_idx == 0 else "C"
+                pdf.cell(
+                    col_widths[col_idx], row_height,
+                    cell_value,
+                    border=1, fill=fill, align=align,
+                )
+            pdf.ln()
 
-        # Set table borders to thin
-        tbl = table._tbl
-        tblPr = tbl.tblPr if tbl.tblPr is not None else parse_xml(f'<w:tblPr {nsdecls("w")}/>')
-        borders = parse_xml(
-            f'<w:tblBorders {nsdecls("w")}>'
-            f'  <w:top w:val="single" w:sz="4" w:space="0" w:color="999999"/>'
-            f'  <w:left w:val="single" w:sz="4" w:space="0" w:color="999999"/>'
-            f'  <w:bottom w:val="single" w:sz="4" w:space="0" w:color="999999"/>'
-            f'  <w:right w:val="single" w:sz="4" w:space="0" w:color="999999"/>'
-            f'  <w:insideH w:val="single" w:sz="4" w:space="0" w:color="BBBBBB"/>'
-            f'  <w:insideV w:val="single" w:sz="4" w:space="0" w:color="BBBBBB"/>'
-            f'</w:tblBorders>'
-        )
-        existing_borders = tblPr.find(qn("w:tblBorders"))
-        if existing_borders is not None:
-            tblPr.remove(existing_borders)
-        tblPr.append(borders)
-
-    def _add_master_table(self, doc, tables_data):
+    def _add_master_table(self, pdf, tables_data):
         if not tables_data or not isinstance(tables_data, list):
             return
 
@@ -275,9 +220,9 @@ class DocxTableGenerator:
                 item.get("Session", ""),
             ])
 
-        self._add_compact_table(doc, headers, rows, title="Transcript of Marks")
+        self._add_compact_table(pdf, headers, rows, title="Transcript of Marks")
 
-    def _add_baccalaureate_tables(self, doc, tables_data):
+    def _add_baccalaureate_tables(self, pdf, tables_data):
         if not tables_data:
             return
 
@@ -287,7 +232,7 @@ class DocxTableGenerator:
             columns = transcript.get("Columns", [])
             rows = transcript.get("Rows", [])
             if columns and rows:
-                self._add_compact_table(doc, columns, rows, title="Transcript of Marks")
+                self._add_compact_table(pdf, columns, rows, title="Transcript of Marks")
 
         # Overall table
         overall = tables_data.get("Overall")
@@ -295,4 +240,5 @@ class DocxTableGenerator:
             columns = overall.get("Columns", [])
             rows = overall.get("Rows", [])
             if columns and rows:
-                self._add_compact_table(doc, columns, rows, title="Overall Results")
+                pdf.ln(4)
+                self._add_compact_table(pdf, columns, rows, title="Overall Results")
