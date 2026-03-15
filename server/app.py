@@ -40,10 +40,10 @@ def CreateFlaskApp():
     if not os.path.exists(FlaskApp.config["UPLOAD_FOLDER"]):
         os.makedirs(FlaskApp.config["UPLOAD_FOLDER"])
 
-    WindowsTessData = os.path.join(os.path.dirname(__file__), "tessdata")
-
     # Load the traineddata file for Tesseract - Contains the language models (e.g., English, French, Arabic, etc.)
-    os.environ["TESSDATA_PREFIX"] = WindowsTessData
+    # Use TESSDATA_PREFIX env var if set (e.g. on Heroku), otherwise fall back to local tessdata directory
+    if not os.environ.get("TESSDATA_PREFIX"):
+        os.environ["TESSDATA_PREFIX"] = os.path.join(os.path.dirname(__file__), "tessdata")
 
     # Register the blueprint for API routes
     FlaskApp.register_blueprint(API_BLUEPRINT)
