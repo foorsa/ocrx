@@ -9,7 +9,7 @@ _ = load_dotenv(find_dotenv())
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Model to use for all GPT calls
-GPT_MODEL = "gpt-4.1"
+GPT_MODEL = "gpt-4o"
 
 
 def PromptString(Doctype, AvailableDoctypes, PromptOptions):
