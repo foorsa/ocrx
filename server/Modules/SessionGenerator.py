@@ -240,12 +240,14 @@ class SessionGenerator:
                 )
 
             # Check if Content is None
-            if ExtractedText is None or ExtractedText == "":
+            if ExtractedText is None or ExtractedText.strip() == "":
                 print("[ERROR] OCR file does not contain any content.")
-
                 self.session["Error"] = "Error Reading the File, Please Try Again."
                 self.session["Status"] = "Error"
-                return self.session
+                self.db.sessions.update_one(
+                    {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+                )
+                raise Exception("No text could be extracted from the uploaded file. Please try a clearer image or PDF.")
             else:
                 print("[...] OCR file contains content.")
                 print("[...] Extracted Text Length: ", len(ExtractedText))

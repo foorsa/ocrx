@@ -137,17 +137,31 @@ class DocxTableGenerator:
 
         num_cols = len(headers)
         available_width = pdf.w - pdf.l_margin - pdf.r_margin
+        cell_padding = 4  # mm padding per cell
 
-        # Calculate column widths
-        if num_cols <= 4:
-            first_col_w = available_width * 0.40
-            other_col_w = (available_width - first_col_w) / max(num_cols - 1, 1)
-        else:
-            first_col_w = available_width * 0.22
-            other_col_w = (available_width - first_col_w) / max(num_cols - 1, 1)
+        # Calculate column widths based on actual content
+        pdf.set_font("Helvetica", "B", 7)
+        col_widths = [pdf.get_string_width(str(h)) + cell_padding for h in headers]
 
-        col_widths = [first_col_w if i == 0 else other_col_w for i in range(num_cols)]
-        row_height = 7
+        pdf.set_font("Helvetica", "", 7)
+        for row_data in rows:
+            for col_idx in range(num_cols):
+                if col_idx < len(row_data):
+                    cell_value = str(row_data[col_idx]) if row_data[col_idx] is not None else ""
+                    text_w = pdf.get_string_width(cell_value) + cell_padding
+                    if text_w > col_widths[col_idx]:
+                        col_widths[col_idx] = text_w
+
+        # Cap total width to available page width
+        total_width = sum(col_widths)
+        if total_width > available_width:
+            scale = available_width / total_width
+            col_widths = [w * scale for w in col_widths]
+            total_width = available_width
+
+        # Center the table on the page
+        table_x = pdf.l_margin + (available_width - total_width) / 2
+        row_height = 6
 
         # Header row
         pdf.set_font("Helvetica", "B", 7)
@@ -155,6 +169,7 @@ class DocxTableGenerator:
         pdf.set_text_color(26, 26, 26)
         pdf.set_draw_color(153, 153, 153)
         pdf.set_line_width(0.2)
+        pdf.set_x(table_x)
 
         for col_idx, header_text in enumerate(headers):
             pdf.cell(
@@ -186,6 +201,7 @@ class DocxTableGenerator:
                 pdf.set_fill_color(217, 217, 217)
                 pdf.set_text_color(26, 26, 26)
                 pdf.set_draw_color(153, 153, 153)
+                pdf.set_x(table_x)
                 for col_idx, header_text in enumerate(headers):
                     pdf.cell(col_widths[col_idx], row_height, str(header_text), border=1, fill=True, align="C")
                 pdf.ln()
@@ -193,6 +209,7 @@ class DocxTableGenerator:
                 pdf.set_text_color(33, 33, 33)
                 pdf.set_draw_color(187, 187, 187)
 
+            pdf.set_x(table_x)
             for col_idx in range(num_cols):
                 cell_value = ""
                 if col_idx < len(row_data):

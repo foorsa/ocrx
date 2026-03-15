@@ -1,58 +1,144 @@
 # import the necessary packages
 import os
 import tempfile
+import base64
+import io
 from pdf2image import convert_from_path
 import pytesseract
 from ExtractTable import ExtractTable
 from dotenv import load_dotenv
 import json
+from PyPDF2 import PdfReader
+from openai import OpenAI
 
 
 # Define the OCR Processor Class
 class OCRProcessor:
     def __init__(self):
         self.ET_SESSION = ExtractTable(os.environ.get("ET_API_KEY"))
-        pass
+        self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    def _image_to_base64(self, image):
+        """Convert a PIL Image to a base64 string."""
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    def _extract_text_with_vision(self, image):
+        """Use GPT-4o Vision to extract text from an image."""
+        base64_image = self._image_to_base64(image)
+
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                "Extract ALL text from this document image exactly as it appears. "
+                                "Preserve the layout and structure as much as possible. "
+                                "Include every word, number, date, and symbol visible in the document. "
+                                "If there are tables, represent them with clear column separation. "
+                                "Do not add any commentary or explanation - output ONLY the extracted text."
+                            ),
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{base64_image}",
+                                "detail": "high",
+                            },
+                        },
+                    ],
+                }
+            ],
+            max_tokens=4096,
+        )
+
+        return response.choices[0].message.content.strip()
 
     # Read the Image File
     def ExtractTextFromImage(self, InformationType, SessionId, Image):
+        # Try GPT-4o Vision first
+        try:
+            print("[OCR] Extracting text with GPT-4o Vision...")
+            text = self._extract_text_with_vision(Image)
+            if text and text.strip():
+                print(f"[OCR] GPT-4o Vision extracted {len(text)} chars")
+                return text
+        except Exception as e:
+            print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
+
+        # Fallback to Tesseract
         try:
             TextContent = pytesseract.image_to_string(
                 Image,
-                lang="fra+ara",
+                lang="fra+ara+eng",
                 config="",
             )
             return TextContent
         except Exception as e:
-            print(f"[OCR ERROR] Error reading image file: {str(e)}")
+            print(f"[OCR ERROR] Tesseract also failed: {str(e)}")
             return ""
 
     def ExtractTextFromPDF(self, InformationType, SessionId, PDFBytes):
         try:
+            # First, try direct text extraction from the PDF (works for digital PDFs)
+            PDFBytes.seek(0)
+            reader = PdfReader(PDFBytes)
+            direct_text = ""
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    direct_text += page_text
+
+            if direct_text.strip():
+                print(f"[OCR] Extracted text directly from PDF ({len(direct_text)} chars)")
+                return direct_text
+
+            # Fall back to Vision/OCR for scanned PDFs
+            print("[OCR] No embedded text found, converting pages to images...")
             TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
 
-            # Write the PDF Bytes to a Temporary File
+            PDFBytes.seek(0)
             with open(TEMPORARY_PDF_PATH, "wb") as f:
                 f.write(PDFBytes.getbuffer())
 
             extracted_text = ""
-
-            # Convert each Page to an Image and extract text
             pages = convert_from_path(TEMPORARY_PDF_PATH, 200)
-            for page in pages:
-                page_text = pytesseract.image_to_string(page, lang="fra+ara", config="")
-                extracted_text += page_text
-                # Close the image object
-                page.close()
 
-            # Clean up: remove the temporary PDF file
+            # Try GPT-4o Vision on each page
+            vision_success = False
+            try:
+                print("[OCR] Extracting text with GPT-4o Vision...")
+                for page in pages:
+                    page_text = self._extract_text_with_vision(page)
+                    extracted_text += page_text + "\n"
+                    page.close()
+                vision_success = True
+                print(f"[OCR] GPT-4o Vision extracted {len(extracted_text)} chars from PDF")
+            except Exception as e:
+                print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
+
+            # Fallback to Tesseract if Vision failed
+            if not vision_success:
+                extracted_text = ""
+                pages = convert_from_path(TEMPORARY_PDF_PATH, 200)
+                for page in pages:
+                    page_text = pytesseract.image_to_string(page, lang="fra+ara+eng", config="")
+                    extracted_text += page_text
+                    page.close()
+
+            # Clean up
             os.remove(TEMPORARY_PDF_PATH)
 
             return extracted_text
 
         except Exception as e:
             print(f"Error reading PDF file: {str(e)}")
-            return ""
+            raise Exception(f"Failed to extract text from PDF: {str(e)}")
 
     def ExtractTableFromImage(self, InformationType, SessionId, Image):
         print("[...] Extracting Table from Image ...")

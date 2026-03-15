@@ -32,28 +32,15 @@ const FileUploadService = () => {
 					//
 					const reader = new FileReader();
 					reader.onload = () => {
-						if (file.type.includes("image")) {
-							dispatch(
-								setFile({
-									file: file,
-									name: file.name,
-									type: file.type,
-									size: file.size,
-									preview:
-										reader.result as FileType["preview"],
-								})
-							);
-						} else {
-							dispatch(
-								setFile({
-									file: file,
-									name: file.name,
-									type: file.type,
-									size: file.size,
-									preview: "" as FileType["preview"],
-								} as FileType)
-							);
-						}
+						dispatch(
+							setFile({
+								file: file,
+								name: file.name,
+								type: file.type,
+								size: file.size,
+								preview: reader.result as FileType["preview"],
+							})
+						);
 					};
 					reader.readAsDataURL(file);
 				}, 200);
