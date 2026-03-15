@@ -52,14 +52,74 @@ TemplateIDs = {
 
 class PDFGenerator:
     def Generate(self, Session):
-        # Check if this is a tabular document - use DocxTableGenerator for compact tables
+        Document_Type = Session["Document Type"]
+
+        # [1] Get the Template ID
+        print("[...] Getting the Template ID...")
+        Template_Id = TemplateIDs.get(Document_Type)
+
+        # If no template ID is configured, fall back to local PDF generation for tabular docs
+        if not Template_Id:
+            print(f"[!] No Template ID configured for {Document_Type}")
+            return self._fallback_local_pdf(Session)
+
+        # [2] Get the Google Apps Script URL
+        URL = os.environ.get("GOOGLE_SCRIPT_URL")
+        if not URL:
+            print("[!] GOOGLE_SCRIPT_URL not configured")
+            return self._fallback_local_pdf(Session)
+
+        # [3] Gather the information to fill in the template
+        print("[...] Generating document using Google Apps Script template...")
+        DATA = {
+            "TemplateId": Template_Id,
+            "Session": Session,
+            "tableOptions": {
+                "fontSize": 8,
+                "headerFontSize": 8,
+                "cellPadding": 2,
+                "fitToPageWidth": True,
+            },
+        }
+
+        # [4] Send the POST Request to the Script
+        try:
+            Response = requests.post(URL, data=json.dumps(DATA))
+        except Exception as Error:
+            print(f"[X] Error sending request to Google Apps Script: {Error}")
+            return self._fallback_local_pdf(Session)
+
+        # [5] Check the Response
+        if Response.status_code == 200 and Response.content is not None:
+            try:
+                ResponseData = Response.json()
+
+                if ResponseData["status"] != "success":
+                    print(f"[X] Google Apps Script error: {ResponseData['message']}")
+                    return self._fallback_local_pdf(Session)
+
+                Links = {
+                    "PDF Link": ResponseData["pdfLink"],
+                    "Google Docs Link": ResponseData["docLink"],
+                    "Preview Link": ResponseData["previewLink"],
+                }
+                print(f"[OK] Document generated via template: {Links['PDF Link']}")
+                return Links
+            except Exception as Error:
+                print(f"[X] Error parsing Google Apps Script response: {Error}")
+                return self._fallback_local_pdf(Session)
+        else:
+            print(f"[X] Google Apps Script returned status {Response.status_code}: {Response.reason}")
+            return self._fallback_local_pdf(Session)
+
+    def _fallback_local_pdf(self, Session):
+        """Fall back to local PDF generation for tabular documents."""
         docx_gen = DocxTableGenerator()
         if docx_gen.is_tabular(Session):
-            print("[...] Tabular document detected - using DocxTableGenerator for compact tables")
+            print("[...] Falling back to local PDF generation for tabular document...")
             try:
                 filename, file_base64 = docx_gen.generate(Session)
-                print(f"[OK] Generated compact table document: {filename}")
-                # Return both a download link and base64 data for direct download
+                print(f"[OK] Generated local PDF: {filename}")
                 download_path = f"/api/v1/download/{filename}"
                 return {
                     "PDF Link": download_path,
@@ -69,116 +129,10 @@ class PDFGenerator:
                     "File Name": filename,
                 }
             except Exception as e:
-                print(f"[X] DocxTableGenerator failed: {e}")
-                print("[...] Falling back to Google Apps Script...")
+                print(f"[X] Local PDF generation failed: {e}")
 
-        # [1] Get the Template ID: Used to Generate the Document with a Google Docs File.
-
-        print("[...] Getting the Template ID...")
-        Document_Type = Session["Document Type"]
-        Template_Id = None
-        if Document_Type in TemplateIDs:
-            print("[OK] Template ID Found !")
-            Template_Id = TemplateIDs[Document_Type]
-        else:
-            print("[X] Template ID Not Found !")
-            return {
-                "Error": "Error Generating PDF.",
-                "Status": 400,
-                "Message": "Document Type not found",
-            }
-
-        # [2] Store the Script ID: we execute the Apps Script to Generate the Document.
-        print("[...] Getting the Script ID...")
-        # Get URL from .env
-        URL = os.environ.get("GOOGLE_SCRIPT_URL")
-
-        # [3] Gather the information to fill in the template.
-        print("[...] Gathering the information to fill in the template...")
-        DATA = {
-            # [X] Giving the Template ID to the Script
-            "TemplateId": Template_Id,
-            "Session": Session,
-            # Table formatting options for compact table rendering
-            "tableOptions": {
-                "fontSize": 8,
-                "headerFontSize": 8,
-                "cellPadding": 2,
-                "fitToPageWidth": True,
-            },
+        return {
+            "Error": "Error Generating PDF.",
+            "Status": 400,
+            "Message": "No template configured and local generation failed.",
         }
-        print("[OK] Gathering the information to fill in the template Finished !")
-
-        # [4] Send the POST Request to the Script.
-        print("[...] Sending the POST Request to the Script...")
-        try:
-            Response = requests.post(URL, data=json.dumps(DATA))
-        except Exception as Error:
-            print("[X] Error Sending the POST Request to the Script !")
-            print("Error:", Error)
-            return {
-                "Error": "Error Generating PDF.",
-                "ErrorMessage": str(Error),
-                "Status": 400,
-                "Message": "Error Sending the POST Request to the Script",
-            }
-        print("[OK] Sending the POST Request to the Script Finished !")
-
-        # [5] Check the Response Status Code.
-        print("[...] Checking the Response Status Code...")
-        if Response.status_code == 200 and Response.content is not None:
-            try:
-                print("[OK] Response Status Code is 200 !")
-                # Show the Response in the Terminal
-                print("[...] Showing the Response in the Terminal...")
-                print(Response.content)
-
-                ResponseData = Response.json()
-
-                if ResponseData["status"] != "success":
-                    print("[X] Error Generating PDF !")
-                    print("Error:", ResponseData["message"])
-                    return {
-                        "Error": "Error Generating PDF.",
-                        "ErrorMessage": ResponseData["message"],
-                        "Status": 400,
-                        "Message": "Error Generating PDF",
-                    }
-
-                # [6] Return the Links to the Generated Document.
-                print("[...] Returning the Links to the Generated Document...")
-                Links = {
-                    "PDF Link": ResponseData["pdfLink"],
-                    "Google Docs Link": ResponseData["docLink"],
-                    "Preview Link": ResponseData["previewLink"],
-                }
-                print("[OK] Returning the Links to the Generated Document Finished !")
-
-                print(
-                    f"""
-                    [OK] PDF Link: {Links['PDF Link']} \n
-                    [OK] Google Docs Link: {Links['Google Docs Link']} \n
-                    [OK] Preview Link: {Links['Preview Link']}
-                    """
-                )
-                return Links
-            except Exception as Error:
-                print("[X] Error Returning the Links to the Generated Document !")
-                print("Error:", Error)
-                return {
-                    "Error": "Error Generating PDF.",
-                    "ErrorMessage": str(Error),
-                    "Status": 400,
-                    "Message": "Error Returning the Links to the Generated Document",
-                }
-        else:
-            # [EXCEPTION] Return the Error Message: Status Code and Reason.
-            print("[X] Response Status Code is not 200 !")
-            print("Status:", Response.status_code)
-            print("Content:", Response.reason)
-
-            return {
-                "Error": "Error Generating PDF.",
-                "Status": Response.status_code,
-                "Message": Response.reason,
-            }
