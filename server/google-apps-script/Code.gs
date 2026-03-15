@@ -55,124 +55,103 @@ function formatTableCompact(table, tableOptions) {
   table.setBorderWidth(0.5);
 }
 
-function insertTableAsImage(body, insertAfterElement, cells) {
-  // Create a temporary Google Sheet with the table data
-  var ss = SpreadsheetApp.create("TempTable_" + new Date().getTime());
-  var sheet = ss.getActiveSheet();
-
-  var numRows = cells.length;
-  var numCols = cells[0].length;
-
-  // Write data
-  sheet.getRange(1, 1, numRows, numCols).setValues(cells);
-
-  // Format all cells
-  var dataRange = sheet.getRange(1, 1, numRows, numCols);
-  dataRange.setFontSize(8);
-  dataRange.setFontFamily("Arial");
-  dataRange.setVerticalAlignment("middle");
-  dataRange.setHorizontalAlignment("center");
-  dataRange.setBorder(true, true, true, true, true, true, "#000000", SpreadsheetApp.BorderStyle.SOLID);
-  dataRange.setWrap(true);
-
-  // First column left-aligned (subject names)
-  sheet.getRange(1, 1, numRows, 1).setHorizontalAlignment("left");
-
-  // Header formatting
-  var headerRange = sheet.getRange(1, 1, 1, numCols);
-  headerRange.setFontWeight("bold");
-  headerRange.setBackground("#D9D9D9");
-  headerRange.setFontSize(8);
-
-  // Auto-resize columns to fit content
-  for (var i = 1; i <= numCols; i++) {
-    sheet.autoResizeColumn(i);
+function autoFitTableWidths(docId, Session) {
+  // Read the document structure via Docs API to find tables
+  var docData = Docs.Documents.get(docId);
+  var bodyContent = docData.body.content;
+  var tables = [];
+  for (var i = 0; i < bodyContent.length; i++) {
+    if (bodyContent[i].table) {
+      tables.push({
+        startIndex: bodyContent[i].startIndex,
+        numCols: bodyContent[i].table.columns,
+        numRows: bodyContent[i].table.rows
+      });
+    }
   }
 
-  // Set compact row heights
-  for (var i = 1; i <= numRows; i++) {
-    sheet.setRowHeight(i, 18);
-  }
+  if (tables.length === 0) return;
 
-  // Remove extra columns and rows to avoid blank space
-  if (sheet.getMaxColumns() > numCols) {
-    sheet.deleteColumns(numCols + 1, sheet.getMaxColumns() - numCols);
-  }
-  if (sheet.getMaxRows() > numRows) {
-    sheet.deleteRows(numRows + 1, sheet.getMaxRows() - numRows);
-  }
-
-  SpreadsheetApp.flush();
-
-  // Try to create a TABLE chart and get it as an image blob
-  try {
-    var chart = sheet.newChart()
-      .setChartType(Charts.ChartType.TABLE)
-      .addRange(dataRange)
-      .setOption('width', Math.min(numCols * 70, 450))
-      .setOption('height', Math.max(numRows * 20, 100))
-      .setOption('alternatingRowStyle', false)
-      .setPosition(numRows + 3, 1, 0, 0)
-      .build();
-    sheet.insertChart(chart);
-    SpreadsheetApp.flush();
-
-    var charts = sheet.getCharts();
-    if (charts.length > 0) {
-      var blob = charts[0].getBlob();
-      if (blob && blob.getBytes().length > 100) {
-        // Insert the image into the document
-        var insertIndex = body.getChildIndex(insertAfterElement) + 1;
-        body.insertImage(insertIndex, blob);
-
-        // Clean up temp spreadsheet
-        DriveApp.getFileById(ss.getId()).setTrashed(true);
-        return true;
+  // Collect all cell data from the session to calculate widths
+  var allCellSets = [];
+  var documentType = Session["Document Type"];
+  if (documentType === "Master-Transcript-of-Marks") {
+    var tableInfo = Session["Translation"]["Tables"];
+    if (tableInfo) {
+      var headingRow = ["Subject", "Mark", "Result", "Session"];
+      var cells = [headingRow];
+      for (var r = 0; r < tableInfo.length; r++) {
+        cells.push([tableInfo[r]["Subject"], tableInfo[r]["Mark"], tableInfo[r]["Result"], tableInfo[r]["Session"]]);
+      }
+      allCellSets.push(cells);
+    }
+  } else {
+    var transcriptData = Session["Translation"]["Tables"];
+    if (transcriptData) {
+      if (transcriptData["Overall"]) {
+        var overallCells = [transcriptData["Overall"]["Columns"]];
+        for (var r = 0; r < transcriptData["Overall"]["Rows"].length; r++) {
+          overallCells.push(transcriptData["Overall"]["Rows"][r]);
+        }
+        allCellSets.push(overallCells);
+      }
+      if (transcriptData["Transcript"]) {
+        var transcriptCells = [transcriptData["Transcript"]["Columns"]];
+        for (var r = 0; r < transcriptData["Transcript"]["Rows"].length; r++) {
+          transcriptCells.push(transcriptData["Transcript"]["Rows"][r]);
+        }
+        allCellSets.push(transcriptCells);
       }
     }
-  } catch (chartError) {
-    console.log("Chart approach failed: " + chartError.message);
   }
 
-  // If chart approach didn't work, try PDF export approach
-  try {
-    var ssId = ss.getId();
-    var sheetGid = sheet.getSheetId();
-    var exportUrl = "https://docs.google.com/spreadsheets/d/" + ssId + "/export?" +
-      "format=pdf&gid=" + sheetGid +
-      "&size=A4&portrait=true&fitw=true&gridlines=false" +
-      "&printtitle=false&sheetnames=false&pagenumbers=false" +
-      "&top_margin=0.1&bottom_margin=0.1&left_margin=0.1&right_margin=0.1";
+  // Apply auto-fit widths to each table
+  for (var t = 0; t < tables.length && t < allCellSets.length; t++) {
+    var cells = allCellSets[t];
+    var numCols = cells[0].length;
+    var ptPerChar = 4.0;
+    var minWidth = 25;
+    var maxTotalWidth = 468; // A4 usable width in points
 
-    var token = ScriptApp.getOAuthToken();
-    var response = UrlFetchApp.fetch(exportUrl, {
-      headers: { 'Authorization': 'Bearer ' + token },
-      muteHttpExceptions: true
-    });
-
-    if (response.getResponseCode() === 200) {
-      // We have a PDF blob - we can't insert PDF directly into Docs,
-      // so keep the spreadsheet and add a link to it in the doc
-      var sheetUrl = ss.getUrl();
-      var insertIndex = body.getChildIndex(insertAfterElement) + 1;
-      var linkParagraph = body.insertParagraph(insertIndex, "");
-      linkParagraph.appendText("View Table: ").setFontSize(8);
-      linkParagraph.appendText(sheetUrl).setLinkUrl(sheetUrl).setFontSize(8);
-
-      // Move sheet to the same folder
-      var folderId = "1q_ZBhJ1v-EKYH7vWKYgFxwlrf2WKtNYE";
-      var destinationFolder = DriveApp.getFolderById(folderId);
-      destinationFolder.addFile(DriveApp.getFileById(ssId));
-
-      return true;
+    var colWidths = [];
+    for (var c = 0; c < numCols; c++) {
+      var maxLen = 0;
+      for (var r = 0; r < cells.length; r++) {
+        var len = String(cells[r][c] || "").length;
+        if (len > maxLen) maxLen = len;
+      }
+      colWidths.push(Math.max(maxLen * ptPerChar, minWidth));
     }
-  } catch (pdfError) {
-    console.log("PDF export approach failed: " + pdfError.message);
-  }
 
-  // Clean up on failure
-  DriveApp.getFileById(ss.getId()).setTrashed(true);
-  return false;
+    // Scale down if total exceeds page width
+    var total = 0;
+    for (var i = 0; i < colWidths.length; i++) total += colWidths[i];
+    if (total > maxTotalWidth) {
+      var scale = maxTotalWidth / total;
+      for (var i = 0; i < colWidths.length; i++) {
+        colWidths[i] = colWidths[i] * scale;
+      }
+    }
+
+    var requests = [];
+    for (var c = 0; c < numCols && c < tables[t].numCols; c++) {
+      requests.push({
+        updateTableColumnProperties: {
+          tableStartLocation: { index: tables[t].startIndex },
+          columnIndices: [c],
+          tableColumnProperties: {
+            width: { magnitude: colWidths[c], unit: "PT" },
+            widthType: "FIXED_WIDTH"
+          },
+          fields: "width,widthType"
+        }
+      });
+    }
+    if (requests.length > 0) {
+      Docs.Documents.batchUpdate({ requests: requests }, docId);
+    }
+  }
+  console.log("Auto-fit table widths applied successfully for " + tables.length + " table(s).");
 }
 
 function createDocumentFromTemplate(TemplateId, Session, tableOptions) {
@@ -234,19 +213,8 @@ cells.push(rowData);
               }
 var foundParagraph = foundElement.getElement().getParent();
 var parParent = foundParagraph.getParent();
-
-// Try Sheets-based image insertion first, fallback to Doc table
-var sheetsInserted = false;
-try {
-  sheetsInserted = insertTableAsImage(body, foundParagraph, cells);
-} catch (e) {
-  console.log("Sheets table insertion failed: " + e.message);
-}
-
-if (!sheetsInserted) {
-  var newTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, cells);
-  formatTableCompact(newTable, tableOptions);
-}
+var newTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, cells);
+formatTableCompact(newTable, tableOptions);
             }
 break;
 case "Baccalaureate-Transcript-of-Marks-V1":
@@ -267,19 +235,8 @@ overallCells.push(rowData);
 console.log("Inserted Cells to Overall Table: ", overallCells.length, "Rows.")
 var foundParagraph = foundElement.getElement().getParent();
 var parParent = foundParagraph.getParent();
-
-// Try Sheets-based image insertion first, fallback to Doc table
-var sheetsInserted = false;
-try {
-  sheetsInserted = insertTableAsImage(body, foundParagraph, overallCells);
-} catch (e) {
-  console.log("Sheets overall table insertion failed: " + e.message);
-}
-
-if (!sheetsInserted) {
-  var newOverallTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, overallCells);
-  formatTableCompact(newOverallTable, tableOptions);
-}
+var newOverallTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, overallCells);
+formatTableCompact(newOverallTable, tableOptions);
               } else {
 console.log("Overall Table is null.")
               }
@@ -294,19 +251,8 @@ transcriptCells.push(rowData);
 console.log("Inserted Cells to Transcript Table: ", transcriptCells.length, "Rows.")
 var foundParagraph = foundElement.getElement().getParent();
 var parParent = foundParagraph.getParent();
-
-// Try Sheets-based image insertion first, fallback to Doc table
-var sheetsInserted = false;
-try {
-  sheetsInserted = insertTableAsImage(body, foundParagraph, transcriptCells);
-} catch (e) {
-  console.log("Sheets transcript table insertion failed: " + e.message);
-}
-
-if (!sheetsInserted) {
-  var newTranscriptTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, transcriptCells);
-  formatTableCompact(newTranscriptTable, tableOptions);
-}
+var newTranscriptTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, transcriptCells);
+formatTableCompact(newTranscriptTable, tableOptions);
               } else {
 console.log("Transcript Table is null.")
               }
@@ -330,6 +276,14 @@ console.log("Document information is not Tabular, skipping tables.")
     }
 // Save Document
 doc.saveAndClose();
+// Auto-fit table column widths using Docs API (requires Docs advanced service)
+if (Session["Information Type"] == "Tabular") {
+  try {
+    autoFitTableWidths(newFile.getId(), Session);
+  } catch (e) {
+    console.log("Auto-fit table widths skipped: " + e.message);
+  }
+}
 // Move the document to the specified folder
 var folderId = "1q_ZBhJ1v-EKYH7vWKYgFxwlrf2WKtNYE";
 var destinationFolder = DriveApp.getFolderById(folderId);
@@ -360,7 +314,7 @@ status: "success",
 docLink: "https://docs.google.com/document/d/" + result.documentId,
 pdfLink: "https://docs.google.com/document/d/" + result.documentId + "/export?format=pdf",
 previewLink:
-"https://drive.google.com/file/d/" + result.documentId + "/preview",
+"https://docs.google.com/document/d/" + result.documentId + "/preview",
         })
       ).setMimeType(ContentService.MimeType.JSON);
     } else {
