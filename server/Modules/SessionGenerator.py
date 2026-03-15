@@ -224,6 +224,7 @@ class SessionGenerator:
                     self.session["Information Type"],
                     self.session["Session Id"],
                     PDf_Bytes,
+                    self.session["Document Type"],
                 )
             elif FileExtension in {"png", "jpg", "jpeg"}:
                 # convert bytes to a file-like object
@@ -237,6 +238,7 @@ class SessionGenerator:
                     self.session["Information Type"],
                     self.session["Session Id"],
                     IMG,
+                    self.session["Document Type"],
                 )
 
             # Check if Content is None

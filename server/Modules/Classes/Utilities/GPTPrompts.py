@@ -1,5 +1,6 @@
 # JSON
 import os
+import base64
 from openai import OpenAI
 
 from dotenv import load_dotenv, find_dotenv
@@ -10,6 +11,47 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Model to use for all GPT calls
 GPT_MODEL = "gpt-4o"
+
+
+def VisionOCR(image_bytes, doctype):
+    """Use GPT-4o vision to extract text from document image - much better than Tesseract."""
+    b64_image = base64.b64encode(image_bytes).decode("utf-8")
+
+    Response = client.chat.completions.create(
+        model=GPT_MODEL,
+        temperature=0,
+        max_tokens=4096,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a precise OCR assistant. Extract ALL text from the document image exactly as it appears. "
+                    "Preserve the original language (French, Arabic, or English). Include every field, label, value, "
+                    "date, name, number, and annotation visible in the document. Output the raw text line by line. "
+                    "Do not translate, summarize, or omit anything."
+                ),
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"Extract ALL text from this {doctype} document image. Include every visible field, label, and value exactly as written.",
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{b64_image}",
+                            "detail": "high",
+                        },
+                    },
+                ],
+            },
+        ],
+    )
+    result = Response.choices[0].message.content
+    print("[DEBUG] Vision OCR Response length: ", len(result))
+    return result
 
 
 def PromptString(Doctype, AvailableDoctypes, PromptOptions):

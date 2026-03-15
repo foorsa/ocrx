@@ -1,11 +1,13 @@
 # import the necessary packages
 import os
+import io
 import tempfile
 from pdf2image import convert_from_path
 import pytesseract
 from ExtractTable import ExtractTable
 from dotenv import load_dotenv
 import json
+from Modules.Classes.Utilities.GPTPrompts import VisionOCR
 
 
 # Define the OCR Processor Class
@@ -14,20 +16,31 @@ class OCRProcessor:
         self.ET_SESSION = ExtractTable(os.environ.get("ET_API_KEY"))
         pass
 
-    # Read the Image File
-    def ExtractTextFromImage(self, InformationType, SessionId, Image):
+    # Read the Image File using GPT-4o Vision
+    def ExtractTextFromImage(self, InformationType, SessionId, Image, Doctype=""):
         try:
-            TextContent = pytesseract.image_to_string(
-                Image,
-                lang="fra+ara",
-                config="",
-            )
+            # Convert PIL Image to bytes for GPT-4o vision
+            img_buffer = io.BytesIO()
+            Image.save(img_buffer, format="PNG")
+            img_bytes = img_buffer.getvalue()
+
+            print("[OCR] Using GPT-4o Vision for text extraction...")
+            TextContent = VisionOCR(img_bytes, Doctype)
             return TextContent
         except Exception as e:
-            print(f"[OCR ERROR] Error reading image file: {str(e)}")
-            return ""
+            print(f"[OCR ERROR] Vision OCR failed, falling back to Tesseract: {str(e)}")
+            try:
+                TextContent = pytesseract.image_to_string(
+                    Image,
+                    lang="fra+ara",
+                    config="",
+                )
+                return TextContent
+            except Exception as e2:
+                print(f"[OCR ERROR] Tesseract also failed: {str(e2)}")
+                return ""
 
-    def ExtractTextFromPDF(self, InformationType, SessionId, PDFBytes):
+    def ExtractTextFromPDF(self, InformationType, SessionId, PDFBytes, Doctype=""):
         try:
             TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
 
@@ -37,13 +50,24 @@ class OCRProcessor:
 
             extracted_text = ""
 
-            # Convert each Page to an Image and extract text
+            # Convert each Page to an Image and use GPT-4o vision
             pages = convert_from_path(TEMPORARY_PDF_PATH, 200)
             for page in pages:
-                page_text = pytesseract.image_to_string(page, lang="fra+ara", config="")
-                extracted_text += page_text
-                # Close the image object
-                page.close()
+                try:
+                    # Convert page to bytes for GPT-4o vision
+                    img_buffer = io.BytesIO()
+                    page.save(img_buffer, format="PNG")
+                    img_bytes = img_buffer.getvalue()
+
+                    print("[OCR] Using GPT-4o Vision for PDF page extraction...")
+                    page_text = VisionOCR(img_bytes, Doctype)
+                    extracted_text += page_text + "\n"
+                except Exception as e:
+                    print(f"[OCR] Vision failed for page, falling back to Tesseract: {str(e)}")
+                    page_text = pytesseract.image_to_string(page, lang="fra+ara", config="")
+                    extracted_text += page_text
+                finally:
+                    page.close()
 
             # Clean up: remove the temporary PDF file
             os.remove(TEMPORARY_PDF_PATH)
