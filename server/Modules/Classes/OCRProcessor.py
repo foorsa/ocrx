@@ -6,6 +6,7 @@ import pytesseract
 from ExtractTable import ExtractTable
 from dotenv import load_dotenv
 import json
+from PyPDF2 import PdfReader
 
 
 # Define the OCR Processor Class
@@ -19,7 +20,7 @@ class OCRProcessor:
         try:
             TextContent = pytesseract.image_to_string(
                 Image,
-                lang="fra+ara",
+                lang="fra+ara+eng",
                 config="",
             )
             return TextContent
@@ -29,9 +30,25 @@ class OCRProcessor:
 
     def ExtractTextFromPDF(self, InformationType, SessionId, PDFBytes):
         try:
+            # First, try direct text extraction from the PDF (works for digital PDFs)
+            PDFBytes.seek(0)
+            reader = PdfReader(PDFBytes)
+            direct_text = ""
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    direct_text += page_text
+
+            if direct_text.strip():
+                print(f"[OCR] Extracted text directly from PDF ({len(direct_text)} chars)")
+                return direct_text
+
+            # Fall back to OCR for scanned PDFs
+            print("[OCR] No embedded text found, falling back to OCR...")
             TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
 
             # Write the PDF Bytes to a Temporary File
+            PDFBytes.seek(0)
             with open(TEMPORARY_PDF_PATH, "wb") as f:
                 f.write(PDFBytes.getbuffer())
 
@@ -40,7 +57,7 @@ class OCRProcessor:
             # Convert each Page to an Image and extract text
             pages = convert_from_path(TEMPORARY_PDF_PATH, 200)
             for page in pages:
-                page_text = pytesseract.image_to_string(page, lang="fra+ara", config="")
+                page_text = pytesseract.image_to_string(page, lang="fra+ara+eng", config="")
                 extracted_text += page_text
                 # Close the image object
                 page.close()
@@ -52,7 +69,7 @@ class OCRProcessor:
 
         except Exception as e:
             print(f"Error reading PDF file: {str(e)}")
-            return ""
+            raise Exception(f"Failed to extract text from PDF: {str(e)}")
 
     def ExtractTableFromImage(self, InformationType, SessionId, Image):
         print("[...] Extracting Table from Image ...")
