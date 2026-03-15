@@ -17,7 +17,7 @@ from unicodedata import normalize
 # Classes Required for Operations
 from Modules.Classes.OCRProcessor import OCRProcessor
 from Modules.Classes.GPTCorrector import GPTCorrector
-from Modules.Classes.PDFGenerator import PDFGenerator
+from PDFGenerator import PDFGenerator
 
 
 username = quote_plus("yassinechettouch")
@@ -106,7 +106,7 @@ class SessionGenerator:
             "Generation": {
                 "PDF Link": "",
                 "Google Docs Link": "",
-                "Previw Link": "",
+                "Preview Link": "",
             },
         }
         self.db = db  # Connect to the 'ocrx-db' database
@@ -185,7 +185,7 @@ class SessionGenerator:
             "Generation": {
                 "PDF Link": "",
                 "Google Docs Link": "",
-                "Previw Link": "",
+                "Preview Link": "",
             },
         }
 
