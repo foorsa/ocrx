@@ -130,31 +130,32 @@ class DocxTableGenerator:
 
     def _add_compact_table(self, pdf, headers, rows, title=None):
         if title:
-            pdf.set_font("Helvetica", "B", 11)
+            pdf.set_font("Helvetica", "B", 9)
             pdf.set_text_color(0, 102, 153)
-            pdf.cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
+            pdf.cell(0, 6, title, new_x="LMARGIN", new_y="NEXT")
             pdf.ln(1)
 
         num_cols = len(headers)
         available_width = pdf.w - pdf.l_margin - pdf.r_margin
 
-        # Calculate column widths
+        # Calculate column widths to match original document proportions
         if num_cols <= 4:
-            first_col_w = available_width * 0.40
-            other_col_w = (available_width - first_col_w) / max(num_cols - 1, 1)
+            # Overall table - equal distribution
+            col_widths = [available_width / num_cols] * num_cols
         else:
-            first_col_w = available_width * 0.22
+            # Transcript table - subject column wider, grade columns narrow
+            first_col_w = available_width * 0.18
             other_col_w = (available_width - first_col_w) / max(num_cols - 1, 1)
+            col_widths = [first_col_w if i == 0 else other_col_w for i in range(num_cols)]
 
-        col_widths = [first_col_w if i == 0 else other_col_w for i in range(num_cols)]
-        row_height = 7
+        row_height = 5
 
         # Header row
-        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_font("Helvetica", "B", 5)
         pdf.set_fill_color(217, 217, 217)
         pdf.set_text_color(26, 26, 26)
         pdf.set_draw_color(153, 153, 153)
-        pdf.set_line_width(0.2)
+        pdf.set_line_width(0.15)
 
         for col_idx, header_text in enumerate(headers):
             pdf.cell(
@@ -165,7 +166,7 @@ class DocxTableGenerator:
         pdf.ln()
 
         # Data rows
-        pdf.set_font("Helvetica", "", 7)
+        pdf.set_font("Helvetica", "", 5)
         pdf.set_text_color(33, 33, 33)
         pdf.set_draw_color(187, 187, 187)
 
@@ -182,14 +183,14 @@ class DocxTableGenerator:
             if pdf.get_y() + row_height > pdf.h - pdf.b_margin:
                 pdf.add_page()
                 # Reprint header on new page
-                pdf.set_font("Helvetica", "B", 7)
+                pdf.set_font("Helvetica", "B", 5)
                 pdf.set_fill_color(217, 217, 217)
                 pdf.set_text_color(26, 26, 26)
                 pdf.set_draw_color(153, 153, 153)
                 for col_idx, header_text in enumerate(headers):
                     pdf.cell(col_widths[col_idx], row_height, str(header_text), border=1, fill=True, align="C")
                 pdf.ln()
-                pdf.set_font("Helvetica", "", 7)
+                pdf.set_font("Helvetica", "", 5)
                 pdf.set_text_color(33, 33, 33)
                 pdf.set_draw_color(187, 187, 187)
 

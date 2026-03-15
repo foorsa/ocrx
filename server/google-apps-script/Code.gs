@@ -17,22 +17,26 @@ function formatTableCompact(table) {
   // A4 usable width with standard margins (~450pt)
   var pageWidthPt = 450;
 
-  // Calculate column widths: first column (subjects/labels) gets more space
+  // Calculate column widths to match original document proportions
   var firstColWidth, otherColWidth;
   if (numCols <= 4) {
-    firstColWidth = Math.floor(pageWidthPt * 0.40);
-    otherColWidth = Math.floor((pageWidthPt - firstColWidth) / (numCols - 1));
+    // Overall table (4 cols) - equal distribution
+    firstColWidth = Math.floor(pageWidthPt / numCols);
+    otherColWidth = Math.floor(pageWidthPt / numCols);
   } else {
-    firstColWidth = Math.floor(pageWidthPt * 0.20);
+    // Transcript table (9 cols) - subject column wider, grade columns narrow
+    firstColWidth = Math.floor(pageWidthPt * 0.18);
     otherColWidth = Math.floor((pageWidthPt - firstColWidth) / (numCols - 1));
   }
 
   for (var r = 0; r < numRows; r++) {
     var row = table.getRow(r);
+    // Set minimum row height
+    row.setMinimumHeight(0);
     for (var c = 0; c < row.getNumCells(); c++) {
       var cell = row.getCell(c);
 
-      // Minimal padding
+      // Tight padding to match original
       cell.setPaddingTop(0);
       cell.setPaddingBottom(0);
       cell.setPaddingLeft(1);
@@ -45,31 +49,43 @@ function formatTableCompact(table) {
         cell.setAttributes(widthAttrs);
       }
 
-      // Font styling
+      // Font styling - small to match original transcript
       var cellText = cell.editAsText();
-      cellText.setFontSize(6);
+      cellText.setFontSize(5);
       cellText.setFontFamily("Arial Narrow");
 
-      // Header row
-      if (r === 0) {
-        cellText.setBold(true);
-        cell.setBackgroundColor("#E8E8E8");
-      }
-
-      // Zero paragraph spacing
+      // Center align grade columns, left align subject column
       for (var p = 0; p < cell.getNumChildren(); p++) {
         var child = cell.getChild(p);
         if (child.getType() === DocumentApp.ElementType.PARAGRAPH) {
           child.asParagraph().setSpacingBefore(0);
           child.asParagraph().setSpacingAfter(0);
           child.asParagraph().setLineSpacing(1.0);
+          if (c === 0) {
+            child.asParagraph().setAlignment(DocumentApp.HorizontalAlignment.LEFT);
+          } else {
+            child.asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+          }
         }
+      }
+
+      // Header row styling
+      if (r === 0) {
+        cellText.setBold(true);
+        cellText.setFontSize(5);
+        cell.setBackgroundColor("#D9D9D9");
+      }
+
+      // Last 2 rows (averages) - slight highlight
+      if (r >= numRows - 2 && numCols > 4) {
+        cellText.setBold(true);
+        cell.setBackgroundColor("#F0F0F0");
       }
     }
   }
 
   // Thin borders
-  table.setBorderWidth(0.5);
+  table.setBorderWidth(0.25);
 
   // Set overall table width
   var tableAttrs = {};
@@ -256,19 +272,8 @@ cells.push(rowData);
               }
 var foundParagraph = foundElement.getElement().getParent();
 var parParent = foundParagraph.getParent();
-
-// Try Sheets-based image insertion first, fallback to Doc table
-var sheetsInserted = false;
-try {
-  sheetsInserted = insertTableAsImage(body, foundParagraph, cells);
-} catch (e) {
-  console.log("Sheets table insertion failed: " + e.message);
-}
-
-if (!sheetsInserted) {
-  var newTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, cells);
-  formatTableCompact(newTable);
-}
+var newTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, cells);
+formatTableCompact(newTable);
             }
 break;
 case "Baccalaureate-Transcript-of-Marks-V1":
@@ -289,19 +294,8 @@ overallCells.push(rowData);
 console.log("Inserted Cells to Overall Table: ", overallCells.length, "Rows.")
 var foundParagraph = foundElement.getElement().getParent();
 var parParent = foundParagraph.getParent();
-
-// Try Sheets-based image insertion first, fallback to Doc table
-var sheetsInserted = false;
-try {
-  sheetsInserted = insertTableAsImage(body, foundParagraph, overallCells);
-} catch (e) {
-  console.log("Sheets overall table insertion failed: " + e.message);
-}
-
-if (!sheetsInserted) {
-  var newOverallTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, overallCells);
-  formatTableCompact(newOverallTable);
-}
+var newOverallTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, overallCells);
+formatTableCompact(newOverallTable);
               } else {
 console.log("Overall Table is null.")
               }
@@ -316,19 +310,8 @@ transcriptCells.push(rowData);
 console.log("Inserted Cells to Transcript Table: ", transcriptCells.length, "Rows.")
 var foundParagraph = foundElement.getElement().getParent();
 var parParent = foundParagraph.getParent();
-
-// Try Sheets-based image insertion first, fallback to Doc table
-var sheetsInserted = false;
-try {
-  sheetsInserted = insertTableAsImage(body, foundParagraph, transcriptCells);
-} catch (e) {
-  console.log("Sheets transcript table insertion failed: " + e.message);
-}
-
-if (!sheetsInserted) {
-  var newTranscriptTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, transcriptCells);
-  formatTableCompact(newTranscriptTable);
-}
+var newTranscriptTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, transcriptCells);
+formatTableCompact(newTranscriptTable);
               } else {
 console.log("Transcript Table is null.")
               }
