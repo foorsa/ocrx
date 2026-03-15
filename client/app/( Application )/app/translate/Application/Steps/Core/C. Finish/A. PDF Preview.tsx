@@ -1,15 +1,31 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useAppSelector } from "@/redux/hooks";
 
 const PDFPreview = () => {
 	const Session = useAppSelector((state) => state.session);
 	const PreviewLink = Session?.Data?.Generation?.["Preview Link"];
+	const FileData = Session?.Data?.Generation?.["File Data"];
+	const FileName = Session?.Data?.Generation?.["File Name"] || "";
+	const isPdf = FileName.endsWith(".pdf");
+
+	const pdfDataUrl = useMemo(() => {
+		if (FileData && isPdf) {
+			return `data:application/pdf;base64,${FileData}`;
+		}
+		return null;
+	}, [FileData, isPdf]);
 
 	return (
 		<div className="w-full h-auto relative my-5">
 			<div className="relative mx-auto border-zinc-200 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-800 border-[16px] rounded-t-xl h-[172px] max-w-[301px] md:h-[294px] md:max-w-[512px]">
 				<div className="overflow-hidden rounded-xl h-[140px] md:h-[262px] bg-zinc-400 dark:bg-zinc-600">
-					{PreviewLink && PreviewLink !== "" ? (
+					{pdfDataUrl ? (
+						<iframe
+							src={pdfDataUrl}
+							className="w-full h-[140px] md:h-[262px] rounded-xl"
+							title="PDF Preview"
+						/>
+					) : PreviewLink && PreviewLink !== "" ? (
 						<div className="h-[140px] md:h-[262px] w-full rounded-xl flex flex-col justify-center items-center p-5">
 							<svg
 								className="w-12 h-12 text-white mb-3"
@@ -31,7 +47,7 @@ const PDFPreview = () => {
 								Your translated document has been generated.
 							</p>
 							<p className="text-zinc-200 dark:text-zinc-300 text-center text-sm mt-1">
-								Click &quot;Download Document&quot; below to save it.
+								Click &quot;Download PDF&quot; below to save it.
 							</p>
 						</div>
 					) : (

@@ -37,7 +37,7 @@ export default function Third_FinishOperation() {
 		return link;
 	};
 
-	const isDocxDownload = Session?.Generation?.["PDF Link"]?.endsWith(".docx");
+	const hasFileData = !!Session?.Generation?.["File Data"];
 
 	const handleDownloadDocument = () => {
 		if (!Session?.Generation?.["PDF Link"] || Session?.Generation["PDF Link"] === "") {
@@ -45,7 +45,7 @@ export default function Third_FinishOperation() {
 			return;
 		}
 
-		// If base64 file data is available (locally generated DOCX), download directly
+		// If base64 file data is available (backend-generated PDF), download directly
 		if (Session.Generation["File Data"]) {
 			const byteCharacters = atob(Session.Generation["File Data"]);
 			const byteNumbers = new Array(byteCharacters.length);
@@ -53,13 +53,15 @@ export default function Third_FinishOperation() {
 				byteNumbers[i] = byteCharacters.charCodeAt(i);
 			}
 			const byteArray = new Uint8Array(byteNumbers);
-			const blob = new Blob([byteArray], {
-				type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-			});
+			const fileName = Session.Generation["File Name"] || "document.pdf";
+			const mimeType = fileName.endsWith(".pdf")
+				? "application/pdf"
+				: "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+			const blob = new Blob([byteArray], { type: mimeType });
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;
-			a.download = Session.Generation["File Name"] || "document.docx";
+			a.download = fileName;
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
@@ -115,14 +117,14 @@ export default function Third_FinishOperation() {
 					className="inline-flex text-center gap-3 w-full mb-2 items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-sky-700 rounded-xl hover:bg-sky-800 focus:outline-none dark:bg-sky-600 dark:hover:bg-sky-700 focus:bg-sky-500 active:bg-sky-900 transition duration-150 ease-in-out"
 					onClick={handleDownloadDocument}
 				>
-					{isDocxDownload ? "Download Document" : "Download PDF"}
+					Download PDF
 					<DocumentDownload
 						color="currentColor"
 						variant="Bulk"
 						className="inline w-5 h-5"
 					/>
 				</button>
-				{!isDocxDownload && (
+				{!hasFileData && (
 					<button
 						type="button"
 						className="inline-flex text-center gap-3 w-full mb-2 justify-center items-center font-medium text-sm px-5 py-2.5 bg-white rounded-xl border border-zinc-200 hover:bg-zinc-100 text-zinc-900 hover:text-sky-700 focus:z-10 dark:bg-zinc-950 dark:text-zinc-400 dark:border-zinc-600 dark:hover:text-white dark:hover:bg-zinc-800"
