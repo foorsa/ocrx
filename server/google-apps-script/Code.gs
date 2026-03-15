@@ -8,24 +8,14 @@ return index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word;
 return outputString;
 }
 
-function formatTableCompact(table) {
+function formatTableCompact(table, tableOptions) {
   if (!table) return;
 
   var numRows = table.getNumRows();
   var numCols = table.getRow(0).getNumCells();
 
-  // A4 usable width with standard margins (~450pt)
-  var pageWidthPt = 450;
-
-  // Calculate column widths: first column (subjects/labels) gets more space
-  var firstColWidth, otherColWidth;
-  if (numCols <= 4) {
-    firstColWidth = Math.floor(pageWidthPt * 0.40);
-    otherColWidth = Math.floor((pageWidthPt - firstColWidth) / (numCols - 1));
-  } else {
-    firstColWidth = Math.floor(pageWidthPt * 0.20);
-    otherColWidth = Math.floor((pageWidthPt - firstColWidth) / (numCols - 1));
-  }
+  var fontSize = (tableOptions && tableOptions.fontSize) || 6;
+  var fontFamily = (tableOptions && tableOptions.fontFamily) || "Arial Narrow";
 
   for (var r = 0; r < numRows; r++) {
     var row = table.getRow(r);
@@ -33,22 +23,15 @@ function formatTableCompact(table) {
       var cell = row.getCell(c);
 
       // Minimal padding
-      cell.setPaddingTop(0);
-      cell.setPaddingBottom(0);
-      cell.setPaddingLeft(1);
-      cell.setPaddingRight(1);
-
-      // Set explicit column width on first row
-      if (r === 0) {
-        var widthAttrs = {};
-        widthAttrs[DocumentApp.Attribute.WIDTH] = (c === 0) ? firstColWidth : otherColWidth;
-        cell.setAttributes(widthAttrs);
-      }
+      cell.setPaddingTop(1);
+      cell.setPaddingBottom(1);
+      cell.setPaddingLeft(2);
+      cell.setPaddingRight(2);
 
       // Font styling
       var cellText = cell.editAsText();
-      cellText.setFontSize(6);
-      cellText.setFontFamily("Arial Narrow");
+      cellText.setFontSize(fontSize);
+      cellText.setFontFamily(fontFamily);
 
       // Header row
       if (r === 0) {
@@ -70,11 +53,6 @@ function formatTableCompact(table) {
 
   // Thin borders
   table.setBorderWidth(0.5);
-
-  // Set overall table width
-  var tableAttrs = {};
-  tableAttrs[DocumentApp.Attribute.WIDTH] = pageWidthPt;
-  table.setAttributes(tableAttrs);
 }
 
 function insertTableAsImage(body, insertAfterElement, cells) {
@@ -131,8 +109,8 @@ function insertTableAsImage(body, insertAfterElement, cells) {
     var chart = sheet.newChart()
       .setChartType(Charts.ChartType.TABLE)
       .addRange(dataRange)
-      .setOption('width', 520)
-      .setOption('height', Math.max(numRows * 22, 100))
+      .setOption('width', Math.min(numCols * 70, 450))
+      .setOption('height', Math.max(numRows * 20, 100))
       .setOption('alternatingRowStyle', false)
       .setPosition(numRows + 3, 1, 0, 0)
       .build();
@@ -197,7 +175,7 @@ function insertTableAsImage(body, insertAfterElement, cells) {
   return false;
 }
 
-function createDocumentFromTemplate(TemplateId, Session) {
+function createDocumentFromTemplate(TemplateId, Session, tableOptions) {
 try {
 // Create a copy of the template file
 var templateFile = DriveApp.getFileById(TemplateId);
@@ -267,7 +245,7 @@ try {
 
 if (!sheetsInserted) {
   var newTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, cells);
-  formatTableCompact(newTable);
+  formatTableCompact(newTable, tableOptions);
 }
             }
 break;
@@ -300,7 +278,7 @@ try {
 
 if (!sheetsInserted) {
   var newOverallTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, overallCells);
-  formatTableCompact(newOverallTable);
+  formatTableCompact(newOverallTable, tableOptions);
 }
               } else {
 console.log("Overall Table is null.")
@@ -327,7 +305,7 @@ try {
 
 if (!sheetsInserted) {
   var newTranscriptTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, transcriptCells);
-  formatTableCompact(newTranscriptTable);
+  formatTableCompact(newTranscriptTable, tableOptions);
 }
               } else {
 console.log("Transcript Table is null.")
@@ -356,6 +334,8 @@ doc.saveAndClose();
 var folderId = "1q_ZBhJ1v-EKYH7vWKYgFxwlrf2WKtNYE";
 var destinationFolder = DriveApp.getFolderById(folderId);
 destinationFolder.addFile(newFile);
+// Make the document viewable by anyone with the link (needed for preview iframe)
+newFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 // Return the ID of the new document
 return { status: "success", documentId: newFile.getId() };
   } catch (error) {
@@ -368,7 +348,8 @@ try {
 var requestData = JSON.parse(e.postData.contents);
 var result = createDocumentFromTemplate(
 requestData.TemplateId,
-requestData.Session
+requestData.Session,
+requestData.tableOptions || {}
     );
 if (result.status === "success") {
 console.log("Success.");
@@ -948,7 +929,8 @@ var requestData = {
   }
 var result = createDocumentFromTemplate(
 requestData.TemplateId,
-requestData.Session
+requestData.Session,
+requestData.tableOptions || {}
   );
 console.log(result)
 if (result.status == "success") {
