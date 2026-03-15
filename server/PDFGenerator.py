@@ -3,6 +3,7 @@
 # and methods to fill in the template with the translated information.
 # You can use libraries like ReportLab or PyFPDF to generate the PDF files.
 import os
+import base64
 import requests
 import json
 from Modules.Classes.DocxTableGenerator import DocxTableGenerator
@@ -104,6 +105,17 @@ class PDFGenerator:
                     "Preview Link": ResponseData["previewLink"],
                 }
                 print(f"[OK] Document generated via template: {Links['PDF Link']}")
+
+                # Download the PDF and encode as base64 for iframe preview
+                try:
+                    pdf_response = requests.get(ResponseData["pdfLink"], timeout=30)
+                    if pdf_response.status_code == 200:
+                        Links["File Data"] = base64.b64encode(pdf_response.content).decode("utf-8")
+                        Links["File Name"] = "document.pdf"
+                        print("[OK] PDF downloaded and encoded for preview")
+                except Exception as e:
+                    print(f"[!] Could not download PDF for preview: {e}")
+
                 return Links
             except Exception as Error:
                 print(f"[X] Error parsing Google Apps Script response: {Error}")
