@@ -438,9 +438,11 @@ def DownloadFile(filename):
     download_folder = os.path.join(os.path.dirname(__file__), "..", "Downloads")
     if not os.path.exists(os.path.join(download_folder, filename)):
         return jsonify({"error": "File not found"}), 404
+    mimetype = "application/pdf" if filename.endswith(".pdf") else \
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     return send_from_directory(
         download_folder,
         filename,
         as_attachment=True,
-        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        mimetype=mimetype,
     )
