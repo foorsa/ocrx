@@ -421,14 +421,31 @@ def GeneratePrompt(Doctype):
 
 
 # Text Correction
+def _extract_json(text):
+    """Extract JSON from GPT response, stripping markdown code fences if present."""
+    import re
+    # Strip markdown code fences like ```json ... ```
+    match = re.search(r'```(?:json)?\s*([\s\S]*?)```', text)
+    if match:
+        text = match.group(1).strip()
+    # If still not starting with { or [, try to find the first {
+    text = text.strip()
+    if not text.startswith('{') and not text.startswith('['):
+        idx = text.find('{')
+        if idx != -1:
+            text = text[idx:]
+    return text
+
+
 def GenerateTextCorrection(Doctype, Text):
     Response = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
+        response_format={"type": "json_object"},
         messages=[
             {
                 "role": "system",
-                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                "content": "You are an assistant that only speaks JSON. Do not write normal text. Always respond with valid JSON only.",
             },
             {
                 "role": "user",
@@ -456,7 +473,7 @@ def GenerateTextCorrection(Doctype, Text):
     )
     result = Response.choices[0].message.content
     print("[DEBUG] Response: ", str(result))
-    return result
+    return _extract_json(result)
 
 
 # Text Translation
@@ -464,6 +481,7 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
     Response = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
+        response_format={"type": "json_object"},
         messages=[
             {
                 "role": "system",
@@ -561,7 +579,7 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
     )
 
     raw_content = Response.choices[0].message.content
-    JSON_OBJECT = "{" + raw_content.split("{", 1)[1]
+    JSON_OBJECT = _extract_json(raw_content)
 
     print("[INFO] Translation Response: ", str(JSON_OBJECT))
     return JSON_OBJECT
@@ -671,10 +689,11 @@ def GenerateTableCorrection(Doctype, Table):
             Response = client.chat.completions.create(
                 model=GPT_MODEL,
                 temperature=0,
+                response_format={"type": "json_object"},
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text. Always respond with valid JSON only.",
                     },
                     {
                         "role": "user",
@@ -708,7 +727,7 @@ def GenerateTableCorrection(Doctype, Table):
 
             result = Response.choices[0].message.content
             print("[DEBUG] Response: ", str(result))
-            return result
+            return _extract_json(result)
         case "Baccalaureate-Transcript-of-Marks-V2":
             print(
                 "[DEBUG] Generating AI Correction for: Baccalaureate-Transcript-of-Marks-V2"
@@ -758,10 +777,11 @@ def GenerateTableCorrection(Doctype, Table):
             Response = client.chat.completions.create(
                 model=GPT_MODEL,
                 temperature=0,
+                response_format={"type": "json_object"},
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text. Always respond with valid JSON only.",
                     },
                     {
                         "role": "user",
@@ -815,7 +835,7 @@ def GenerateTableCorrection(Doctype, Table):
 
             result = Response.choices[0].message.content
             print("[DEBUG] Response: ", str(result))
-            return result
+            return _extract_json(result)
 
         case "Master-Transcript-of-Marks":
             print("[INFO] Generating AI Correction for: Master Transcript of Marks")
@@ -835,10 +855,11 @@ def GenerateTableCorrection(Doctype, Table):
             Response = client.chat.completions.create(
                 model=GPT_MODEL,
                 temperature=0,
+                response_format={"type": "json_object"},
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                        "content": "You are an assistant that only speaks JSON. Do not write normal text. Always respond with valid JSON only.",
                     },
                     {
                         "role": "user",
@@ -885,7 +906,7 @@ def GenerateTableCorrection(Doctype, Table):
 
             result = Response.choices[0].message.content
             print("[DEBUG] Response: ", str(result))
-            return result
+            return _extract_json(result)
         case _:
             print(
                 "[GPT PROMPT] The Doctype Provided to the function is not valid, GPT-3 will take the wrong information."
@@ -900,10 +921,11 @@ def GenerateTableTranslation(Doctype, Table):
     TableResponse = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
+        response_format={"type": "json_object"},
         messages=[
             {
                 "role": "system",
-                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                "content": "You are an assistant that only speaks JSON. Do not write normal text. Always respond with valid JSON only.",
             },
             {
                 "role": "user",
@@ -926,4 +948,4 @@ def GenerateTableTranslation(Doctype, Table):
     result = TableResponse.choices[0].message.content
     print("[DEBUG] Response: ", str(result))
 
-    return result
+    return _extract_json(result)
