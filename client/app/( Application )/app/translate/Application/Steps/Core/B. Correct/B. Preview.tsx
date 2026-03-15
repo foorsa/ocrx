@@ -7,29 +7,10 @@ import "react-medium-image-zoom/dist/styles.css";
 
 export default function Preview() {
 	const UploadedFile: FileType = useAppSelector((state) => state.file);
-	const [Preview, setPreview] = React.useState<string>("");
-	const [pdfUrl, setPdfUrl] = React.useState<string>("");
 
 	const isImage = UploadedFile?.type?.includes("image");
 	const isPdf = UploadedFile?.type === "application/pdf";
-
-	React.useEffect(() => {
-		if (UploadedFile && UploadedFile.preview && UploadedFile.preview.length > 0) {
-			setPreview(UploadedFile.preview || "");
-		}
-	}, [UploadedFile]);
-
-	React.useEffect(() => {
-		if (UploadedFile?.file && isPdf) {
-			const url = URL.createObjectURL(UploadedFile.file);
-			setPdfUrl(url);
-			return () => URL.revokeObjectURL(url);
-		} else {
-			setPdfUrl("");
-		}
-	}, [UploadedFile, isPdf]);
-
-	const hasPreview = isImage ? !!UploadedFile.preview : isPdf;
+	const hasPreview = (isImage || isPdf) && !!UploadedFile?.preview;
 
 	return (
 		<>
@@ -43,14 +24,14 @@ export default function Preview() {
 					<img
 						className="flex flex-col w-full h-auto max-h-96 min-h-none justify-center items-center overflow-hidden blocksm bg-white border border-zinc-200 shadow-2xl hover:bg-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-700 relative rounded-xl mb-5"
 						alt="Document preview"
-						src={Preview}
+						src={UploadedFile.preview}
 						width="500"
 					/>
 				</Zoom>
 			)}
-			{isPdf && pdfUrl && (
+			{isPdf && UploadedFile.preview && (
 				<iframe
-					src={pdfUrl}
+					src={UploadedFile.preview}
 					className="w-full h-96 bg-white border border-zinc-200 shadow-2xl dark:bg-zinc-800 dark:border-zinc-700 rounded-xl mb-5"
 					title="PDF Preview"
 				/>

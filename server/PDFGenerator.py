@@ -78,7 +78,8 @@ class PDFGenerator:
                 "fontSize": 8,
                 "headerFontSize": 8,
                 "cellPadding": 2,
-                "fitToPageWidth": True,
+                "fitToPageWidth": False,
+                "autoFitColumns": True,
             },
         }
 
