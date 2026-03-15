@@ -11,19 +11,6 @@ function formatTableCompact(table) {
 if (!table) return;
 var numRows = table.getNumRows();
 var numCols = table.getRow(0).getNumCells();
-// A4 usable width with standard margins (~450pt)
-var pageWidthPt = 450;
-// Calculate column widths to match original document proportions
-var firstColWidth, otherColWidth;
-if (numCols <= 4) {
-// Overall table (4 cols) - equal distribution
-firstColWidth = Math.floor(pageWidthPt / numCols);
-otherColWidth = Math.floor(pageWidthPt / numCols);
-  } else {
-// Transcript table (9 cols) - subject column wider, grade columns narrow
-firstColWidth = Math.floor(pageWidthPt * 0.18);
-otherColWidth = Math.floor((pageWidthPt - firstColWidth) / (numCols - 1));
-  }
 for (var r = 0; r < numRows; r++) {
 var row = table.getRow(r);
 // Set minimum row height
@@ -35,12 +22,6 @@ cell.setPaddingTop(0);
 cell.setPaddingBottom(0);
 cell.setPaddingLeft(1);
 cell.setPaddingRight(1);
-// Set explicit column width on first row
-if (r === 0) {
-var widthAttrs = {};
-widthAttrs[DocumentApp.Attribute.WIDTH] = (c === 0) ? firstColWidth : otherColWidth;
-cell.setAttributes(widthAttrs);
-      }
 // Font styling - small to match original transcript
 var cellText = cell.editAsText();
 cellText.setFontSize(5);
@@ -74,11 +55,70 @@ cell.setBackgroundColor("#F0F0F0");
   }
 // Thin borders
 table.setBorderWidth(0.25);
-// Set overall table width
-var tableAttrs = {};
-tableAttrs[DocumentApp.Attribute.WIDTH] = pageWidthPt;
-table.setAttributes(tableAttrs);
 }
+
+// Sets column widths using the Docs Advanced API (requires enabling Google Docs API service)
+function setTableColumnWidths(docId, tableStartIndex, numCols, colWidths) {
+  var requests = [];
+  for (var c = 0; c < numCols; c++) {
+    requests.push({
+      updateTableColumnProperties: {
+        tableStartLocation: { index: tableStartIndex },
+        columnIndices: [c],
+        tableColumnProperties: {
+          width: { magnitude: colWidths[c], unit: "PT" },
+          widthType: "FIXED_WIDTH"
+        },
+        fields: "width,widthType"
+      }
+    });
+  }
+  Docs.Documents.batchUpdate({ requests: requests }, docId);
+}
+
+// After doc.saveAndClose(), use Docs API to resize all tables
+function autoFitTables(docId, Session) {
+  var docData = Docs.Documents.get(docId);
+  var bodyContent = docData.body.content;
+
+  // Find all tables in the document
+  var tables = [];
+  for (var i = 0; i < bodyContent.length; i++) {
+    if (bodyContent[i].table) {
+      tables.push({
+        startIndex: bodyContent[i].startIndex,
+        numCols: bodyContent[i].table.columns
+      });
+    }
+  }
+  if (tables.length === 0) return;
+
+  // A4 usable width with standard margins (~450pt)
+  var pageWidthPt = 450;
+
+  for (var t = 0; t < tables.length; t++) {
+    var numCols = tables[t].numCols;
+    var colWidths = [];
+
+    if (numCols <= 4) {
+      // Overall table (4 cols) - equal distribution
+      for (var c = 0; c < numCols; c++) {
+        colWidths.push(Math.floor(pageWidthPt / numCols));
+      }
+    } else {
+      // Transcript table (9 cols) - subject column wider, grade columns narrow
+      var firstColWidth = Math.floor(pageWidthPt * 0.18);
+      var otherColWidth = Math.floor((pageWidthPt - firstColWidth) / (numCols - 1));
+      for (var c = 0; c < numCols; c++) {
+        colWidths.push(c === 0 ? firstColWidth : otherColWidth);
+      }
+    }
+
+    setTableColumnWidths(docId, tables[t].startIndex, numCols, colWidths);
+  }
+  console.log("Auto-fit table widths applied for " + tables.length + " table(s).");
+}
+
 function createDocumentFromTemplate(TemplateId, Session) {
 try {
 // Create a copy of the template file
@@ -201,10 +241,20 @@ console.log("Document information is not Tabular, skipping tables.")
     }
 // Save Document
 doc.saveAndClose();
+// Resize table columns using Docs API (requires Docs advanced service)
+if (Session["Information Type"] == "Tabular") {
+  try {
+    autoFitTables(newFile.getId(), Session);
+  } catch (e) {
+    console.log("Table column resize skipped: " + e.message);
+  }
+}
 // Move the document to the specified folder
 var folderId = "1q_ZBhJ1v-EKYH7vWKYgFxwlrf2WKtNYE";
 var destinationFolder = DriveApp.getFolderById(folderId);
 destinationFolder.addFile(newFile);
+// Make the document viewable by anyone with the link (needed for preview iframe)
+newFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 // Return the ID of the new document
 return { status: "success", documentId: newFile.getId() };
   } catch (error) {
