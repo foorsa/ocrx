@@ -244,7 +244,7 @@ console.log("Table column resize failed: " + e.message + "\nStack: " + e.stack);
     }
 console.log("Table sizing result: " + tableSizingResult);
 // Move the document to the specified folder
-var folderId = "1q_ZBhJ1v-EKYH7vWKYgFxwlrf2WKtNYE";
+var folderId = "1sf5tiohul52deNmMCSVjmOfP3qAzy0Km";
 var destinationFolder = DriveApp.getFolderById(folderId);
 destinationFolder.addFile(newFile);
 // Make the document viewable by anyone with the link (needed for preview iframe)

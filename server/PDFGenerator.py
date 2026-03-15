@@ -19,7 +19,8 @@ TemplateIDs = {
         "TemplateIDs_Baccalaureate_Transcript_of_Marks_V1"
     ),
     "Baccalaureate-Transcript-of-Marks-V2": os.environ.get(
-        "TemplateIDs_Baccalaureate_Transcript_of_Marks_V2"
+        "TemplateIDs_Baccalaureate_Transcript_of_Marks_V2",
+        "1yTkDcROEOUAyMPdfQn09770AQK3iLjaXpWAo7Ad7iMo",
     ),
     "Bachelor-Certificate": os.environ.get("TemplateIDs_Bachelor_Certificate"),
     "Master-Certificate": os.environ.get("TemplateIDs_Master_Certificate"),
