@@ -78,8 +78,17 @@ numCols: bodyContent[i].table.columns
       });
     }
   }
-if (tables.length === 0) return;
-var pageWidthPt = 450;
+if (tables.length === 0) return "no tables found";
+
+// Get actual page width from document style
+var docStyle = docData.documentStyle;
+var pageWidth = docStyle.pageSize.width.magnitude; // in PT
+var marginLeft = docStyle.marginLeft ? docStyle.marginLeft.magnitude : 72;
+var marginRight = docStyle.marginRight ? docStyle.marginRight.magnitude : 72;
+var pageWidthPt = pageWidth - marginLeft - marginRight;
+
+console.log("Page width: " + pageWidth + "pt, margins: " + marginLeft + "+" + marginRight + ", usable: " + pageWidthPt + "pt");
+
 for (var t = 0; t < tables.length; t++) {
 var numCols = tables[t].numCols;
 var colWidths = [];
@@ -88,15 +97,40 @@ for (var c = 0; c < numCols; c++) {
 colWidths.push(Math.floor(pageWidthPt / numCols));
       }
     } else {
-var firstColWidth = Math.floor(pageWidthPt * 0.18);
+// Give first column (labels) more space proportionally
+var firstColWidth = Math.floor(pageWidthPt * 0.22);
 var otherColWidth = Math.floor((pageWidthPt - firstColWidth) / (numCols - 1));
 for (var c = 0; c < numCols; c++) {
 colWidths.push(c === 0 ? firstColWidth : otherColWidth);
       }
     }
+console.log("Table " + t + ": " + numCols + " cols, widths: " + colWidths.join(","));
 setTableColumnWidths(docId, tables[t].startIndex, numCols, colWidths);
   }
 console.log("Auto-fit table widths applied for " + tables.length + " table(s).");
+return "success: " + tables.length + " table(s) resized";
+}
+
+// Set page to landscape for wide tables
+function setLandscapeIfNeeded(docId, numCols) {
+if (numCols <= 6) return;
+var requests = [{
+updateDocumentStyle: {
+documentStyle: {
+pageSize: {
+width: { magnitude: 792, unit: "PT" },
+height: { magnitude: 612, unit: "PT" }
+        },
+marginLeft: { magnitude: 36, unit: "PT" },
+marginRight: { magnitude: 36, unit: "PT" },
+marginTop: { magnitude: 36, unit: "PT" },
+marginBottom: { magnitude: 36, unit: "PT" }
+      },
+fields: "pageSize,marginLeft,marginRight,marginTop,marginBottom"
+    }
+  }];
+Docs.Documents.batchUpdate({ requests: requests }, docId);
+console.log("Set page to landscape with narrow margins for " + numCols + " columns");
 }
 function createDocumentFromTemplate(TemplateId, Session) {
 try {
@@ -189,13 +223,26 @@ body.replaceText(searchText, "")
 // Save Document
 doc.saveAndClose();
 // Resize table columns using Docs API (requires Docs advanced service)
+var tableSizingResult = "skipped";
 if (Session["Information Type"] == "Tabular") {
 try {
-autoFitTables(newFile.getId(), Session);
+// Detect max columns across all tables to decide landscape
+var docData = Docs.Documents.get(newFile.getId());
+var maxCols = 0;
+for (var i = 0; i < docData.body.content.length; i++) {
+if (docData.body.content[i].table && docData.body.content[i].table.columns > maxCols) {
+maxCols = docData.body.content[i].table.columns;
+          }
+        }
+// Switch to landscape with narrow margins for wide tables
+setLandscapeIfNeeded(newFile.getId(), maxCols);
+tableSizingResult = autoFitTables(newFile.getId(), Session);
       } catch (e) {
-console.log("Table column resize skipped: " + e.message);
+tableSizingResult = "error: " + e.message;
+console.log("Table column resize failed: " + e.message + "\nStack: " + e.stack);
       }
     }
+console.log("Table sizing result: " + tableSizingResult);
 // Move the document to the specified folder
 var folderId = "1q_ZBhJ1v-EKYH7vWKYgFxwlrf2WKtNYE";
 var destinationFolder = DriveApp.getFolderById(folderId);
@@ -203,7 +250,7 @@ destinationFolder.addFile(newFile);
 // Make the document viewable by anyone with the link (needed for preview iframe)
 newFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 // Return the ID of the new document
-return { status: "success", documentId: newFile.getId() };
+return { status: "success", documentId: newFile.getId(), tableSizing: tableSizingResult };
   } catch (error) {
 return { status: "error", message: error.message };
   }
