@@ -3,6 +3,7 @@ import os
 import tempfile
 import base64
 import io
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pdf2image import convert_from_path
 import pytesseract
 from ExtractTable import ExtractTable
@@ -19,9 +20,12 @@ class OCRProcessor:
         self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     def _image_to_base64(self, image):
-        """Convert a PIL Image to a base64 string."""
+        """Convert a PIL Image to a base64 string (JPEG for smaller payload)."""
         buffer = io.BytesIO()
-        image.save(buffer, format="PNG")
+        # Convert RGBA/palette to RGB before saving as JPEG
+        if image.mode in ("RGBA", "P"):
+            image = image.convert("RGB")
+        image.save(buffer, format="JPEG", quality=85, optimize=True)
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     def _extract_text_with_vision(self, image):
@@ -47,14 +51,14 @@ class OCRProcessor:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/png;base64,{base64_image}",
-                                "detail": "high",
+                                "url": f"data:image/jpeg;base64,{base64_image}",
+                                "detail": "low",
                             },
                         },
                     ],
                 }
             ],
-            max_tokens=4096,
+            max_tokens=2048,
         )
 
         return response.choices[0].message.content.strip()
@@ -107,16 +111,28 @@ class OCRProcessor:
                 f.write(PDFBytes.getbuffer())
 
             extracted_text = ""
-            pages = convert_from_path(TEMPORARY_PDF_PATH, 200)
+            pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
 
-            # Try GPT-4o Vision on each page
+            # Try GPT-4o Vision on pages in parallel
             vision_success = False
             try:
-                print("[OCR] Extracting text with GPT-4o Vision...")
-                for page in pages:
-                    page_text = self._extract_text_with_vision(page)
-                    extracted_text += page_text + "\n"
+                print("[OCR] Extracting text with GPT-4o Vision (parallel)...")
+                page_list = list(pages)
+                results = [None] * len(page_list)
+
+                def process_page(args):
+                    idx, page = args
+                    text = self._extract_text_with_vision(page)
                     page.close()
+                    return idx, text
+
+                with ThreadPoolExecutor(max_workers=min(4, len(page_list))) as executor:
+                    futures = {executor.submit(process_page, (i, p)): i for i, p in enumerate(page_list)}
+                    for future in as_completed(futures):
+                        idx, text = future.result()
+                        results[idx] = text
+
+                extracted_text = "\n".join(r for r in results if r)
                 vision_success = True
                 print(f"[OCR] GPT-4o Vision extracted {len(extracted_text)} chars from PDF")
             except Exception as e:
@@ -125,7 +141,7 @@ class OCRProcessor:
             # Fallback to Tesseract if Vision failed
             if not vision_success:
                 extracted_text = ""
-                pages = convert_from_path(TEMPORARY_PDF_PATH, 200)
+                pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
                 for page in pages:
                     page_text = pytesseract.image_to_string(page, lang="fra+ara+eng", config="")
                     extracted_text += page_text
