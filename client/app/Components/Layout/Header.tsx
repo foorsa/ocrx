@@ -35,7 +35,7 @@ export default function Header() {
 					<img
 						src="/Logo/Lockup.png"
 						className="h-8 mr-3 invert dark:invert-0"
-						alt="Foorsa Logo"
+						alt="LanguageLine Solutions Logo"
 					/>
 				</Link>
 				<div className="flex gap-3 md:order-2">
