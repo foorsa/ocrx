@@ -272,7 +272,7 @@ function replaceLogo() {
   ];
 
   // Fetch the new LLS logo (white-on-transparent PNG hosted in the public repo)
-  var LOGO_URL = "https://raw.githubusercontent.com/foorsa/ocrx/main/client/public/Logo/Lockup.png";
+  var LOGO_URL = "https://raw.githubusercontent.com/foorsa/ocrx/main/client/public/Logo/LLS-watermark.png";
   var logoBlob = UrlFetchApp.fetch(LOGO_URL).getBlob().setName("LLS-logo.png");
 
   var totalReplaced = 0;
