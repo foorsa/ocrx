@@ -12,6 +12,18 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 GPT_MODEL = "gpt-4o"
 
 
+def _strip_markdown_fences(text):
+    """Strip markdown code fences (```json ... ```) from GPT responses."""
+    text = text.strip()
+    if text.startswith("```"):
+        # Remove opening fence (```json or ```)
+        first_newline = text.index("\n")
+        text = text[first_newline + 1:]
+    if text.endswith("```"):
+        text = text[:-3].rstrip()
+    return text
+
+
 def _ai_chat(messages, temperature=0, json_mode=False):
     """Send a chat request to OpenAI API."""
     kwargs = {
@@ -23,7 +35,8 @@ def _ai_chat(messages, temperature=0, json_mode=False):
         kwargs["response_format"] = {"type": "json_object"}
 
     response = client.chat.completions.create(**kwargs)
-    return response.choices[0].message.content
+    result = response.choices[0].message.content
+    return _strip_markdown_fences(result)
 
 
 def PromptString(Doctype, AvailableDoctypes, PromptOptions):
