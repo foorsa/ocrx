@@ -144,30 +144,49 @@ def Process():
         File.save(FilePath)
         SavedFiles.append(FilePath)
 
-    # --- Initialize Session ---
+    # --- Initialize Session (skip DB write — deferred to final save) ---
     Session = SessionGenerator()
-    Session.Initialize(Doctype, SavedFiles)
-    print(f"[PROCESS] Session {Session.Get()['Session Id']} initialized")
+    Session.Initialize(Doctype, SavedFiles, skip_db_write=True)
+    print(f"[PROCESS] Session {Session.Get()['Session Id']} initialized (in-memory)")
 
-    # --- Extract Text (skip intermediate DB writes) ---
-    try:
-        Session.ExtractText(skip_db_write=True)
-        print("[PROCESS] Text extraction complete")
-    except Exception as e:
-        Session.Error(str(e))
-        return jsonify({"Session": Session.Get(), "Error": str(e)}), 500
+    is_tabular = Session.Get()["Information Type"] == "Tabular"
 
-    # --- Extract Tables (if Tabular) ---
-    if Session.Get()["Information Type"] == "Tabular":
+    # --- Extract Text + Tables in parallel (for tabular docs) ---
+    extract_errors = []
+
+    def extract_text_task():
+        try:
+            Session.ExtractText(skip_db_write=True)
+            print("[PROCESS] Text extraction complete")
+        except Exception as e:
+            extract_errors.append(("text", e))
+
+    def extract_tables_task():
         try:
             Session.ExtractTables(skip_db_write=True)
             print("[PROCESS] Table extraction complete")
         except Exception as e:
-            Session.Error(str(e))
-            return jsonify({"Session": Session.Get(), "Error": str(e)}), 500
+            extract_errors.append(("tables", e))
+
+    if is_tabular:
+        # Text + Table extraction are independent — run in parallel
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [
+                executor.submit(extract_text_task),
+                executor.submit(extract_tables_task),
+            ]
+            for f in as_completed(futures):
+                f.result()
+    else:
+        extract_text_task()
+
+    if extract_errors:
+        error_msg = "; ".join(f"{t}: {e}" for t, e in extract_errors)
+        Session.Error(error_msg)
+        Session.SaveToDatabase()
+        return jsonify({"Session": Session.Get(), "Error": error_msg}), 500
 
     # --- Correct Text + Correct Tables in parallel ---
-    is_tabular = Session.Get()["Information Type"] == "Tabular"
     correct_errors = []
 
     def correct_text_task():
@@ -198,6 +217,7 @@ def Process():
     if correct_errors:
         error_msg = "; ".join(f"{t}: {e}" for t, e in correct_errors)
         Session.Error(error_msg)
+        Session.SaveToDatabase()
         return jsonify({"Session": Session.Get(), "Error": error_msg}), 500
 
     # --- Translate Text + Translate Tables in parallel ---
@@ -231,9 +251,10 @@ def Process():
     if translate_errors:
         error_msg = "; ".join(f"{t}: {e}" for t, e in translate_errors)
         Session.Error(error_msg)
+        Session.SaveToDatabase()
         return jsonify({"Session": Session.Get(), "Error": error_msg}), 500
 
-    # Single DB write at the end with final state
+    # Single DB write at the end with final state (upsert since Initialize was skipped)
     Session.SaveToDatabase()
 
     print(f"[PROCESS] Pipeline complete for session {Session.Get()['Session Id']}")
