@@ -196,7 +196,7 @@ class SessionGenerator:
 
         return Session
 
-    def ExtractText(self):
+    def ExtractText(self, skip_db_write=False):
         # Process the session document
         print(f"[...] Processing Session: {self.session['Session Id']}")
         print(f"[...] Document Type: {self.session['Document Type']}")
@@ -256,14 +256,15 @@ class SessionGenerator:
                 # Add new Status
                 self.session["Status"] = "Extracted"
 
-        # Update the Session object
-        self.db.sessions.update_one(
-            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
-        )
+        # Update the Session object (skip during combined processing to reduce DB round trips)
+        if not skip_db_write:
+            self.db.sessions.update_one(
+                {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+            )
 
         return ExtractedText
 
-    def ExtractTables(self):
+    def ExtractTables(self, skip_db_write=False):
         # Extract Table from the session document
         # Optical Character Recognition
         OCR = OCRProcessor()
@@ -319,13 +320,14 @@ class SessionGenerator:
                 self.session["Status"] = "Extracted"
 
         # Update the Session object
-        self.db.sessions.update_one(
-            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
-        )
+        if not skip_db_write:
+            self.db.sessions.update_one(
+                {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+            )
 
         return self.session
 
-    def CorrectText(self):
+    def CorrectText(self, skip_db_write=False):
         # GPT to Correct the Output of the OCR
         GPT = GPTCorrector()
 
@@ -344,13 +346,14 @@ class SessionGenerator:
         self.session["Status"] = "Corrected"
 
         # Update the Session object
-        self.db.sessions.update_one(
-            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
-        )
+        if not skip_db_write:
+            self.db.sessions.update_one(
+                {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+            )
 
         return self.session
 
-    def CorrectTables(self):
+    def CorrectTables(self, skip_db_write=False):
         # GPT to Correct the Output of the OCR
         GPT = GPTCorrector()
 
@@ -372,13 +375,14 @@ class SessionGenerator:
         self.session["Status"] = "Corrected"
 
         # Update the Session object
-        self.db.sessions.update_one(
-            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
-        )
+        if not skip_db_write:
+            self.db.sessions.update_one(
+                {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+            )
 
         return self.session
 
-    def TranslateText(self):
+    def TranslateText(self, skip_db_write=False):
         # GPT to Correct the Output of the OCR
         GPT = GPTCorrector()
 
@@ -398,13 +402,14 @@ class SessionGenerator:
         self.session["Status"] = "Translated"
 
         # Update the Session object
-        self.db.sessions.update_one(
-            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
-        )
+        if not skip_db_write:
+            self.db.sessions.update_one(
+                {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+            )
 
         return self.session
 
-    def TranslateTables(self):
+    def TranslateTables(self, skip_db_write=False):
         # GPT to Correct the Output of the OCR
         GPT = GPTCorrector()
 
@@ -424,9 +429,10 @@ class SessionGenerator:
         self.session["Status"] = "Translated"
 
         # Update the Session object
-        self.db.sessions.update_one(
-            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
-        )
+        if not skip_db_write:
+            self.db.sessions.update_one(
+                {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+            )
 
         return self.session
 
@@ -451,6 +457,12 @@ class SessionGenerator:
         )
 
         return self.session
+
+    def SaveToDatabase(self):
+        """Save current session state to MongoDB (used at the end of combined processing)."""
+        self.db.sessions.update_one(
+            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
 
     def Destroy(self):
         # Remove the session document from the 'sessions' collection

@@ -44,6 +44,35 @@ const executeOperationWithRetry: any = async (operationFunction: () => Promise<
 }
 
 
+// COMBINED: Process document in a single request (Initialize → Extract → Correct → Translate)
+export const processDocumentAPI = async (doctype: Doctype, uploadedFile: FileType) => {
+    const PROCESS_URL = SERVER_API + "/api/v1/process";
+
+    const formData = new FormData();
+    formData.append("file", uploadedFile.file);
+    formData.append("document_type", doctype?.id || "");
+
+    return await executeOperationWithRetry(async () => {
+        const Response = await Axios.post(PROCESS_URL, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+            timeout: 300000, // 5 minutes for full pipeline
+        });
+
+        if (Response.status === 200 && Response.data?.Session?.Status === "Translated") {
+            return {
+                Status: "Translated",
+                Session: Response.data.Session,
+                Error: null,
+            };
+        } else {
+            throw new Error(Response.data?.Error || "Failed to process document.");
+        }
+    });
+};
+
+
 // STEP ONE: Initialize the Operation (/api/v1/initialize)
 export const initializeSessionAPI = async (doctype: Doctype, uploadedFile: FileType) => {
     const PROCESS_URL = SERVER_API + "/api/v1/initialize";

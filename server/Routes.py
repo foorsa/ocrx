@@ -110,6 +110,136 @@ def Initialize():
     return jsonify({"Session": Session.Get()}), 200
 
 
+# COMBINED PROCESSING API - Single endpoint that performs all steps at once
+@API_BLUEPRINT.route("/api/v1/process", methods=["POST"])
+def Process():
+    """
+    Combined endpoint: Initialize → Extract → Correct → Translate in one request.
+    Parallelizes text/table operations where possible to minimize total latency.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import traceback
+
+    print("[PROCESS] Starting combined document processing pipeline")
+
+    # --- Validation (same as Initialize) ---
+    if "file" not in request.files or "document_type" not in request.form:
+        return jsonify({"error": "File and Document Type fields are required."}), 400
+
+    Files = request.files.getlist("file")
+    Doctype = request.form["document_type"]
+
+    for File in Files:
+        AllowedExtensions = {"pdf", "png", "jpg", "jpeg"}
+        FileExtension = File.filename.rsplit(".", 1)[1].lower()
+        if FileExtension not in AllowedExtensions:
+            return jsonify({"error": "Invalid file extension."}), 400
+
+    # --- Save files ---
+    SavedFiles = []
+    for File in Files:
+        ID = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+        Filename = secure_filename(ID + "." + File.filename.rsplit(".", 1)[1].lower())
+        FilePath = os.path.join(UPLOAD_FOLDER, Filename)
+        File.save(FilePath)
+        SavedFiles.append(FilePath)
+
+    # --- Initialize Session ---
+    Session = SessionGenerator()
+    Session.Initialize(Doctype, SavedFiles)
+    print(f"[PROCESS] Session {Session.Get()['Session Id']} initialized")
+
+    # --- Extract Text (skip intermediate DB writes) ---
+    try:
+        Session.ExtractText(skip_db_write=True)
+        print("[PROCESS] Text extraction complete")
+    except Exception as e:
+        Session.Error(str(e))
+        return jsonify({"Session": Session.Get(), "Error": str(e)}), 500
+
+    # --- Extract Tables (if Tabular) ---
+    if Session.Get()["Information Type"] == "Tabular":
+        try:
+            Session.ExtractTables(skip_db_write=True)
+            print("[PROCESS] Table extraction complete")
+        except Exception as e:
+            Session.Error(str(e))
+            return jsonify({"Session": Session.Get(), "Error": str(e)}), 500
+
+    # --- Correct Text + Correct Tables in parallel ---
+    is_tabular = Session.Get()["Information Type"] == "Tabular"
+    correct_errors = []
+
+    def correct_text_task():
+        try:
+            Session.CorrectText(skip_db_write=True)
+            print("[PROCESS] Text correction complete")
+        except Exception as e:
+            correct_errors.append(("text", e))
+
+    def correct_tables_task():
+        try:
+            Session.CorrectTables(skip_db_write=True)
+            print("[PROCESS] Table correction complete")
+        except Exception as e:
+            correct_errors.append(("tables", e))
+
+    if is_tabular:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [
+                executor.submit(correct_text_task),
+                executor.submit(correct_tables_task),
+            ]
+            for f in as_completed(futures):
+                f.result()
+    else:
+        correct_text_task()
+
+    if correct_errors:
+        error_msg = "; ".join(f"{t}: {e}" for t, e in correct_errors)
+        Session.Error(error_msg)
+        return jsonify({"Session": Session.Get(), "Error": error_msg}), 500
+
+    # --- Translate Text + Translate Tables in parallel ---
+    translate_errors = []
+
+    def translate_text_task():
+        try:
+            Session.TranslateText(skip_db_write=True)
+            print("[PROCESS] Text translation complete")
+        except Exception as e:
+            translate_errors.append(("text", e))
+
+    def translate_tables_task():
+        try:
+            Session.TranslateTables(skip_db_write=True)
+            print("[PROCESS] Table translation complete")
+        except Exception as e:
+            translate_errors.append(("tables", e))
+
+    if is_tabular:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [
+                executor.submit(translate_text_task),
+                executor.submit(translate_tables_task),
+            ]
+            for f in as_completed(futures):
+                f.result()
+    else:
+        translate_text_task()
+
+    if translate_errors:
+        error_msg = "; ".join(f"{t}: {e}" for t, e in translate_errors)
+        Session.Error(error_msg)
+        return jsonify({"Session": Session.Get(), "Error": error_msg}), 500
+
+    # Single DB write at the end with final state
+    Session.SaveToDatabase()
+
+    print(f"[PROCESS] Pipeline complete for session {Session.Get()['Session Id']}")
+    return jsonify({"Session": Session.Get()}), 200
+
+
 # EXTRACTION API
 @API_BLUEPRINT.route("/api/v1/extract-text", methods=["POST"])
 def ExtractText():

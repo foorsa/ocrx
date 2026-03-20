@@ -27,23 +27,19 @@ const FileUploadService = () => {
 					dispatch(resetFile());
 				}
 
-				// Wait for 300ms to show the loading animation
-				setTimeout(() => {
-					//
-					const reader = new FileReader();
-					reader.onload = () => {
-						dispatch(
-							setFile({
-								file: file,
-								name: file.name,
-								type: file.type,
-								size: file.size,
-								preview: reader.result as FileType["preview"],
-							})
-						);
-					};
-					reader.readAsDataURL(file);
-				}, 200);
+				const reader = new FileReader();
+				reader.onload = () => {
+					dispatch(
+						setFile({
+							file: file,
+							name: file.name,
+							type: file.type,
+							size: file.size,
+							preview: reader.result as FileType["preview"],
+						})
+					);
+				};
+				reader.readAsDataURL(file);
 			} else {
 				// Check where the error is
 				if (
