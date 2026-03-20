@@ -9,17 +9,18 @@ import pytesseract
 from ExtractTable import ExtractTable
 from dotenv import load_dotenv
 import json
-import requests
 from PyPDF2 import PdfReader
+from openai import OpenAI
 
 
 # Define the OCR Processor Class
 class OCRProcessor:
     def __init__(self):
         self.ET_SESSION = ExtractTable(os.environ.get("ET_API_KEY"))
-        self.gemini_api_key = os.getenv("GEMINI_API_KEY")
-        self.gemini_model = "gemini-2.0-flash"
-        self.gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.gemini_model}:generateContent?key={self.gemini_api_key}"
+        self.kimi_client = OpenAI(
+            api_key=os.getenv("KIMI_API_KEY"),
+            base_url="https://api.moonshot.cn/v1",
+        )
 
     def _image_to_base64(self, image):
         """Convert a PIL Image to a base64 string (JPEG for smaller payload)."""
@@ -31,14 +32,17 @@ class OCRProcessor:
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     def _extract_text_with_vision(self, image):
-        """Use Gemini Vision to extract text from an image."""
+        """Use Kimi Vision to extract text from an image."""
         base64_image = self._image_to_base64(image)
 
-        payload = {
-            "contents": [
+        response = self.kimi_client.chat.completions.create(
+            model="moonshot-v1-128k-vision-preview",
+            messages=[
                 {
-                    "parts": [
+                    "role": "user",
+                    "content": [
                         {
+                            "type": "text",
                             "text": (
                                 "Extract ALL text from this document image exactly as it appears. "
                                 "Preserve the layout and structure as much as possible. "
@@ -48,37 +52,30 @@ class OCRProcessor:
                             ),
                         },
                         {
-                            "inline_data": {
-                                "mime_type": "image/jpeg",
-                                "data": base64_image,
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}",
                             },
                         },
                     ],
                 }
             ],
-            "generationConfig": {
-                "temperature": 0,
-                "maxOutputTokens": 2048,
-            },
-        }
+            max_tokens=2048,
+        )
 
-        resp = requests.post(self.gemini_url, json=payload, timeout=120)
-        resp.raise_for_status()
-        data = resp.json()
-
-        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        return response.choices[0].message.content.strip()
 
     # Read the Image File
     def ExtractTextFromImage(self, InformationType, SessionId, Image):
-        # Try Gemini Vision first
+        # Try Kimi Vision first
         try:
-            print("[OCR] Extracting text with Gemini Vision...")
+            print("[OCR] Extracting text with Kimi Vision...")
             text = self._extract_text_with_vision(Image)
             if text and text.strip():
-                print(f"[OCR] Gemini Vision extracted {len(text)} chars")
+                print(f"[OCR] Kimi Vision extracted {len(text)} chars")
                 return text
         except Exception as e:
-            print(f"[OCR] Gemini Vision failed: {str(e)}, falling back to Tesseract...")
+            print(f"[OCR] Kimi Vision failed: {str(e)}, falling back to Tesseract...")
 
         # Fallback to Tesseract
         try:
@@ -118,10 +115,10 @@ class OCRProcessor:
             extracted_text = ""
             pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
 
-            # Try Gemini Vision on pages in parallel
+            # Try Kimi Vision on pages in parallel
             vision_success = False
             try:
-                print("[OCR] Extracting text with Gemini Vision (parallel)...")
+                print("[OCR] Extracting text with Kimi Vision (parallel)...")
                 page_list = list(pages)
                 results = [None] * len(page_list)
 
@@ -139,9 +136,9 @@ class OCRProcessor:
 
                 extracted_text = "\n".join(r for r in results if r)
                 vision_success = True
-                print(f"[OCR] Gemini Vision extracted {len(extracted_text)} chars from PDF")
+                print(f"[OCR] Kimi Vision extracted {len(extracted_text)} chars from PDF")
             except Exception as e:
-                print(f"[OCR] Gemini Vision failed: {str(e)}, falling back to Tesseract...")
+                print(f"[OCR] Kimi Vision failed: {str(e)}, falling back to Tesseract...")
 
             # Fallback to Tesseract if Vision failed
             if not vision_success:
