@@ -9,15 +9,17 @@ import pytesseract
 from ExtractTable import ExtractTable
 from dotenv import load_dotenv
 import json
+import requests
 from PyPDF2 import PdfReader
-from openai import OpenAI
 
 
 # Define the OCR Processor Class
 class OCRProcessor:
     def __init__(self):
         self.ET_SESSION = ExtractTable(os.environ.get("ET_API_KEY"))
-        self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+        self.gemini_model = "gemini-2.0-flash"
+        self.gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.gemini_model}:generateContent?key={self.gemini_api_key}"
 
     def _image_to_base64(self, image):
         """Convert a PIL Image to a base64 string (JPEG for smaller payload)."""
@@ -29,17 +31,14 @@ class OCRProcessor:
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     def _extract_text_with_vision(self, image):
-        """Use GPT-4o Vision to extract text from an image."""
+        """Use Gemini Vision to extract text from an image."""
         base64_image = self._image_to_base64(image)
 
-        response = self.openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
+        payload = {
+            "contents": [
                 {
-                    "role": "user",
-                    "content": [
+                    "parts": [
                         {
-                            "type": "text",
                             "text": (
                                 "Extract ALL text from this document image exactly as it appears. "
                                 "Preserve the layout and structure as much as possible. "
@@ -49,31 +48,37 @@ class OCRProcessor:
                             ),
                         },
                         {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}",
-                                "detail": "low",
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": base64_image,
                             },
                         },
                     ],
                 }
             ],
-            max_tokens=2048,
-        )
+            "generationConfig": {
+                "temperature": 0,
+                "maxOutputTokens": 2048,
+            },
+        }
 
-        return response.choices[0].message.content.strip()
+        resp = requests.post(self.gemini_url, json=payload, timeout=120)
+        resp.raise_for_status()
+        data = resp.json()
+
+        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
     # Read the Image File
     def ExtractTextFromImage(self, InformationType, SessionId, Image):
-        # Try GPT-4o Vision first
+        # Try Gemini Vision first
         try:
-            print("[OCR] Extracting text with GPT-4o Vision...")
+            print("[OCR] Extracting text with Gemini Vision...")
             text = self._extract_text_with_vision(Image)
             if text and text.strip():
-                print(f"[OCR] GPT-4o Vision extracted {len(text)} chars")
+                print(f"[OCR] Gemini Vision extracted {len(text)} chars")
                 return text
         except Exception as e:
-            print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
+            print(f"[OCR] Gemini Vision failed: {str(e)}, falling back to Tesseract...")
 
         # Fallback to Tesseract
         try:
@@ -113,10 +118,10 @@ class OCRProcessor:
             extracted_text = ""
             pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
 
-            # Try GPT-4o Vision on pages in parallel
+            # Try Gemini Vision on pages in parallel
             vision_success = False
             try:
-                print("[OCR] Extracting text with GPT-4o Vision (parallel)...")
+                print("[OCR] Extracting text with Gemini Vision (parallel)...")
                 page_list = list(pages)
                 results = [None] * len(page_list)
 
@@ -134,9 +139,9 @@ class OCRProcessor:
 
                 extracted_text = "\n".join(r for r in results if r)
                 vision_success = True
-                print(f"[OCR] GPT-4o Vision extracted {len(extracted_text)} chars from PDF")
+                print(f"[OCR] Gemini Vision extracted {len(extracted_text)} chars from PDF")
             except Exception as e:
-                print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
+                print(f"[OCR] Gemini Vision failed: {str(e)}, falling back to Tesseract...")
 
             # Fallback to Tesseract if Vision failed
             if not vision_success:

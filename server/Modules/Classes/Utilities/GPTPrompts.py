@@ -1,15 +1,57 @@
 # JSON
 import os
-from openai import OpenAI
+import json as json_module
+import requests
 
 from dotenv import load_dotenv, find_dotenv
 
 _ = load_dotenv(find_dotenv())
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
 
-# Model to use for all GPT calls
-GPT_MODEL = "gpt-4o-mini"
+
+def _gemini_chat(messages, temperature=0, json_mode=False):
+    """Send a chat request to Gemini API.
+    messages: list of dicts with 'role' and 'content' (OpenAI-style).
+    Maps to Gemini's contents format.
+    """
+    # Build system instruction from system messages
+    system_parts = []
+    contents = []
+
+    for msg in messages:
+        role = msg["role"]
+        content = msg["content"]
+
+        if role == "system":
+            system_parts.append(content)
+        elif role == "user":
+            contents.append({"role": "user", "parts": [{"text": content}]})
+        elif role == "assistant":
+            contents.append({"role": "model", "parts": [{"text": content}]})
+
+    payload = {
+        "contents": contents,
+        "generationConfig": {
+            "temperature": temperature,
+        },
+    }
+
+    if system_parts:
+        payload["systemInstruction"] = {
+            "parts": [{"text": "\n".join(system_parts)}]
+        }
+
+    if json_mode:
+        payload["generationConfig"]["responseMimeType"] = "application/json"
+
+    resp = requests.post(GEMINI_URL, json=payload, timeout=120)
+    resp.raise_for_status()
+    data = resp.json()
+
+    return data["candidates"][0]["content"]["parts"][0]["text"]
 
 
 def PromptString(Doctype, AvailableDoctypes, PromptOptions):
@@ -422,9 +464,7 @@ def GeneratePrompt(Doctype):
 
 # Text Correction
 def GenerateTextCorrection(Doctype, Text):
-    Response = client.chat.completions.create(
-        model=GPT_MODEL,
-        temperature=0,
+    result = _gemini_chat(
         messages=[
             {
                 "role": "system",
@@ -453,17 +493,15 @@ def GenerateTextCorrection(Doctype, Text):
                 "content": Text,
             },
         ],
+        temperature=0,
     )
-    result = Response.choices[0].message.content
     print("[DEBUG] Response: ", str(result))
     return result
 
 
 # Text Translation
 def GenerateTextTranslation(Doctype, Text, RAW_OCR):
-    Response = client.chat.completions.create(
-        model=GPT_MODEL,
-        temperature=0,
+    raw_content = _gemini_chat(
         messages=[
             {
                 "role": "system",
@@ -558,9 +596,9 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
                 """,
             },
         ],
+        temperature=0,
     )
 
-    raw_content = Response.choices[0].message.content
     JSON_OBJECT = "{" + raw_content.split("{", 1)[1]
 
     print("[INFO] Translation Response: ", str(JSON_OBJECT))
@@ -668,9 +706,7 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n}"
             )
 
-            Response = client.chat.completions.create(
-                model=GPT_MODEL,
-                temperature=0,
+            result = _gemini_chat(
                 messages=[
                     {
                         "role": "system",
@@ -704,9 +740,8 @@ def GenerateTableCorrection(Doctype, Table):
                         ),
                     },
                 ],
+                temperature=0,
             )
-
-            result = Response.choices[0].message.content
             print("[DEBUG] Response: ", str(result))
             return result
         case "Baccalaureate-Transcript-of-Marks-V2":
@@ -755,9 +790,7 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n}"
             )
 
-            Response = client.chat.completions.create(
-                model=GPT_MODEL,
-                temperature=0,
+            result = _gemini_chat(
                 messages=[
                     {
                         "role": "system",
@@ -811,9 +844,8 @@ def GenerateTableCorrection(Doctype, Table):
                         """,
                     },
                 ],
+                temperature=0,
             )
-
-            result = Response.choices[0].message.content
             print("[DEBUG] Response: ", str(result))
             return result
 
@@ -832,9 +864,7 @@ def GenerateTableCorrection(Doctype, Table):
                 ]
             """
 
-            Response = client.chat.completions.create(
-                model=GPT_MODEL,
-                temperature=0,
+            result = _gemini_chat(
                 messages=[
                     {
                         "role": "system",
@@ -881,9 +911,8 @@ def GenerateTableCorrection(Doctype, Table):
                         """,
                     },
                 ],
+                temperature=0,
             )
-
-            result = Response.choices[0].message.content
             print("[DEBUG] Response: ", str(result))
             return result
         case _:
@@ -896,10 +925,7 @@ def GenerateTableCorrection(Doctype, Table):
 # Combined Text Correction + Translation (single GPT call instead of two)
 def GenerateTextCorrectionAndTranslation(Doctype, Text):
     prompt_context = GeneratePrompt(Doctype)
-    Response = client.chat.completions.create(
-        model=GPT_MODEL,
-        temperature=0,
-        response_format={"type": "json_object"},
+    result = _gemini_chat(
         messages=[
             {
                 "role": "system",
@@ -919,8 +945,9 @@ def GenerateTextCorrectionAndTranslation(Doctype, Text):
                 ),
             },
         ],
+        temperature=0,
+        json_mode=True,
     )
-    result = Response.choices[0].message.content
     print("[DEBUG] Combined Correction+Translation Response: ", str(result))
     return result
 
@@ -944,10 +971,7 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
                 '        ],\n        "Rows": [["value", "value", "value", "value"]]\n    }\n}'
             )
 
-            Response = client.chat.completions.create(
-                model=GPT_MODEL,
-                temperature=0,
-                response_format={"type": "json_object"},
+            result = _gemini_chat(
                 messages=[
                     {
                         "role": "system",
@@ -967,8 +991,9 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
                         ),
                     },
                 ],
+                temperature=0,
+                json_mode=True,
             )
-            result = Response.choices[0].message.content
             print("[DEBUG] Combined Table Response: ", str(result))
             return result
 
@@ -983,10 +1008,7 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
                 '        ],\n        "Rows": [["value", "value", "value", "value"]]\n    }\n}'
             )
 
-            Response = client.chat.completions.create(
-                model=GPT_MODEL,
-                temperature=0,
-                response_format={"type": "json_object"},
+            result = _gemini_chat(
                 messages=[
                     {
                         "role": "system",
@@ -1004,8 +1026,9 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
                         ),
                     },
                 ],
+                temperature=0,
+                json_mode=True,
             )
-            result = Response.choices[0].message.content
             print("[DEBUG] Combined Table Response: ", str(result))
             return result
 
@@ -1013,10 +1036,7 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
             print("[INFO] Combined Correction+Translation for: Master Transcript")
             DesiredJSONTable = '[{"Subject": "Name", "Mark": "X/20", "Result": "Validated", "Session": "S1"}, ...]'
 
-            Response = client.chat.completions.create(
-                model=GPT_MODEL,
-                temperature=0,
-                response_format={"type": "json_object"},
+            result = _gemini_chat(
                 messages=[
                     {
                         "role": "system",
@@ -1033,8 +1053,9 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
                         ),
                     },
                 ],
+                temperature=0,
+                json_mode=True,
             )
-            result = Response.choices[0].message.content
             print("[DEBUG] Combined Table Response: ", str(result))
             return result
 
@@ -1044,11 +1065,8 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
 
 # Table Translation
 def GenerateTableTranslation(Doctype, Table):
-    print("[GPT] Generating AI Table Translation...")
-    # Baccalaureate-Transcript-of-Notes Prompt Generation
-    TableResponse = client.chat.completions.create(
-        model=GPT_MODEL,
-        temperature=0,
+    print("[GEMINI] Generating AI Table Translation...")
+    result = _gemini_chat(
         messages=[
             {
                 "role": "system",
@@ -1071,8 +1089,8 @@ def GenerateTableTranslation(Doctype, Table):
                 """,
             },
         ],
+        temperature=0,
     )
-    result = TableResponse.choices[0].message.content
     print("[DEBUG] Response: ", str(result))
 
     return result
