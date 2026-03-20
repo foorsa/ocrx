@@ -1,25 +1,21 @@
 # JSON
 import os
-import json as json_module
-import requests
 from openai import OpenAI
 
 from dotenv import load_dotenv, find_dotenv
 
 _ = load_dotenv(find_dotenv())
 
-# Kimi/Moonshot AI - OpenAI-compatible API
-client = OpenAI(
-    api_key=os.getenv("KIMI_API_KEY"),
-    base_url="https://api.moonshot.cn/v1",
-)
-KIMI_MODEL = "moonshot-v1-128k"
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Best OpenAI model
+GPT_MODEL = "gpt-5"
 
 
-def _kimi_chat(messages, temperature=0, json_mode=False):
-    """Send a chat request to Kimi/Moonshot API (OpenAI-compatible)."""
+def _ai_chat(messages, temperature=0, json_mode=False):
+    """Send a chat request to OpenAI API."""
     kwargs = {
-        "model": KIMI_MODEL,
+        "model": GPT_MODEL,
         "temperature": temperature,
         "messages": messages,
     }
@@ -440,7 +436,7 @@ def GeneratePrompt(Doctype):
 
 # Text Correction
 def GenerateTextCorrection(Doctype, Text):
-    result = _kimi_chat(
+    result = _ai_chat(
         messages=[
             {
                 "role": "system",
@@ -477,7 +473,7 @@ def GenerateTextCorrection(Doctype, Text):
 
 # Text Translation
 def GenerateTextTranslation(Doctype, Text, RAW_OCR):
-    raw_content = _kimi_chat(
+    raw_content = _ai_chat(
         messages=[
             {
                 "role": "system",
@@ -682,7 +678,7 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n}"
             )
 
-            result = _kimi_chat(
+            result = _ai_chat(
                 messages=[
                     {
                         "role": "system",
@@ -766,7 +762,7 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n}"
             )
 
-            result = _kimi_chat(
+            result = _ai_chat(
                 messages=[
                     {
                         "role": "system",
@@ -840,7 +836,7 @@ def GenerateTableCorrection(Doctype, Table):
                 ]
             """
 
-            result = _kimi_chat(
+            result = _ai_chat(
                 messages=[
                     {
                         "role": "system",
@@ -901,7 +897,7 @@ def GenerateTableCorrection(Doctype, Table):
 # Combined Text Correction + Translation (single GPT call instead of two)
 def GenerateTextCorrectionAndTranslation(Doctype, Text):
     prompt_context = GeneratePrompt(Doctype)
-    result = _kimi_chat(
+    result = _ai_chat(
         messages=[
             {
                 "role": "system",
@@ -947,7 +943,7 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
                 '        ],\n        "Rows": [["value", "value", "value", "value"]]\n    }\n}'
             )
 
-            result = _kimi_chat(
+            result = _ai_chat(
                 messages=[
                     {
                         "role": "system",
@@ -984,7 +980,7 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
                 '        ],\n        "Rows": [["value", "value", "value", "value"]]\n    }\n}'
             )
 
-            result = _kimi_chat(
+            result = _ai_chat(
                 messages=[
                     {
                         "role": "system",
@@ -1012,7 +1008,7 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
             print("[INFO] Combined Correction+Translation for: Master Transcript")
             DesiredJSONTable = '[{"Subject": "Name", "Mark": "X/20", "Result": "Validated", "Session": "S1"}, ...]'
 
-            result = _kimi_chat(
+            result = _ai_chat(
                 messages=[
                     {
                         "role": "system",
@@ -1042,7 +1038,7 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
 # Table Translation
 def GenerateTableTranslation(Doctype, Table):
     print("[GEMINI] Generating AI Table Translation...")
-    result = _kimi_chat(
+    result = _ai_chat(
         messages=[
             {
                 "role": "system",

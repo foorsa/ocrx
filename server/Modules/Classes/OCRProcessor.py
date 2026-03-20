@@ -17,10 +17,7 @@ from openai import OpenAI
 class OCRProcessor:
     def __init__(self):
         self.ET_SESSION = ExtractTable(os.environ.get("ET_API_KEY"))
-        self.kimi_client = OpenAI(
-            api_key=os.getenv("KIMI_API_KEY"),
-            base_url="https://api.moonshot.cn/v1",
-        )
+        self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     def _image_to_base64(self, image):
         """Convert a PIL Image to a base64 string (JPEG for smaller payload)."""
@@ -32,11 +29,11 @@ class OCRProcessor:
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     def _extract_text_with_vision(self, image):
-        """Use Kimi Vision to extract text from an image."""
+        """Use GPT-4o Vision to extract text from an image."""
         base64_image = self._image_to_base64(image)
 
-        response = self.kimi_client.chat.completions.create(
-            model="moonshot-v1-128k-vision-preview",
+        response = self.openai_client.chat.completions.create(
+            model="gpt-5",
             messages=[
                 {
                     "role": "user",
@@ -67,15 +64,15 @@ class OCRProcessor:
 
     # Read the Image File
     def ExtractTextFromImage(self, InformationType, SessionId, Image):
-        # Try Kimi Vision first
+        # Try GPT-5 Vision first
         try:
-            print("[OCR] Extracting text with Kimi Vision...")
+            print("[OCR] Extracting text with GPT-5 Vision...")
             text = self._extract_text_with_vision(Image)
             if text and text.strip():
-                print(f"[OCR] Kimi Vision extracted {len(text)} chars")
+                print(f"[OCR] GPT-5 Vision extracted {len(text)} chars")
                 return text
         except Exception as e:
-            print(f"[OCR] Kimi Vision failed: {str(e)}, falling back to Tesseract...")
+            print(f"[OCR] GPT-5 Vision failed: {str(e)}, falling back to Tesseract...")
 
         # Fallback to Tesseract
         try:
@@ -115,10 +112,10 @@ class OCRProcessor:
             extracted_text = ""
             pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
 
-            # Try Kimi Vision on pages in parallel
+            # Try GPT-5 Vision on pages in parallel
             vision_success = False
             try:
-                print("[OCR] Extracting text with Kimi Vision (parallel)...")
+                print("[OCR] Extracting text with GPT-5 Vision (parallel)...")
                 page_list = list(pages)
                 results = [None] * len(page_list)
 
@@ -136,9 +133,9 @@ class OCRProcessor:
 
                 extracted_text = "\n".join(r for r in results if r)
                 vision_success = True
-                print(f"[OCR] Kimi Vision extracted {len(extracted_text)} chars from PDF")
+                print(f"[OCR] GPT-5 Vision extracted {len(extracted_text)} chars from PDF")
             except Exception as e:
-                print(f"[OCR] Kimi Vision failed: {str(e)}, falling back to Tesseract...")
+                print(f"[OCR] GPT-5 Vision failed: {str(e)}, falling back to Tesseract...")
 
             # Fallback to Tesseract if Vision failed
             if not vision_success:
