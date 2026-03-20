@@ -111,6 +111,7 @@ class SessionGenerator:
         }
         self.db = db  # Connect to the 'ocrx-db' database
         self.fs = gridfs.GridFS(self.db)  # Use GridFS for file storage
+        self._file_cache = {}  # Cache file bytes to avoid redundant GridFS reads
 
     # Get the Session Information
     def Get(self):
@@ -126,7 +127,18 @@ class SessionGenerator:
         else:
             return False
 
-    def Initialize(self, DocumentType, Files):
+    def _get_file_bytes(self, file_id):
+        """Get file bytes from GridFS with caching to avoid redundant reads."""
+        str_id = str(file_id)
+        if str_id not in self._file_cache:
+            f = self.fs.get(file_id)
+            self._file_cache[str_id] = {
+                "bytes": f.read(),
+                "filename": f.filename,
+            }
+        return self._file_cache[str_id]
+
+    def Initialize(self, DocumentType, Files, skip_db_write=False):
         # Session ID
         self.id = GenerateSessionId()
         self.document_type = DocumentType
@@ -140,6 +152,11 @@ class SessionGenerator:
                     FileName = "Upload.{}".format(file_path.split(".")[-1])
                     FileId = self.fs.put(FileData, filename=FileName)
                     Uploads.append({"Upload Id": FileId, "File": FileName})
+                    # Pre-populate file cache so extraction doesn't re-read from GridFS
+                    self._file_cache[str(FileId)] = {
+                        "bytes": FileData,
+                        "filename": FileName,
+                    }
             except FileNotFoundError:
                 print(f"File not found: {file_path}")
             except IOError as e:
@@ -192,7 +209,9 @@ class SessionGenerator:
         self.session = Session
 
         # Insert the session document into the 'sessions' collection
-        self.db.sessions.insert_one(Session)
+        # (skip during combined processing to defer until final save)
+        if not skip_db_write:
+            self.db.sessions.insert_one(Session)
 
         return Session
 
@@ -209,15 +228,13 @@ class SessionGenerator:
             # Get the File ID
             FileId = File["Upload Id"]
 
-            # Get the File
-            File = self.fs.get(FileId)
-
-            # Get the File Extension
-            FileExtension = File.filename.rsplit(".", 1)[1].lower()
+            # Get cached file bytes (avoids redundant GridFS reads)
+            cached = self._get_file_bytes(FileId)
+            FileExtension = cached["filename"].rsplit(".", 1)[1].lower()
 
             if FileExtension == "pdf":
                 # Create PDF Object
-                PDf_Bytes = io.BytesIO(File.read())
+                PDf_Bytes = io.BytesIO(cached["bytes"])
 
                 # If the File is a PDF, Read the PDF
                 ExtractedText = OCR.ExtractTextFromPDF(
@@ -227,7 +244,7 @@ class SessionGenerator:
                 )
             elif FileExtension in {"png", "jpg", "jpeg"}:
                 # convert bytes to a file-like object
-                FILE_LIKE = io.BytesIO(File.read())
+                FILE_LIKE = io.BytesIO(cached["bytes"])
 
                 # Create an Image object
                 IMG = Image.open(FILE_LIKE)
@@ -278,15 +295,13 @@ class SessionGenerator:
             # Get the File ID
             FileId = File["Upload Id"]
 
-            # Get the File
-            File = self.fs.get(FileId)
-
-            # Get the File Extension
-            FileExtension = File.filename.rsplit(".", 1)[1].lower()
+            # Get cached file bytes (avoids redundant GridFS reads)
+            cached = self._get_file_bytes(FileId)
+            FileExtension = cached["filename"].rsplit(".", 1)[1].lower()
 
             if FileExtension == "pdf":
                 # Create PDF Object
-                PDf_Bytes = io.BytesIO(File.read())
+                PDf_Bytes = io.BytesIO(cached["bytes"])
                 # If the File is a PDF, Read the PDF
                 Tables = OCR.ExtractTableFromPDF(
                     self.session["Information Type"],
@@ -295,7 +310,7 @@ class SessionGenerator:
                 )
             elif FileExtension in {"png", "jpg", "jpeg"}:
                 # convert bytes to a file-like object
-                FILE_LIKE = io.BytesIO(File.read())
+                FILE_LIKE = io.BytesIO(cached["bytes"])
 
                 # Create an Image object
                 IMG = Image.open(FILE_LIKE)
@@ -459,10 +474,15 @@ class SessionGenerator:
         return self.session
 
     def SaveToDatabase(self):
-        """Save current session state to MongoDB (used at the end of combined processing)."""
+        """Save current session state to MongoDB (used at the end of combined processing).
+        Uses upsert so it works whether Initialize wrote to DB or was skipped."""
         self.db.sessions.update_one(
-            {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+            {"Session Id": self.session["Session Id"]},
+            {"$set": self.session},
+            upsert=True,
         )
+        # Free file cache memory after final save
+        self._file_cache.clear()
 
     def Destroy(self):
         # Remove the session document from the 'sessions' collection
