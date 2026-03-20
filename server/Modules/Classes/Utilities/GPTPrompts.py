@@ -9,7 +9,7 @@ _ = load_dotenv(find_dotenv())
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Best OpenAI model
-GPT_MODEL = "gpt-5"
+GPT_MODEL = "gpt-4o"
 
 
 def _ai_chat(messages, temperature=0, json_mode=False):

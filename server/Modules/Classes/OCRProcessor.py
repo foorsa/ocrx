@@ -33,7 +33,7 @@ class OCRProcessor:
         base64_image = self._image_to_base64(image)
 
         response = self.openai_client.chat.completions.create(
-            model="gpt-5",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
@@ -64,15 +64,15 @@ class OCRProcessor:
 
     # Read the Image File
     def ExtractTextFromImage(self, InformationType, SessionId, Image):
-        # Try GPT-5 Vision first
+        # Try GPT-4o Vision first
         try:
-            print("[OCR] Extracting text with GPT-5 Vision...")
+            print("[OCR] Extracting text with GPT-4o Vision...")
             text = self._extract_text_with_vision(Image)
             if text and text.strip():
-                print(f"[OCR] GPT-5 Vision extracted {len(text)} chars")
+                print(f"[OCR] GPT-4o Vision extracted {len(text)} chars")
                 return text
         except Exception as e:
-            print(f"[OCR] GPT-5 Vision failed: {str(e)}, falling back to Tesseract...")
+            print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
 
         # Fallback to Tesseract
         try:
@@ -112,10 +112,10 @@ class OCRProcessor:
             extracted_text = ""
             pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
 
-            # Try GPT-5 Vision on pages in parallel
+            # Try GPT-4o Vision on pages in parallel
             vision_success = False
             try:
-                print("[OCR] Extracting text with GPT-5 Vision (parallel)...")
+                print("[OCR] Extracting text with GPT-4o Vision (parallel)...")
                 page_list = list(pages)
                 results = [None] * len(page_list)
 
@@ -133,9 +133,9 @@ class OCRProcessor:
 
                 extracted_text = "\n".join(r for r in results if r)
                 vision_success = True
-                print(f"[OCR] GPT-5 Vision extracted {len(extracted_text)} chars from PDF")
+                print(f"[OCR] GPT-4o Vision extracted {len(extracted_text)} chars from PDF")
             except Exception as e:
-                print(f"[OCR] GPT-5 Vision failed: {str(e)}, falling back to Tesseract...")
+                print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
 
             # Fallback to Tesseract if Vision failed
             if not vision_success:
