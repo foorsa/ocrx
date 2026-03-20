@@ -216,6 +216,40 @@ export const translateTableAPI = async (Session: SessionType) => {
 
 
 
+// FAST PIPELINE: Single request does everything (init + extract + correct + translate + generate)
+export const processAllAPI = async (doctype: Doctype, uploadedFile: FileType) => {
+    const PROCESS_URL = SERVER_API + "/api/v1/process-all";
+
+    const formData = new FormData();
+    formData.append("file", uploadedFile.file);
+    formData.append("document_type", doctype?.id || "");
+
+    return await executeOperationWithRetry(async () => {
+        const Response = await Axios.post(PROCESS_URL, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+            timeout: 300000, // 5 minutes for full pipeline
+        });
+
+        if (Response.status === 200 && Response.data?.Session?.Status === "Generated") {
+            return {
+                Status: "Generated",
+                Session: Response.data.Session,
+                Error: null,
+            };
+        } else if (Response.status === 200 && Response.data?.Session) {
+            return {
+                Status: Response.data.Session.Status,
+                Session: Response.data.Session,
+                Error: null,
+            };
+        } else {
+            throw new Error("Failed to process document.");
+        }
+    });
+};
+
 // STEP EIGHT: Generate Document (/api/v1/generate-document)
 export const generateDocumentAPI = async (Session: SessionType) => {
     const PROCESS_URL = SERVER_API + "/api/v1/generate-document";

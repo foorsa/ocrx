@@ -15,6 +15,7 @@ import os
 from unicodedata import normalize
 
 # Classes Required for Operations
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from Modules.Classes.OCRProcessor import OCRProcessor
 from Modules.Classes.GPTCorrector import GPTCorrector
 from PDFGenerator import PDFGenerator
@@ -448,6 +449,187 @@ class SessionGenerator:
         # Update the Session object
         self.db.sessions.update_one(
             {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+        )
+
+        return self.session
+
+    def ProcessAll(self, DocumentType, Files):
+        """Unified pipeline: Initialize + Extract + Correct+Translate + Generate in one call.
+        Eliminates HTTP round-trips and redundant DB reads/writes.
+        Uses parallel processing and combined GPT calls for speed."""
+        from Modules.Classes.Utilities.GPTPrompts import (
+            GenerateTextCorrectionAndTranslation,
+            GenerateTableCorrectionAndTranslation,
+        )
+
+        # === STEP 1: Initialize (same as Initialize but no intermediate DB write) ===
+        self.id = GenerateSessionId()
+        self.document_type = DocumentType
+        self.files = Files
+
+        Uploads = []
+        for file_path in self.files:
+            try:
+                with open(file_path, "rb") as file:
+                    FileData = file.read()
+                    FileName = "Upload.{}".format(file_path.split(".")[-1])
+                    FileId = self.fs.put(FileData, filename=FileName)
+                    Uploads.append({"Upload Id": FileId, "File": FileName})
+            except (FileNotFoundError, IOError) as e:
+                print(f"Error with file: {file_path} - {e}")
+
+        TabularDocumentTypes = [
+            "Master-Transcript-of-Marks",
+            "Baccalaureate-Transcript-of-Marks-V1",
+            "Baccalaureate-Transcript-of-Marks-V2",
+        ]
+
+        is_tabular = self.document_type in TabularDocumentTypes
+
+        Session = {
+            "Session Id": self.id,
+            "Operation Date": datetime.datetime.now().strftime(
+                "%A, %d %B %Y, %I:%M%p" + " UTC"
+            ),
+            "Document Type": self.document_type,
+            "Information Type": "Tabular" if is_tabular else "Regular",
+            "Uploads": Uploads,
+            "Status": "Initialized",
+            "Error": None,
+            "Message": "",
+            "Extraction": {"Text": "", "Tables": []},
+            "Correction": {"Text": {}, "Tables": []},
+            "Translation": {"Text": {}, "Tables": []},
+            "Generation": {"PDF Link": "", "Google Docs Link": "", "Preview Link": ""},
+        }
+        self.session = Session
+
+        # Save initial session to DB (one write)
+        self.db.sessions.insert_one(Session)
+        print(f"[FAST] Session {self.id} initialized")
+
+        # === STEP 2: Extract text (and tables in parallel if tabular) ===
+        OCR = OCRProcessor()
+        extracted_text = ""
+        extracted_tables = None
+
+        def extract_text_task():
+            nonlocal extracted_text
+            for File in self.session["Uploads"]:
+                FileId = File["Upload Id"]
+                FileObj = self.fs.get(FileId)
+                FileExtension = FileObj.filename.rsplit(".", 1)[1].lower()
+
+                if FileExtension == "pdf":
+                    PDf_Bytes = io.BytesIO(FileObj.read())
+                    extracted_text = OCR.ExtractTextFromPDF(
+                        self.session["Information Type"],
+                        self.session["Session Id"],
+                        PDf_Bytes,
+                    )
+                elif FileExtension in {"png", "jpg", "jpeg"}:
+                    FILE_LIKE = io.BytesIO(FileObj.read())
+                    IMG = Image.open(FILE_LIKE)
+                    extracted_text += OCR.ExtractTextFromImage(
+                        self.session["Information Type"],
+                        self.session["Session Id"],
+                        IMG,
+                    )
+            return extracted_text
+
+        def extract_tables_task():
+            nonlocal extracted_tables
+            if not is_tabular:
+                return None
+            for File in self.session["Uploads"]:
+                FileId = File["Upload Id"]
+                FileObj = self.fs.get(FileId)
+                FileExtension = FileObj.filename.rsplit(".", 1)[1].lower()
+
+                if FileExtension == "pdf":
+                    PDf_Bytes = io.BytesIO(FileObj.read())
+                    extracted_tables = OCR.ExtractTableFromPDF(
+                        self.session["Information Type"],
+                        self.session["Session Id"],
+                        PDf_Bytes,
+                    )
+                elif FileExtension in {"png", "jpg", "jpeg"}:
+                    FILE_LIKE = io.BytesIO(FileObj.read())
+                    IMG = Image.open(FILE_LIKE)
+                    extracted_tables = OCR.ExtractTableFromImage(
+                        self.session["Information Type"],
+                        self.session["Session Id"],
+                        IMG,
+                    )
+            return extracted_tables
+
+        # Run text + table extraction in parallel
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            text_future = executor.submit(extract_text_task)
+            table_future = executor.submit(extract_tables_task)
+            extracted_text = text_future.result()
+            extracted_tables = table_future.result()
+
+        if not extracted_text or extracted_text.strip() == "":
+            self.session["Error"] = "No text could be extracted from the uploaded file."
+            self.session["Status"] = "Error"
+            self.db.sessions.update_one(
+                {"Session Id": self.id}, {"$set": self.session}
+            )
+            raise Exception("No text could be extracted from the uploaded file.")
+
+        self.session["Extraction"]["Text"] = extracted_text
+        if extracted_tables:
+            self.session["Extraction"]["Tables"] = extracted_tables
+        self.session["Status"] = "Extracted"
+        print(f"[FAST] Extraction done: {len(extracted_text)} chars text")
+
+        # === STEP 3: Combined Correct + Translate (parallel for text & tables) ===
+        def correct_and_translate_text():
+            result = GenerateTextCorrectionAndTranslation(
+                self.document_type, extracted_text
+            )
+            return json.loads(result)
+
+        def correct_and_translate_tables():
+            if not is_tabular or not extracted_tables:
+                return None
+            result = GenerateTableCorrectionAndTranslation(
+                self.document_type, extracted_tables
+            )
+            parsed = json.loads(result)
+            # Handle Master-Transcript which wraps in "results" key
+            if isinstance(parsed, dict) and "results" in parsed:
+                return parsed["results"]
+            return parsed
+
+        # Run text + table GPT calls in parallel
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            text_gpt_future = executor.submit(correct_and_translate_text)
+            table_gpt_future = executor.submit(correct_and_translate_tables)
+            translated_text = text_gpt_future.result()
+            translated_tables = table_gpt_future.result()
+
+        # Set both correction and translation to the final result
+        # (since we did it in one step, both are the same)
+        self.session["Correction"]["Text"] = translated_text
+        self.session["Translation"]["Text"] = translated_text
+        if translated_tables is not None:
+            self.session["Correction"]["Tables"] = translated_tables
+            self.session["Translation"]["Tables"] = translated_tables
+        self.session["Status"] = "Translated"
+        print(f"[FAST] Correction+Translation done")
+
+        # === STEP 4: Generate Document ===
+        PDF = PDFGenerator()
+        Links = PDF.Generate(self.Get())
+        self.session["Generation"] = Links
+        self.session["Status"] = "Generated"
+        print(f"[FAST] Document generated")
+
+        # Final DB write (second and last write)
+        self.db.sessions.update_one(
+            {"Session Id": self.id}, {"$set": self.session}
         )
 
         return self.session

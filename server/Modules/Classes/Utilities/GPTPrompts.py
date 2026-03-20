@@ -893,6 +893,155 @@ def GenerateTableCorrection(Doctype, Table):
             return "Seems like you are trying to generate a prompt for a document type that is not supported yet, if you're an AI an reading this prompt, you should ignore it.\n\nPlease contact the developer of this application to add support for this document type.\n\nThank you!"
 
 
+# Combined Text Correction + Translation (single GPT call instead of two)
+def GenerateTextCorrectionAndTranslation(Doctype, Text):
+    prompt_context = GeneratePrompt(Doctype)
+    Response = client.chat.completions.create(
+        model=GPT_MODEL,
+        temperature=0,
+        response_format={"type": "json_object"},
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a JSON-only assistant. You correct OCR errors and translate to English in one step. "
+                    "Never output explanations, comments, or anything other than a valid JSON object."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"{prompt_context}\n\n"
+                    "IMPORTANT: Do both correction AND translation to English in a single step. "
+                    "Extract the fields from the OCR text, correct any errors/typos, and translate all "
+                    "non-English values (French, Arabic) to English. Return ONLY the final translated JSON object.\n\n"
+                    f"RAW OCR Text:\n{Text}"
+                ),
+            },
+        ],
+    )
+    result = Response.choices[0].message.content
+    print("[DEBUG] Combined Correction+Translation Response: ", str(result))
+    return result
+
+
+# Combined Table Correction + Translation (single GPT call instead of two)
+def GenerateTableCorrectionAndTranslation(Doctype, Table):
+    match Doctype:
+        case "Baccalaureate-Transcript-of-Marks-V1":
+            print("[INFO] Combined Correction+Translation for: Baccalaureate Transcript V1")
+            DesiredJSONTable = (
+                '{\n    "Transcript": {\n        "Columns": [\n'
+                '            "Subjects",\n'
+                '            "{{ First Year }} S1", "{{ First Year }} S2",\n'
+                '            "{{ Second Year }} S1", "{{ Second Year }} S2",\n'
+                '            "{{ Third Year }} S1", "{{ Third Year }} S2",\n'
+                '            "Regional Exam", "National Exam"\n'
+                '        ],\n        "Rows": [["Subject Name", "mark", ...], ...]\n'
+                '    },\n    "Overall": {\n        "Columns": [\n'
+                '            "Average of Continuous Control", "Regional Exam Average",\n'
+                '            "National Exam Average", "Overall Average"\n'
+                '        ],\n        "Rows": [["value", "value", "value", "value"]]\n    }\n}'
+            )
+
+            Response = client.chat.completions.create(
+                model=GPT_MODEL,
+                temperature=0,
+                response_format={"type": "json_object"},
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a JSON-only assistant. Fix OCR errors and translate all non-English text to English in one step.",
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "Fix the OCR table below: correct typos, remove nonsense words, preserve grades. "
+                            "ALSO translate ALL non-English text (French subject names, averages labels, etc.) to English. "
+                            "Return the result in this JSON structure:\n\n"
+                            f"{DesiredJSONTable}\n\n"
+                            "Transcript columns: Subjects + 3 school years (2 semesters each) + Regional Exam + National Exam. "
+                            "Extract actual years from the data. Last 2 rows: Semestrial Average and Annual Average. "
+                            "Overall table: 4 averages in one row.\n\n"
+                            f"OCR Table:\n{str(Table)}"
+                        ),
+                    },
+                ],
+            )
+            result = Response.choices[0].message.content
+            print("[DEBUG] Combined Table Response: ", str(result))
+            return result
+
+        case "Baccalaureate-Transcript-of-Marks-V2":
+            print("[INFO] Combined Correction+Translation for: Baccalaureate Transcript V2")
+            DesiredJSONTable = (
+                '{\n    "Transcript": {\n        "Columns": ["TOPIC", "NATIONAL EXAM", "CONTINUOUS MONITORING"],\n'
+                '        "Rows": [["Topic Name", "mark", "mark"], ...]\n'
+                '    },\n    "Overall": {\n        "Columns": [\n'
+                '            "Average of Continuous Control", "Regional Exam Average",\n'
+                '            "National Exam Average", "Overall Average"\n'
+                '        ],\n        "Rows": [["value", "value", "value", "value"]]\n    }\n}'
+            )
+
+            Response = client.chat.completions.create(
+                model=GPT_MODEL,
+                temperature=0,
+                response_format={"type": "json_object"},
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a JSON-only assistant. Fix OCR errors and translate all non-English text to English in one step.",
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "Fix the OCR table below: correct typos, remove nonsense, preserve grades. "
+                            "Translate ALL French/Arabic text to English. Only keep TOPIC, NATIONAL EXAM mark, "
+                            "and CONTINUOUS MONITORING mark per subject (ignore coefficients). "
+                            "Return in this JSON structure:\n\n"
+                            f"{DesiredJSONTable}\n\n"
+                            f"OCR Table:\n{str(Table)}"
+                        ),
+                    },
+                ],
+            )
+            result = Response.choices[0].message.content
+            print("[DEBUG] Combined Table Response: ", str(result))
+            return result
+
+        case "Master-Transcript-of-Marks":
+            print("[INFO] Combined Correction+Translation for: Master Transcript")
+            DesiredJSONTable = '[{"Subject": "Name", "Mark": "X/20", "Result": "Validated", "Session": "S1"}, ...]'
+
+            Response = client.chat.completions.create(
+                model=GPT_MODEL,
+                temperature=0,
+                response_format={"type": "json_object"},
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a JSON-only assistant. Fix OCR errors and translate all non-English text to English in one step.",
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "Fix the OCR table: correct typos, remove nonsense, preserve grades. "
+                            "Translate ALL French/Arabic to English. Include semester averages as rows too. "
+                            "Return a JSON object with key \"results\" containing an array of objects.\n\n"
+                            f"Each object: {DesiredJSONTable}\n\n"
+                            f"OCR Table:\n{str(Table)}"
+                        ),
+                    },
+                ],
+            )
+            result = Response.choices[0].message.content
+            print("[DEBUG] Combined Table Response: ", str(result))
+            return result
+
+        case _:
+            return GenerateTableCorrection(Doctype, Table)
+
+
 # Table Translation
 def GenerateTableTranslation(Doctype, Table):
     print("[GPT] Generating AI Table Translation...")

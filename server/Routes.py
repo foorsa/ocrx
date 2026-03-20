@@ -312,6 +312,53 @@ def Generate():
     )
 
 
+# UNIFIED FAST PIPELINE - Single request does everything
+@API_BLUEPRINT.route("/api/v1/process-all", methods=["POST"])
+def ProcessAll():
+    """Unified endpoint: Initialize + Extract + Correct/Translate + Generate in one call.
+    Eliminates 7 HTTP round-trips, uses parallel processing and combined GPT calls."""
+    print("[FAST PIPELINE] Starting unified processing")
+
+    # Request Validation
+    if "file" not in request.files or "document_type" not in request.form:
+        if "file" not in request.files:
+            return jsonify({"error": "File field is required."}), 400
+        elif "document_type" not in request.form:
+            return jsonify({"error": "Document Type field is required."}), 400
+        return jsonify({"error": "File and Document Type fields are required."}), 400
+
+    Files = request.files.getlist("file")
+    Doctype = request.form["document_type"]
+
+    # Validate file extensions
+    AllowedExtensions = {"pdf", "png", "jpg", "jpeg"}
+    for File in Files:
+        FileExtension = File.filename.rsplit(".", 1)[1].lower()
+        if FileExtension not in AllowedExtensions:
+            return jsonify({"error": "Invalid file extension."}), 400
+
+    # Save files to temp directory
+    SavedFiles = []
+    for File in Files:
+        ID = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+        Filename = secure_filename(ID + "." + File.filename.rsplit(".", 1)[1].lower())
+        FilePath = os.path.join(UPLOAD_FOLDER, Filename)
+        File.save(FilePath)
+        SavedFiles.append(FilePath)
+
+    # Run the entire pipeline in one call
+    Session = SessionGenerator()
+    try:
+        Session.ProcessAll(Doctype, SavedFiles)
+        print("[FAST PIPELINE] Complete!")
+        return jsonify({"Session": Session.Get()}), 200
+    except Exception as e:
+        ErrorMessage = str(e)
+        Session.Error(ErrorMessage)
+        print(f"[FAST PIPELINE ERROR] {ErrorMessage}")
+        return jsonify({"Status": "Error", "Error": ErrorMessage}), 500
+
+
 # Exceptional Routes ----------------------------------------------------------
 @API_BLUEPRINT.route("/api/v1/extract-tables", methods=["POST"])
 def ExtractTable():
