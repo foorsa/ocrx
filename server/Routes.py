@@ -339,7 +339,8 @@ def ProcessStream():
                 return
 
             # Phase: extracted
-            extracted_text = Session.Get().get("Extracted Text", "")
+            session_data = Session.Get()
+            extracted_text = session_data.get("Extraction", {}).get("Text", "")
             text_length = len(extracted_text) if extracted_text else 0
             yield sse_event({"phase": "extracted", "textLength": text_length})
 
@@ -349,12 +350,12 @@ def ProcessStream():
 
             # Phase: streaming - Stream GPT correction+translation
             # For tabular docs, run text and table streams in parallel using a queue
-            raw_ocr_text = Session.Get().get("Extracted Text", "")
+            raw_ocr_text = extracted_text
             accumulated_json = ""
             table_accumulated = ""
 
             if is_tabular:
-                tables = Session.Get().get("Extracted Tables", [])
+                tables = session_data.get("Extraction", {}).get("Tables", [])
                 event_queue = queue.Queue()
 
                 def stream_text_worker():
