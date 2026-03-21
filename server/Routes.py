@@ -119,7 +119,9 @@ def Process():
     """
     from concurrent.futures import ThreadPoolExecutor, as_completed
     import traceback
+    import time
 
+    t_start = time.time()
     print("[PROCESS] Starting combined document processing pipeline")
 
     # --- Validation (same as Initialize) ---
@@ -147,7 +149,8 @@ def Process():
     # --- Initialize Session (skip DB write — deferred to final save) ---
     Session = SessionGenerator()
     Session.Initialize(Doctype, SavedFiles, skip_db_write=True)
-    print(f"[PROCESS] Session {Session.Get()['Session Id']} initialized (in-memory)")
+    t_init = time.time()
+    print(f"[PROCESS] Session {Session.Get()['Session Id']} initialized (in-memory) [{t_init - t_start:.1f}s]")
 
     is_tabular = Session.Get()["Information Type"] == "Tabular"
 
@@ -157,14 +160,14 @@ def Process():
     def extract_text_task():
         try:
             Session.ExtractText(skip_db_write=True)
-            print("[PROCESS] Text extraction complete")
+            print(f"[PROCESS] Text extraction complete [{time.time() - t_init:.1f}s]")
         except Exception as e:
             extract_errors.append(("text", e))
 
     def extract_tables_task():
         try:
             Session.ExtractTables(skip_db_write=True)
-            print("[PROCESS] Table extraction complete")
+            print(f"[PROCESS] Table extraction complete [{time.time() - t_init:.1f}s]")
         except Exception as e:
             extract_errors.append(("tables", e))
 
@@ -180,6 +183,9 @@ def Process():
     else:
         extract_text_task()
 
+    t_extract = time.time()
+    print(f"[PROCESS] Extraction phase done [{t_extract - t_start:.1f}s total]")
+
     if extract_errors:
         error_msg = "; ".join(f"{t}: {e}" for t, e in extract_errors)
         Session.Error(error_msg)
@@ -192,14 +198,14 @@ def Process():
     def correct_and_translate_text_task():
         try:
             Session.CorrectAndTranslateText(skip_db_write=True)
-            print("[PROCESS] Text correction + translation complete")
+            print(f"[PROCESS] Text correction + translation complete [{time.time() - t_extract:.1f}s]")
         except Exception as e:
             ct_errors.append(("text", e))
 
     def correct_and_translate_tables_task():
         try:
             Session.CorrectAndTranslateTables(skip_db_write=True)
-            print("[PROCESS] Table correction + translation complete")
+            print(f"[PROCESS] Table correction + translation complete [{time.time() - t_extract:.1f}s]")
         except Exception as e:
             ct_errors.append(("tables", e))
 
@@ -214,6 +220,9 @@ def Process():
     else:
         correct_and_translate_text_task()
 
+    t_correct = time.time()
+    print(f"[PROCESS] Correct+Translate phase done [{t_correct - t_extract:.1f}s, {t_correct - t_start:.1f}s total]")
+
     if ct_errors:
         error_msg = "; ".join(f"{t}: {e}" for t, e in ct_errors)
         Session.Error(error_msg)
@@ -223,7 +232,8 @@ def Process():
     # Single DB write at the end with final state (upsert since Initialize was skipped)
     Session.SaveToDatabase()
 
-    print(f"[PROCESS] Pipeline complete for session {Session.Get()['Session Id']}")
+    t_end = time.time()
+    print(f"[PROCESS] Pipeline complete for session {Session.Get()['Session Id']} [{t_end - t_start:.1f}s total]")
     return jsonify({"Session": Session.Get()}), 200
 
 
