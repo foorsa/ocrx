@@ -881,3 +881,69 @@ def StreamTableCorrectionAndTranslation(Doctype, Table):
     for chunk in response:
         if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
             yield chunk.choices[0].delta.content
+
+
+# Combined Vision OCR + Correction + Translation in ONE call (used by /api/v1/process-stream)
+def StreamVisionExtractAndTranslate(Doctype, base64_images):
+    """
+    Send page images directly to GPT-4o-mini Vision with a combined prompt that
+    extracts text fields, corrects them, and translates to English — all in one call.
+    Eliminates the separate OCR step entirely.
+    Returns a generator that yields partial JSON content strings.
+    """
+    print("[GPT] Streaming Vision Extract + Correct + Translate (single call)...")
+
+    prompt = GeneratePrompt(Doctype)
+
+    # Build image content blocks for all pages
+    image_content = []
+    for i, b64_img in enumerate(base64_images):
+        image_content.append({
+            "type": "image_url",
+            "image_url": {
+                "url": f"data:image/jpeg;base64,{b64_img}",
+                "detail": "low",
+            },
+        })
+
+    response = client.chat.completions.create(
+        model=GPT_MODEL,
+        temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=2048,
+        stream=True,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a document processing AI. Given document images, you:\n"
+                    "1. Extract all text visible in the images\n"
+                    "2. Identify and fill in the required fields\n"
+                    "3. Correct any OCR-like errors\n"
+                    "4. Return a JSON with two keys: \"corrected\" (fields in original language) "
+                    "and \"translated\" (same fields translated to English).\n"
+                    "Keep field keys unchanged in both. Return ONLY valid JSON."
+                ),
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            f"{prompt}\n\n"
+                            "Look at the document image(s) below. Extract the required fields, "
+                            "correct any errors, and return both corrected (original language) "
+                            "and translated (English) versions.\n\n"
+                            "Return JSON: {{\"corrected\": {{field: value, ...}}, \"translated\": {{field: value, ...}}}}"
+                        ),
+                    },
+                    *image_content,
+                ],
+            },
+        ],
+    )
+
+    for chunk in response:
+        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
