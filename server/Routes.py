@@ -186,70 +186,36 @@ def Process():
         Session.SaveToDatabase()
         return jsonify({"Session": Session.Get(), "Error": error_msg}), 500
 
-    # --- Correct Text + Correct Tables in parallel ---
-    correct_errors = []
+    # --- Combined Correct + Translate in parallel (one GPT call per type) ---
+    ct_errors = []
 
-    def correct_text_task():
+    def correct_and_translate_text_task():
         try:
-            Session.CorrectText(skip_db_write=True)
-            print("[PROCESS] Text correction complete")
+            Session.CorrectAndTranslateText(skip_db_write=True)
+            print("[PROCESS] Text correction + translation complete")
         except Exception as e:
-            correct_errors.append(("text", e))
+            ct_errors.append(("text", e))
 
-    def correct_tables_task():
+    def correct_and_translate_tables_task():
         try:
-            Session.CorrectTables(skip_db_write=True)
-            print("[PROCESS] Table correction complete")
+            Session.CorrectAndTranslateTables(skip_db_write=True)
+            print("[PROCESS] Table correction + translation complete")
         except Exception as e:
-            correct_errors.append(("tables", e))
+            ct_errors.append(("tables", e))
 
     if is_tabular:
         with ThreadPoolExecutor(max_workers=2) as executor:
             futures = [
-                executor.submit(correct_text_task),
-                executor.submit(correct_tables_task),
+                executor.submit(correct_and_translate_text_task),
+                executor.submit(correct_and_translate_tables_task),
             ]
             for f in as_completed(futures):
                 f.result()
     else:
-        correct_text_task()
+        correct_and_translate_text_task()
 
-    if correct_errors:
-        error_msg = "; ".join(f"{t}: {e}" for t, e in correct_errors)
-        Session.Error(error_msg)
-        Session.SaveToDatabase()
-        return jsonify({"Session": Session.Get(), "Error": error_msg}), 500
-
-    # --- Translate Text + Translate Tables in parallel ---
-    translate_errors = []
-
-    def translate_text_task():
-        try:
-            Session.TranslateText(skip_db_write=True)
-            print("[PROCESS] Text translation complete")
-        except Exception as e:
-            translate_errors.append(("text", e))
-
-    def translate_tables_task():
-        try:
-            Session.TranslateTables(skip_db_write=True)
-            print("[PROCESS] Table translation complete")
-        except Exception as e:
-            translate_errors.append(("tables", e))
-
-    if is_tabular:
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            futures = [
-                executor.submit(translate_text_task),
-                executor.submit(translate_tables_task),
-            ]
-            for f in as_completed(futures):
-                f.result()
-    else:
-        translate_text_task()
-
-    if translate_errors:
-        error_msg = "; ".join(f"{t}: {e}" for t, e in translate_errors)
+    if ct_errors:
+        error_msg = "; ".join(f"{t}: {e}" for t, e in ct_errors)
         Session.Error(error_msg)
         Session.SaveToDatabase()
         return jsonify({"Session": Session.Get(), "Error": error_msg}), 500
