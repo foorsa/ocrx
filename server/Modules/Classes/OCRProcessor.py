@@ -33,20 +33,14 @@ class OCRProcessor:
         base64_image = self._image_to_base64(image)
 
         response = self.openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": (
-                                "Extract ALL text from this document image exactly as it appears. "
-                                "Preserve the layout and structure as much as possible. "
-                                "Include every word, number, date, and symbol visible in the document. "
-                                "If there are tables, represent them with clear column separation. "
-                                "Do not add any commentary or explanation - output ONLY the extracted text."
-                            ),
+                            "text": "Extract ALL text from this image exactly as it appears. Preserve layout. Include every word, number, date, symbol. For tables, use clear column separation. Output ONLY the extracted text.",
                         },
                         {
                             "type": "image_url",
