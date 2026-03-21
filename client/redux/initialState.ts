@@ -20,5 +20,7 @@ export const initialState: {
         isLoading: false,
         Status: "idle",
         Error: null,
+        phase: "idle",
+        streamingFields: {},
     }
 };
