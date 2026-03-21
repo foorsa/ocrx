@@ -451,6 +451,48 @@ class SessionGenerator:
 
         return self.session
 
+    def CorrectAndTranslateText(self, skip_db_write=False):
+        """Combined correct + translate text in one GPT call (saves ~5s)."""
+        GPT = GPTCorrector()
+
+        Text = self.session["Extraction"]["Text"]
+        Doctype = self.session["Document Type"]
+
+        corrected, translated = GPT.CorrectAndTranslateText(Text, Doctype)
+
+        self.session["Correction"]["Text"] = corrected
+        self.session["Translation"]["Text"] = translated
+        self.session["Status"] = "Translated"
+
+        if not skip_db_write:
+            self.db.sessions.update_one(
+                {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+            )
+
+        return self.session
+
+    def CorrectAndTranslateTables(self, skip_db_write=False):
+        """Combined correct + translate tables in one GPT call (saves ~14s)."""
+        GPT = GPTCorrector()
+
+        Tables = self.session["Extraction"]["Tables"]
+        Doctype = self.session["Document Type"]
+
+        if self.session["Information Type"] == "Tabular":
+            corrected, translated = GPT.CorrectAndTranslateTable(Tables, Doctype)
+
+            self.session["Correction"]["Tables"] = corrected
+            self.session["Translation"]["Tables"] = translated
+
+        self.session["Status"] = "Translated"
+
+        if not skip_db_write:
+            self.db.sessions.update_one(
+                {"Session Id": self.session["Session Id"]}, {"$set": self.session}
+            )
+
+        return self.session
+
     def GenerateDocument(self):
         # Method to generate PDF files from Correct Output
         PDF = PDFGenerator()

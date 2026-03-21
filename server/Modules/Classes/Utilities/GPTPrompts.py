@@ -425,10 +425,12 @@ def GenerateTextCorrection(Doctype, Text):
     Response = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=4096,
         messages=[
             {
                 "role": "system",
-                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                "content": "You extract and correct OCR text into structured JSON. Return only valid JSON.",
             },
             {
                 "role": "user",
@@ -436,17 +438,7 @@ def GenerateTextCorrection(Doctype, Text):
             },
             {
                 "role": "assistant",
-                "content": """
-                    Sure, What is the OCR output?
-
-                    I will provide you with the information extracted from the OCR as a JSON object without any comments.
-
-                    I will also translate the OCR output into English.
-
-                    Including any keyword in french or arabic, it will be translated into English with Accuracy.
-
-                    I will also provide you with the OCR output as a JSON format that is valid to copy and use directly from my text response.
-                    """,
+                "content": "Send me the OCR output and I will return a corrected, translated JSON object.",
             },
             {
                 "role": "user",
@@ -464,98 +456,16 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
     Response = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=4096,
         messages=[
             {
                 "role": "system",
-                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                "content": "Translate JSON values from French/Arabic to English. Keep keys unchanged. Fill empty values from the RAW OCR text. Return valid JSON only.",
             },
             {
                 "role": "user",
-                "content": """
-                    We are working on a Python project and need help with translating a non-English JSON object to English.
-
-                    Your task is to translate every non-English, French, or Arabic word in the JSON object to English while keeping the same object format and keys. If you encounter any errors, typos, or empty values, correct them to make the object valid and meaningful.
-
-                    Your function should take a JSON object as input and return the translated JSON object in English.
-
-                    Please ensure that all object values are correct, and if any value is empty or invalid, replace it with a valid value, do not leave anything empty, PLEASE!
-
-                    Remember to translate every non-English, French, or Arabic word to English accurately.
-
-                    Respond with the translated JSON object only, without adding any additional arguments or comments.
-
-                    Your response should be in the form of a JSON object.
-
-                    Example input JSON:
-                    {
-                        "Student Name": "Salma Salhi",
-                        "Age": "25 ans",
-                        "Address": "123 Rue de la Liberté",
-                        "Language": "Français",
-                        "Grade": "",
-                        "Option": "Bac Sciences Physiques",
-                        "Date of birth": "01/01/1996",
-                        "City of birth": "Casablanca",
-                    }
-
-                    Expected output JSON:
-                    {
-                        "Name": "SALMA SALHI",
-                        "Age": "25 YEARS",
-                        "Address": "123 LIBERTY STREET",
-                        "Language": "FRENCH",
-                        "Grade": "NULL",
-                        "Option": "BACCALAUREATE IN PHYSICAL SCIENCES",
-                        "Date of birth": "01/01/1996",
-                        "City of birth": "Casablanca",
-                    }
-
-                    Note that I will also provide you with the RAW OCR Text, so you can use it in case a value is missing in the JSON Object.
-
-                    I don't want to have any missing values in the JSON Object, so please make sure that all the values are valid and make sense.
-
-                    I don't want any comments or explanations, just translate it and return it.
-
-                    Translate all the values from Non-English to English, and make sure the output JSON is valid and well-formatted.
-
-                    Please, do not change the object keys, just translate the values.
-
-                    I don't want any comments or explanations, just translate it and return it.
-
-                    Act as if you are a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
-                """,
-            },
-            {
-                "role": "assistant",
-                "content": """
-                    Sure, What is the JSON Object?
-
-                    I will read the RAW OCR Text to use it in case a value is missing in the JSON Object.
-
-                    I will keep the same object as it is, I will not change the object keys or anything except the value of each key.
-
-                    I will translate the values of the object from non-English to English.
-
-                    I will also provide you with the translated result as a JSON format that is valid to copy and use directly from my text response.
-
-                    I will act as if I am a function that takes a JSON Object and returns the same JSON Object but translated to English, and haves valid data that actually makes sense.
-
-                    Please, send me the JSON object, and I will translate it and return it to you, as a valid JSON Object.
-
-                    Whatever "UNKNOWN" or "NULL" or "EMPTY" or "INVALID", and any other form of empty value indication, I will replace it with the right information from the RAW OCR Text, I will never leave any value undefined.
-
-                    I will not add any comments or explanations, I will just translate it and return it, as a valid JSON Object, I don't speak any human language, I only speak JSON.
-                    """,
-            },
-            {
-                "role": "user",
-                "content": f"""
-                    JSON Object:
-                    {Text}
-
-                    Text String (RAW OCR to use as Data Fallback, in case of missing values in the JSON Object):
-                    {RAW_OCR}
-                """,
+                "content": f"Translate all values to English. If any value is empty, find it in the RAW OCR text.\n\nJSON Object:\n{Text}\n\nRAW OCR (fallback for missing values):\n{RAW_OCR}",
             },
         ],
     )
@@ -671,36 +581,28 @@ def GenerateTableCorrection(Doctype, Table):
             Response = client.chat.completions.create(
                 model=GPT_MODEL,
                 temperature=0,
+                response_format={"type": "json_object"},
+                max_tokens=4096,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                        "content": "You correct OCR table data into structured JSON. Fix typos and nonsense in subject names (e.g. 'Spinelli Jerall Moyenne Annuelle' → 'Moyenne Annuelle'). Preserve all grades exactly. Return valid JSON only.",
                     },
                     {
                         "role": "user",
                         "content": (
-                            "Please take the following RAW OCR table as input, which might contain errors, typos, and incorrect formatting. "
-                            "Your task is to fix any issues while preserving the grades intact. Once set, provide the resulting Table in the specified JSON format without explanations. Treat this as a functional task.\n\n"
-                            "Please be careful; sometimes, the OCR_TABLE could have multiple arrays of tables; we only need a valid JSON, precisely like the Desired JSON Output Format.\n\n"
-                            "This OCR Tables Extraction is not per-processed grammatically; there is a high chance the Subject Names will be messed up; You have to fix everything, typos and non-sense words to be removed, or any off-context comments inside each cell.\n\n"
-                            "E.g. 'Spinelli Jerall Moyenne Annuelle' Should be fixed to 'Moyenne Annuelle', 'Moyenne Ex. Régional SHN Ulaisy Jies' Should be fixed to 'Moyenne Ex. Régional', 'Sugar Iseall Moyenne Semestrielle' Should be set to 'Moyenne Semestrielle', 'ECO. ET ORG. ADMIN. ENTREPRISE or tell' should be fixed to 'ECO. ET ORG. ADMIN. ENTERPRISE', etc.\n\n"
-                            "Any non-sense-related cells should be corrected; we only need the information required to fill the two tables inside the desired JSON Format.\n\n"
-                            "The desired JSON Format is an Object with two keys; the first is [Transcript], which contains information about each of the three high-school years and then the regional and national exam grades.\n\n"
-                            "Let's break down the content of the first Table, Transcript.\n\n"
-                            "The columns should be as follows: Subjects, 2019/2020 S1, 2019/2020 S2, 2020/2021 S1, 2020/2021 S2, 2021/2022 S1, 2021/2022 S2, Regional Exam, and National Exam.\n\n"
-                            "The years should be extracted from the original transcript, E.g., 2022/2023, 2023/2024, etc.\n\n"
-                            "And then, there are the rows of the first table.\n\n"
-                            "These rows should have the information about the subjects, first their names, and then the grades convenient to each column; the last row cell belongs to the National Exam.\n\n"
-                            "The last 2 rows of the transcript table are special; the last row is for the Annual Average for each year and the regional and national exams, and then the one before the last row is for the semestrial average of each year; each year has 2 semesters.\n\n"
-                            "The second table in the desired JSON Output has the key [Overall].\n\n"
-                            "It is a table of 4 columns: Average of Continuous Control, Regional Exam Average, National Exam Average, and Overall Average.\n\n"
-                            "And have one row containing the grade that belongs to each Average.\n\n"
-                            "Note that the desired JSON Table Output format that I will provide you is just for you to have an idea of the Object Strcture, and not to take the data, you should include the Grades and the Subjects or any other information from the given OCR Data to you.\n\n"
-                            "Now, I will provide you with the OCR Table and the Desired JSON Format; all you have to do is act as a functional task and execute what is ordered in this prompt without messing or forgetting anything ordered above.\n\n"
-                            "OCR Tables Extraction:\n\n"
+                            "Fix this RAW OCR table and output it in the specified JSON format.\n\n"
+                            "Rules:\n"
+                            "- Fix subject name typos and remove nonsense words\n"
+                            "- Keep all grades/numbers exactly as they are\n"
+                            "- Extract years from the original transcript (e.g. 2022/2023)\n"
+                            "- Transcript table: Subjects + 3 years (S1,S2 each) + Regional Exam + National Exam columns\n"
+                            "- Last 2 rows: Semester Average (Moyenne Semestrielle) and Annual Average (Moyenne Annuelle)\n"
+                            "- Overall table: 4 columns (Continuous Control, Regional Exam, National Exam, Overall Average)\n\n"
+                            "OCR Tables:\n"
                             f"{str(Table)}\n\n"
-                            "Desired JSON Table Output Format (Example):\n\n"
-                            f"{str(DesiredJSONTable)}\n\n"
+                            "Desired JSON format:\n"
+                            f"{str(DesiredJSONTable)}"
                         ),
                     },
                 ],
@@ -758,57 +660,26 @@ def GenerateTableCorrection(Doctype, Table):
             Response = client.chat.completions.create(
                 model=GPT_MODEL,
                 temperature=0,
+                response_format={"type": "json_object"},
+                max_tokens=4096,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                        "content": "You correct OCR table data into structured JSON. Fix typos in subject names. Preserve all grades exactly. Return valid JSON only.",
                     },
                     {
                         "role": "user",
-                        "content": f"""
-                        Please take the following RAW OCR table as input, which might contain errors, typos, and incorrect formatting.
-
-                        Your task is to fix any issues while preserving the grades intact. Once set, provide the resulting Table in the specified JSON format without explanations. Treat this as a functional task.
-
-                        Please be careful; sometimes, the OCR Table could have multiple arrays of tables; we only need a valid JSON, precisely like the Desired JSON Output Format.
-
-                        This OCR Tables Extraction is not per-processed grammatically; there is a high chance the Subject Names will be messed up; You have to fix everything, typos and non-sense words to be removed, or any off-context comments inside each cell.
-
-                        E.g. 'Spinelli Jerall Moyenne Annuelle' Should be fixed to 'Moyenne Annuelle', 'Moyenne Ex. Régional SHN Ulaisy Jies' Should be fixed to 'Moyenne Ex. Régional', 'Sugar Iseall Moyenne Semestrielle' Should be set to 'Moyenne Semestrielle', 'ECO. ET ORG. ADMIN. ENTREPRISE or tell' should be fixed to 'ECO. ET ORG. ADMIN. ENTERPRISE', and more.
-
-                        Please correct non-sense-related cells; we only need the information required to fill the two tables in the desired JSON Format.
-
-                        The desired JSON Format is an Object with two keys; the first is [Transcript], which contains information about national exam marks and continuous monitoring marks.
-
-                        Let's break down the content of the first Table, Transcript.
-
-                        The columns should be TOPIC, NATIONAL EXAM, and CONTINUOUS MONITORING.
-
-                        And then, there are the rows of the first Table.
-
-                        These rows should have the information about the subjects, first their names, and then the grades convenient to each column;
-
-                        Please keep in mind that the given OCR Table could have more than just the Marks of each subject in the National Exam and Continous Monitoring; it could mostly have the Coefficient columns and Marks multiplied by the coefficient; we don't need any of that; all you have to do is take the Mark of each subject in the National Exam, and the Continous monitoring, everything should be correct, do not miss.
-
-
-                        The second table in the desired JSON Output has the key [Overall].
-
-
-                        It is a table of 4 columns: Average of Continuous Control, Regional Exam Average, National Exam Average, and Overall Average.
-
-                        And have one row containing the grade that belongs to each Average.
-
-                        Note that the desired JSON Table Output format I will provide you is just for you to have an idea of the Object structure and not to take the data; you should include the Grades and the Subjects or any other information from the given OCR Data.
-
-                        Now, I will provide you with the OCR Table and the Desired JSON Format; all you have to do is act as a functional task and execute what is ordered in this prompt without messing or forgetting anything above.
-
-                        OCR Tables Extraction:
-                        {str(Table)}
-
-                        Desired JSON Table Output Format (Example):
-                        {str(DesiredJSONTable)}
-
-                        """,
+                        "content": (
+                            "Fix this RAW OCR table and output it in the specified JSON format.\n\n"
+                            "Rules:\n"
+                            "- Fix subject name typos and remove nonsense words\n"
+                            "- Keep all grades/numbers exactly as they are\n"
+                            "- Transcript table: 3 columns (TOPIC, NATIONAL EXAM, CONTINUOUS MONITORING)\n"
+                            "- Ignore coefficient columns — only extract the raw marks\n"
+                            "- Overall table: 4 columns (Continuous Control, Regional Exam, National Exam, Overall Average)\n\n"
+                            f"OCR Tables:\n{str(Table)}\n\n"
+                            f"Desired JSON format:\n{str(DesiredJSONTable)}"
+                        ),
                     },
                 ],
             )
@@ -835,50 +706,26 @@ def GenerateTableCorrection(Doctype, Table):
             Response = client.chat.completions.create(
                 model=GPT_MODEL,
                 temperature=0,
+                response_format={"type": "json_object"},
+                max_tokens=4096,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                        "content": "You correct OCR table data into structured JSON. Fix typos in subject names. Preserve all grades exactly. Include semester averages. Return valid JSON only.",
                     },
                     {
                         "role": "user",
-                        "content": f"""
-                        Please take the following RAW OCR table as input, which might contain errors, typos, and incorrect formatting.
-
-                        Your task is to correct any issues while preserving the grades intact. Once done, provide the resulting table in the specified JSON format without explanations. Treat this as a functional task.
-
-                        Please exercise caution; the OCR table may sometimes have multiple arrays of tables; we require a valid JSON output precisely matching the Desired JSON Output Format.
-
-                        This OCR table extraction is not pre-processed grammatically; the subject names may be disorganized. It would help if you rectified all typos, nonsensical words, and any irrelevant comments within each cell.
-
-                        For example, 'Spinelli Jerall Moyenne Annuelle' should be corrected to 'Moyenne Annuelle,' 'Moyenne Ex. Régional SHN Ulaisy Jies' should be fixed to 'Moyenne Ex. Régional', 'Sugar Iseall Moyenne Semestrielle' should be changed to 'Moyenne Semestrielle', 'ECO. ET ORG. ADMIN. ENTREPRISE or tell' should be rectified to 'ECO. ET ORG. ADMIN. ENTERPRISE', and so on.
-
-                        Note that one table could have Semester Averages as well, and you have to include them in order inside the Array, too, like this case, for example:
-
-                        [..., {str('"Subject": "Semester 1", "Mark": "12.5/20", "Result": "Result": "Validated", "Season": "S1"')}, ...]
-
-                        Please correct nonsensical cells; we need only the information necessary to fill the table in the desired JSON format.
-
-                        The desired JSON format consists of one array that haves multiple objects inside; each Object has four keys as follows: Subject, Mark, Result, and Session.
-
-                        Let's break down the content of this array.
-
-                        The objects should be just four keys each. The first cell has the Subject Name, the second cell has the Mark (Average out of 20), the third cell has the Result (E.g., Validated, Not Validated, etc.), and the fourth cell has the Session (E.g., S1, S2, etc.).
-
-                        Following that are multiple records of the transcript, basically the grades of each subject.
-
-                        Please note that the provided OCR table could have more than just the marks of each subject in each season, it could contain multiple pieces of information, but your task is only to build an array of objects. Each object has the information we talked about earlier, do not change the order, and if a piece of information is remaining, calculate it or figure it out yourself, but never miss a record.
-
-                        Remember that the provided JSON table output format is for structural understanding purposes only; you should include the grades, subjects, or any other relevant information from the provided OCR data.
-
-                        I will now provide you with the OCR table and the desired JSON table output format; all you need to do is treat it as a functional task and follow the instructions in this prompt without missing any details.
-
-                        OCR Table Extraction:
-                        {str(Table)}
-
-                        Desired JSON Table Output Format (Example):
-                        {str(DesiredJSONTable)}
-                        """,
+                        "content": (
+                            "Fix this RAW OCR table and output as a JSON object with a \"results\" key containing an array of objects.\n\n"
+                            "Rules:\n"
+                            "- Each object has 4 keys: Subject, Mark, Result, Session\n"
+                            "- Fix subject name typos, remove nonsense words\n"
+                            "- Keep all grades/numbers exactly as they are\n"
+                            "- Include semester averages as records too\n"
+                            "- Do not miss any record\n\n"
+                            f"OCR Table:\n{str(Table)}\n\n"
+                            f"Desired JSON format:\n{str(DesiredJSONTable)}"
+                        ),
                     },
                 ],
             )
@@ -896,30 +743,19 @@ def GenerateTableCorrection(Doctype, Table):
 # Table Translation
 def GenerateTableTranslation(Doctype, Table):
     print("[GPT] Generating AI Table Translation...")
-    # Baccalaureate-Transcript-of-Notes Prompt Generation
     TableResponse = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=4096,
         messages=[
             {
                 "role": "system",
-                "content": "You are an assistant that only speaks JSON. Do not write normal text.",
+                "content": "Translate all non-English text in the JSON to English. Keep structure and numbers unchanged. Return valid JSON only.",
             },
             {
                 "role": "user",
-                "content": f"""
-                    From now on, consider yourself a functional task, that only takes a JSON Object and returns a JSON Object, and that's it.
-
-                    No explanations, no comments, no text, you only speak JSON.
-
-                    I will be giving you a JSON Object, this JSON has non-English words, or non-sense words, or typos, or weird words, or anything that is not English.
-
-                    All I want you to do is to translate the JSON Object I will be giving you, and return it to me as a valid JSON Object, that is translated to English.
-
-                    The JSON Object:
-
-                    {str(Table)}
-                """,
+                "content": f"Translate this JSON table to English:\n\n{str(Table)}",
             },
         ],
     )
@@ -927,3 +763,103 @@ def GenerateTableTranslation(Doctype, Table):
     print("[DEBUG] Response: ", str(result))
 
     return result
+
+
+# Combined Table Correction + Translation in a single GPT call (used by /api/v1/process)
+def GenerateTableCorrectionAndTranslation(Doctype, Table):
+    print("[GPT] Generating combined AI Table Correction + Translation...")
+
+    DesiredFormat = ""
+    match Doctype:
+        case "Baccalaureate-Transcript-of-Marks-V1":
+            DesiredFormat = (
+                '{"Transcript": {"Columns": ["Subjects", "YYYY/YYYY S1", "YYYY/YYYY S2", ...repeat for 3 years..., "Regional Exam", "National Exam"], '
+                '"Rows": [["Subject Name", "grade", "grade", ...], ..., ["Semester Average", ...], ["Annual Average", ...]]}, '
+                '"Overall": {"Columns": ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"], '
+                '"Rows": [["value", "value", "value", "value"]]}}'
+            )
+        case "Baccalaureate-Transcript-of-Marks-V2":
+            DesiredFormat = (
+                '{"Transcript": {"Columns": ["TOPIC", "NATIONAL EXAM", "CONTINUOUS MONITORING"], '
+                '"Rows": [["Subject Name", "grade", "grade"], ...]}, '
+                '"Overall": {"Columns": ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"], '
+                '"Rows": [["value", "value", "value", "value"]]}}'
+            )
+        case "Master-Transcript-of-Marks":
+            DesiredFormat = (
+                '{"results": [{"Subject": "Subject Name", "Mark": "grade/20", "Result": "Validated/Failed", "Session": "S1/S2/..."}, ...]}'
+            )
+        case _:
+            # Fallback: just correct then translate separately
+            corrected = GenerateTableCorrection(Doctype, Table)
+            import json
+            corrected_obj = json.loads(corrected)
+            translated = GenerateTableTranslation(Doctype, corrected_obj)
+            return corrected_obj, json.loads(translated)
+
+    Response = client.chat.completions.create(
+        model=GPT_MODEL,
+        temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=4096,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You correct OCR table data and translate it to English in one step. "
+                    "Fix typos in subject names. Preserve all grades exactly. "
+                    "Return a JSON object with two keys: \"corrected\" (original language, corrected) and \"translated\" (English translation). "
+                    "Both must have the exact same structure."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Fix this RAW OCR table, then translate subject names to English.\n\n"
+                    "Return JSON with:\n"
+                    "- \"corrected\": the fixed table in original language\n"
+                    "- \"translated\": the same table but with all text translated to English\n\n"
+                    f"Each table should follow this structure: {DesiredFormat}\n\n"
+                    f"OCR Tables:\n{str(Table)}"
+                ),
+            },
+        ],
+    )
+    result = Response.choices[0].message.content
+    print("[DEBUG] Combined Response: ", str(result))
+
+    import json
+    parsed = json.loads(result)
+    return parsed.get("corrected", parsed), parsed.get("translated", parsed)
+
+
+# Combined Text Correction + Translation in a single GPT call (used by /api/v1/process)
+def GenerateTextCorrectionAndTranslation(Doctype, Text):
+    print("[GPT] Generating combined AI Text Correction + Translation...")
+
+    Response = client.chat.completions.create(
+        model=GPT_MODEL,
+        temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=4096,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You correct OCR text and translate it to English in one step. "
+                    "Return a JSON object with two keys: \"corrected\" (extracted fields in original language) "
+                    "and \"translated\" (same fields translated to English). Keep keys unchanged in both."
+                ),
+            },
+            {
+                "role": "user",
+                "content": GeneratePrompt(Doctype) + f"\n\nReturn both corrected and translated versions in one JSON object with keys \"corrected\" and \"translated\".\n\nOCR Text:\n{Text}",
+            },
+        ],
+    )
+    result = Response.choices[0].message.content
+    print("[DEBUG] Combined Text Response: ", str(result))
+
+    import json
+    parsed = json.loads(result)
+    return parsed.get("corrected", parsed), parsed.get("translated", parsed)

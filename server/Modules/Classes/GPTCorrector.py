@@ -5,6 +5,8 @@ from Modules.Classes.Utilities.GPTPrompts import (
     GenerateTextTranslation,
     GenerateTableCorrection,
     GenerateTableTranslation,
+    GenerateTableCorrectionAndTranslation,
+    GenerateTextCorrectionAndTranslation,
 )
 
 
@@ -31,3 +33,11 @@ class GPTCorrector:
     def TranslateTable(self, Tables, Doctype):
         TableResponse = GenerateTableTranslation(Doctype, Tables)
         return TableResponse
+
+    # Combined: correct + translate in one GPT call (saves ~14s)
+    def CorrectAndTranslateTable(self, Tables, Doctype):
+        return GenerateTableCorrectionAndTranslation(Doctype, Tables)
+
+    # Combined: correct + translate text in one GPT call
+    def CorrectAndTranslateText(self, Text, Doctype):
+        return GenerateTextCorrectionAndTranslation(Doctype, Text)
