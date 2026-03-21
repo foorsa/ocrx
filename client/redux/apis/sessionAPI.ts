@@ -73,6 +73,82 @@ export const processDocumentAPI = async (doctype: Doctype, uploadedFile: FileTyp
 };
 
 
+// SSE STREAMING: Process document with Server-Sent Events (/api/v1/process-stream)
+export const processDocumentStreamAPI = async (
+    doctype: Doctype,
+    uploadedFile: FileType,
+    onEvent: (eventData: any) => void
+): Promise<SessionType> => {
+    const PROCESS_URL = SERVER_API + "/api/v1/process-stream";
+
+    const formData = new FormData();
+    formData.append("file", uploadedFile.file);
+    formData.append("document_type", doctype?.id || "");
+
+    const response = await fetch(PROCESS_URL, {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        throw new Error(`Stream request failed with status ${response.status}`);
+    }
+
+    if (!response.body) {
+        throw new Error("Response body is null, streaming not supported.");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let finalSession: SessionType | null = null;
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop()!;
+
+        for (const event of events) {
+            const lines = event.split('\n');
+            let eventType = '';
+            let eventData = '';
+
+            for (const line of lines) {
+                if (line.startsWith('event: ')) eventType = line.slice(7);
+                if (line.startsWith('data: ')) eventData = line.slice(6);
+            }
+
+            if (eventData) {
+                try {
+                    const parsed = JSON.parse(eventData);
+                    onEvent(parsed);
+
+                    if (parsed.type === 'complete' && parsed.session) {
+                        finalSession = parsed.session as SessionType;
+                    } else if (parsed.type === 'error') {
+                        throw new Error(parsed.error || 'Stream processing failed.');
+                    }
+                } catch (parseError: any) {
+                    if (parseError.message && !parseError.message.includes('JSON')) {
+                        throw parseError;
+                    }
+                    console.error('Failed to parse SSE event data:', eventData, parseError);
+                }
+            }
+        }
+    }
+
+    if (!finalSession) {
+        throw new Error("Stream ended without a complete event.");
+    }
+
+    return finalSession;
+};
+
+
 // STEP ONE: Initialize the Operation (/api/v1/initialize)
 export const initializeSessionAPI = async (doctype: Doctype, uploadedFile: FileType) => {
     const PROCESS_URL = SERVER_API + "/api/v1/initialize";
