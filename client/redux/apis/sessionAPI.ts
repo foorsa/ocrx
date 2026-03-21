@@ -126,10 +126,10 @@ export const processDocumentStreamAPI = async (
                     const parsed = JSON.parse(eventData);
                     onEvent(parsed);
 
-                    if (parsed.type === 'complete' && parsed.session) {
+                    if (parsed.phase === 'complete' && parsed.session) {
                         finalSession = parsed.session as SessionType;
-                    } else if (parsed.type === 'error') {
-                        throw new Error(parsed.error || 'Stream processing failed.');
+                    } else if (parsed.phase === 'error') {
+                        throw new Error(parsed.message || 'Stream processing failed.');
                     }
                 } catch (parseError: any) {
                     if (parseError.message && !parseError.message.includes('JSON')) {
