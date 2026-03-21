@@ -104,17 +104,7 @@ class OCRProcessor:
 
     # Read the Image File
     def ExtractTextFromImage(self, InformationType, SessionId, Image):
-        # Try Google Cloud Vision first
-        try:
-            print("[OCR] Extracting text with Google Cloud Vision...")
-            text = self._extract_text_with_google_vision(Image)
-            if text and text.strip():
-                print(f"[OCR] Google Vision extracted {len(text)} chars")
-                return text
-        except Exception as e:
-            print(f"[OCR] Google Vision failed: {str(e)}, falling back to GPT-4o Vision...")
-
-        # Fallback to GPT-4o Vision
+        # Use GPT-4o Vision directly (Google Vision billing disabled)
         try:
             print("[OCR] Extracting text with GPT-4o Vision...")
             text = self._extract_text_with_vision(Image)
@@ -160,69 +150,39 @@ class OCRProcessor:
                 f.write(PDFBytes.getbuffer())
 
             extracted_text = ""
-            pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
+            # Convert once and reuse for all OCR attempts
+            page_list = list(convert_from_path(TEMPORARY_PDF_PATH, 120))
 
-            # Try Google Cloud Vision on pages in parallel first
+            # Try GPT-4o Vision on pages in parallel (skip Google Vision — billing disabled)
             vision_success = False
             try:
-                print("[OCR] Extracting text with Google Cloud Vision (parallel)...")
-                page_list = list(pages)
+                print("[OCR] Extracting text with GPT-4o Vision (parallel)...")
                 results = [None] * len(page_list)
 
-                def process_page_google(args):
+                def process_page_gpt(args):
                     idx, page = args
-                    text = self._extract_text_with_google_vision(page)
-                    page.close()
+                    text = self._extract_text_with_vision(page)
                     return idx, text
 
                 with ThreadPoolExecutor(max_workers=min(4, len(page_list))) as executor:
-                    futures = {executor.submit(process_page_google, (i, p)): i for i, p in enumerate(page_list)}
+                    futures = {executor.submit(process_page_gpt, (i, p)): i for i, p in enumerate(page_list)}
                     for future in as_completed(futures):
                         idx, text = future.result()
                         results[idx] = text
 
                 extracted_text = "\n".join(r for r in results if r)
                 vision_success = True
-                print(f"[OCR] Google Vision extracted {len(extracted_text)} chars from PDF")
+                print(f"[OCR] GPT-4o Vision extracted {len(extracted_text)} chars from PDF")
             except Exception as e:
-                print(f"[OCR] Google Vision failed: {str(e)}, falling back to GPT-4o Vision...")
-
-            # Try GPT-4o Vision on pages in parallel as fallback
-            if not vision_success:
-                try:
-                    print("[OCR] Extracting text with GPT-4o Vision (parallel)...")
-                    pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
-                    page_list = list(pages)
-                    results = [None] * len(page_list)
-
-                    def process_page_gpt(args):
-                        idx, page = args
-                        text = self._extract_text_with_vision(page)
-                        page.close()
-                        return idx, text
-
-                    with ThreadPoolExecutor(max_workers=min(4, len(page_list))) as executor:
-                        futures = {executor.submit(process_page_gpt, (i, p)): i for i, p in enumerate(page_list)}
-                        for future in as_completed(futures):
-                            idx, text = future.result()
-                            results[idx] = text
-
-                    extracted_text = "\n".join(r for r in results if r)
-                    vision_success = True
-                    print(f"[OCR] GPT-4o Vision extracted {len(extracted_text)} chars from PDF")
-                except Exception as e:
-                    print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
+                print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
 
             # Fallback to Tesseract if Vision failed (parallel)
             if not vision_success:
-                pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
-                page_list = list(pages)
                 results = [None] * len(page_list)
 
                 def process_page_tesseract(args):
                     idx, page = args
                     text = pytesseract.image_to_string(page, lang="fra+ara+eng", config="")
-                    page.close()
                     return idx, text
 
                 with ThreadPoolExecutor(max_workers=min(4, len(page_list))) as executor:
@@ -234,6 +194,8 @@ class OCRProcessor:
                 extracted_text = "\n".join(r for r in results if r)
 
             # Clean up
+            for p in page_list:
+                p.close()
             os.remove(TEMPORARY_PDF_PATH)
 
             return extracted_text
