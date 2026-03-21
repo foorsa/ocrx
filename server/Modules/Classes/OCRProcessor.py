@@ -153,7 +153,7 @@ class OCRProcessor:
 
             # Fall back to Vision/OCR for scanned PDFs
             print("[OCR] No embedded text found, converting pages to images...")
-            TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
+            TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}_text.pdf")
 
             PDFBytes.seek(0)
             with open(TEMPORARY_PDF_PATH, "wb") as f:
@@ -301,7 +301,7 @@ class OCRProcessor:
             print("[...] Extracting Table from PDF ...")
 
             # Temporary File Path
-            TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
+            TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}_table.pdf")
 
             # Write the PDF Bytes to a Temporary File
             with open(TEMPORARY_PDF_PATH, "wb") as f:
