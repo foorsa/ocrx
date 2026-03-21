@@ -13,99 +13,16 @@ GPT_MODEL = "gpt-4o-mini"
 
 
 def PromptString(Doctype, AvailableDoctypes, PromptOptions):
-    # Intialize an Empty string for the prompt
-    Prompt = ""
-
-    # Dynamically set the convenient prompt options for the prompt
-    match Doctype:
-        case "Master-Transcript-of-Marks" | "Baccalaureate-Transcript-of-Marks-V1" | "Baccalaureate-Transcript-of-Marks-V2":
-            Prompt = (
-                f"We are in a python project, I need help in getting precise "
-                f"output from the OCR processor.\n\n"
-                f"This python app gets a request with a File and a Document type.\n\n"
-                f"The File could be a PDF or an Image.\n\n"
-                f"The Document Type could be one of the following:\n\n"
-                f"{AvailableDoctypes}\n\n"
-                f"This application has already processed the file and the Document with OCR.\n\n"
-                f"The OCR output is a text string containing the information about the transcript of marks.\n\n"
-                f"I only need the information I will provide you in the following prompt.\n\n"
-                f"This means that the RAW OCR output contains some additional information about the transcript "
-                f"that we don't want to include in the output.\n\n"
-                f"The OCR output is not precise, it contains some errors.\n\n"
-                f"I need to correct the OCR output and get the precise information about the diploma.\n\n"
-                f"The OCR output is in the variable Content.\n\n"
-                f"Please read the string and convert it to something that can be used by the application.\n\n"
-                f"I need the data to be shaped this way:\n\n"
-                f"{PromptOptions}\n\n"
-                f"Now, I need you to translate the corrected output to English.\n\n"
-                f"Any value that is present in the OCR Output should be translated to English.\n\n"
-                f"Do not forget to translate any single french word.\n\n"
-                f"As well as the Specialization, it should be translated to English as well.\n\n"
-                f"In short, any french word should be translated to English.\n\n"
-                f"[Keyword: Original (No Translation)]: [Value: Translated]\n\n"
-                f"Do not Translate the Keys, only the Values.\n\n"
-                f"Use some intelligent logic to determine whether the values are valid  or not.\n\n"
-                f"So on for any other value that is present in the OCR Output.\n\n"
-                f"I need this translation to be done in the best effort and accuracy that you can possibly do.\n\n"
-                f"I need the data to be shaped to a JSON Object.\n\n"
-                f"NOTICE:\n"
-                f"\tNo need to comment or explain, just translate it and then return it.\n"
-                f"\tThis means I need a valid JSON Object as an output from your response.\n"
-                f"\tAny additional text will be considered as an error.\n"
-                f"\tPlease do not forget to translate each option's value accurately as well "
-                f"(Obligatory: Series and Speciality from french to english).\n"
-                f"\tPlease keep the same format as the example above.\n"
-                f"\tDo change the name of the options.\n"
-                f"\tThe object keys should be the same as the example above.\n"
-                f"\tReply with the JSON object ONLY.\n"
-                f"\tSo please do not add anything to the object, it is the JSON object that the application needs.\n"
-                f"\tDO NOT ADD ANYTHING TO THE JSON OBJECT, JUST TRANSLATE IT AND RETURN IT.\n"
-                f"\tNO COMMENTS, NO EXPLANATIONS, NO ADDITIONAL TEXT."
-            )
-
-        case _:
-            Prompt = (
-                f"We are in a python project, I need help in getting precise "
-                f"output from the OCR processor.\n\n"
-                f"This python app gets a request with a File and a Document type.\n\n"
-                f"The File could be a PDF or an Image.\n\n"
-                f"The Document Type could be one of the following:\n\n"
-                f"{AvailableDoctypes}\n\n"
-                f"This application has already processed the file and the Document with OCR.\n\n"
-                f"The OCR output is a text string containing the information about the diploma.\n\n"
-                f"The OCR output is not precise, it contains some errors.\n\n"
-                f"I need to correct the OCR output and get the precise information about the diploma.\n\n"
-                f"The OCR output is in the variable Content.\n\n"
-                f"Please read the string and convert it to something that can be used by the application.\n\n"
-                f"I need the data to be shaped this way:\n\n"
-                f"{PromptOptions}\n\n"
-                f"Now, I need you to translate the corrected output to English.\n\n"
-                f"Any value that is present in the OCR Output should be translated to English.\n\n"
-                f"Do not forget to translate any single french word.\n\n"
-                f"As well as the Specialization, it should be translated to English as well.\n\n"
-                f"In short, any french word should be translated to English.\n\n"
-                f"[Keyword: Original (No Translation)]: [Value: Translated]\n\n"
-                f"Do not Translate the Keys, only the Values.\n\n"
-                f"Use some intelligent logic to determine whether the values are valid  or not.\n\n"
-                f"So on for any other value that is present in the OCR Output.\n\n"
-                f"I need this translation to be done in the best effort and accuracy that you can possibly do.\n\n"
-                f"I need the data to be shaped to a JSON Object.\n\n"
-                f"NOTICE:\n"
-                f"\tNo need to comment or explain, just translate it and then return it.\n"
-                f"\tThis means I need a valid JSON Object as an output from your response.\n"
-                f"\tAny additional text will be considered as an error.\n"
-                f"\tPlease do not forget to translate each option's value accurately as well "
-                f"(Obligatory: Series and Speciality from french to english).\n"
-                f"\tPlease keep the same format as the example above.\n"
-                f"\tDo change the name of the options.\n"
-                f"\tThe object keys should be the same as the example above.\n"
-                f"\tReply with the JSON object ONLY.\n"
-                f"\tSo please do not add anything to the object, it is the JSON object that the application needs.\n"
-                f"\tDO NOT ADD ANYTHING TO THE JSON OBJECT, JUST TRANSLATE IT AND RETURN IT.\n"
-                f"\tNO COMMENTS, NO EXPLANATIONS, NO ADDITIONAL TEXT."
-            )
-
-    return Prompt
+    return (
+        f"Extract and correct OCR text from a document into a JSON object.\n"
+        f"Document type: {Doctype}\n"
+        f"Required fields:\n{PromptOptions}\n\n"
+        f"Rules:\n"
+        f"- Fix OCR errors and typos\n"
+        f"- Translate ALL French/Arabic values to English (keys stay unchanged)\n"
+        f"- Translate Series and Speciality to English\n"
+        f"- Return ONLY a valid JSON object, no comments or explanations"
+    )
 
 
 # Document field definitions (local copy to avoid external API dependency)
@@ -426,7 +343,7 @@ def GenerateTextCorrection(Doctype, Text):
         model=GPT_MODEL,
         temperature=0,
         response_format={"type": "json_object"},
-        max_tokens=4096,
+        max_tokens=1024,
         messages=[
             {
                 "role": "system",
@@ -457,7 +374,7 @@ def GenerateTextTranslation(Doctype, Text, RAW_OCR):
         model=GPT_MODEL,
         temperature=0,
         response_format={"type": "json_object"},
-        max_tokens=4096,
+        max_tokens=1024,
         messages=[
             {
                 "role": "system",
@@ -841,7 +758,7 @@ def GenerateTextCorrectionAndTranslation(Doctype, Text):
         model=GPT_MODEL,
         temperature=0,
         response_format={"type": "json_object"},
-        max_tokens=4096,
+        max_tokens=2048,
         messages=[
             {
                 "role": "system",
