@@ -396,16 +396,16 @@ def ProcessStream():
                     accumulated_json += partial
                     yield sse_event({"phase": "streaming", "partial": accumulated_json})
 
-            # Parse the completed text result
+            # Parse the completed text result — write directly to Session.session
+            # (Session.Get() returns a deep copy, so we must mutate the internal dict)
             try:
                 text_parsed = json.loads(accumulated_json)
                 corrected_text = text_parsed.get("corrected", text_parsed)
                 translated_text = text_parsed.get("translated", text_parsed)
 
-                session_data = Session.Get()
-                session_data["Correction"] = {"Text": corrected_text}
-                session_data["Translation"] = {"Text": translated_text}
-                session_data["Status"] = "Translated"
+                Session.session["Correction"] = {"Text": corrected_text}
+                Session.session["Translation"] = {"Text": translated_text}
+                Session.session["Status"] = "Translated"
             except json.JSONDecodeError as e:
                 print(f"[STREAM] Failed to parse text JSON: {e}")
 
@@ -416,13 +416,12 @@ def ProcessStream():
                     corrected_tables = table_parsed.get("corrected", table_parsed)
                     translated_tables = table_parsed.get("translated", table_parsed)
 
-                    session_data = Session.Get()
-                    if "Correction" not in session_data:
-                        session_data["Correction"] = {}
-                    session_data["Correction"]["Tables"] = corrected_tables
-                    if "Translation" not in session_data:
-                        session_data["Translation"] = {}
-                    session_data["Translation"]["Tables"] = translated_tables
+                    if "Correction" not in Session.session:
+                        Session.session["Correction"] = {}
+                    Session.session["Correction"]["Tables"] = corrected_tables
+                    if "Translation" not in Session.session:
+                        Session.session["Translation"] = {}
+                    Session.session["Translation"]["Tables"] = translated_tables
                 except json.JSONDecodeError as e:
                     print(f"[STREAM] Failed to parse table JSON: {e}")
 
