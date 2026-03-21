@@ -10,6 +10,7 @@ from flask import (
     request,
     render_template,
     send_from_directory,
+    Response,
 )
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
@@ -119,7 +120,9 @@ def Process():
     """
     from concurrent.futures import ThreadPoolExecutor, as_completed
     import traceback
+    import time
 
+    t_start = time.time()
     print("[PROCESS] Starting combined document processing pipeline")
 
     # --- Validation (same as Initialize) ---
@@ -147,7 +150,8 @@ def Process():
     # --- Initialize Session (skip DB write — deferred to final save) ---
     Session = SessionGenerator()
     Session.Initialize(Doctype, SavedFiles, skip_db_write=True)
-    print(f"[PROCESS] Session {Session.Get()['Session Id']} initialized (in-memory)")
+    t_init = time.time()
+    print(f"[PROCESS] Session {Session.Get()['Session Id']} initialized (in-memory) [{t_init - t_start:.1f}s]")
 
     is_tabular = Session.Get()["Information Type"] == "Tabular"
 
@@ -157,14 +161,14 @@ def Process():
     def extract_text_task():
         try:
             Session.ExtractText(skip_db_write=True)
-            print("[PROCESS] Text extraction complete")
+            print(f"[PROCESS] Text extraction complete [{time.time() - t_init:.1f}s]")
         except Exception as e:
             extract_errors.append(("text", e))
 
     def extract_tables_task():
         try:
             Session.ExtractTables(skip_db_write=True)
-            print("[PROCESS] Table extraction complete")
+            print(f"[PROCESS] Table extraction complete [{time.time() - t_init:.1f}s]")
         except Exception as e:
             extract_errors.append(("tables", e))
 
@@ -180,6 +184,9 @@ def Process():
     else:
         extract_text_task()
 
+    t_extract = time.time()
+    print(f"[PROCESS] Extraction phase done [{t_extract - t_start:.1f}s total]")
+
     if extract_errors:
         error_msg = "; ".join(f"{t}: {e}" for t, e in extract_errors)
         Session.Error(error_msg)
@@ -192,14 +199,14 @@ def Process():
     def correct_and_translate_text_task():
         try:
             Session.CorrectAndTranslateText(skip_db_write=True)
-            print("[PROCESS] Text correction + translation complete")
+            print(f"[PROCESS] Text correction + translation complete [{time.time() - t_extract:.1f}s]")
         except Exception as e:
             ct_errors.append(("text", e))
 
     def correct_and_translate_tables_task():
         try:
             Session.CorrectAndTranslateTables(skip_db_write=True)
-            print("[PROCESS] Table correction + translation complete")
+            print(f"[PROCESS] Table correction + translation complete [{time.time() - t_extract:.1f}s]")
         except Exception as e:
             ct_errors.append(("tables", e))
 
@@ -214,6 +221,9 @@ def Process():
     else:
         correct_and_translate_text_task()
 
+    t_correct = time.time()
+    print(f"[PROCESS] Correct+Translate phase done [{t_correct - t_extract:.1f}s, {t_correct - t_start:.1f}s total]")
+
     if ct_errors:
         error_msg = "; ".join(f"{t}: {e}" for t, e in ct_errors)
         Session.Error(error_msg)
@@ -223,8 +233,184 @@ def Process():
     # Single DB write at the end with final state (upsert since Initialize was skipped)
     Session.SaveToDatabase()
 
-    print(f"[PROCESS] Pipeline complete for session {Session.Get()['Session Id']}")
+    t_end = time.time()
+    print(f"[PROCESS] Pipeline complete for session {Session.Get()['Session Id']} [{t_end - t_start:.1f}s total]")
     return jsonify({"Session": Session.Get()}), 200
+
+
+# STREAMING PROCESSING API - SSE endpoint for real-time progress
+@API_BLUEPRINT.route("/api/v1/process-stream", methods=["POST", "OPTIONS"])
+@cross_origin()
+def ProcessStream():
+    """
+    SSE streaming endpoint: Initialize -> Extract -> Correct+Translate with real-time progress.
+    Returns Server-Sent Events with phase updates and streamed GPT output.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from Modules.Classes.Utilities.GPTPrompts import (
+        StreamTextCorrectionAndTranslation,
+        StreamTableCorrectionAndTranslation,
+    )
+    import traceback
+    import time
+
+    # Handle CORS preflight
+    if request.method == "OPTIONS":
+        resp = Response("", status=200)
+        resp.headers["Access-Control-Allow-Origin"] = "*"
+        resp.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return resp
+
+    # --- Validation (same as Process) ---
+    if "file" not in request.files or "document_type" not in request.form:
+        return jsonify({"error": "File and Document Type fields are required."}), 400
+
+    Files = request.files.getlist("file")
+    Doctype = request.form["document_type"]
+
+    for File in Files:
+        AllowedExtensions = {"pdf", "png", "jpg", "jpeg"}
+        FileExtension = File.filename.rsplit(".", 1)[1].lower()
+        if FileExtension not in AllowedExtensions:
+            return jsonify({"error": "Invalid file extension."}), 400
+
+    # --- Save files ---
+    SavedFiles = []
+    for File in Files:
+        ID = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+        Filename = secure_filename(ID + "." + File.filename.rsplit(".", 1)[1].lower())
+        FilePath = os.path.join(UPLOAD_FOLDER, Filename)
+        File.save(FilePath)
+        SavedFiles.append(FilePath)
+
+    # --- Initialize Session ---
+    Session = SessionGenerator()
+    Session.Initialize(Doctype, SavedFiles, skip_db_write=True)
+
+    def sse_event(data):
+        """Format a dict as an SSE data line."""
+        return f"data: {json.dumps(data)}\n\n"
+
+    def generate():
+        t_start = time.time()
+        try:
+            session_data = Session.Get()
+            session_id = session_data["Session Id"]
+            is_tabular = session_data["Information Type"] == "Tabular"
+
+            # Phase: initialized
+            yield sse_event({"phase": "initialized", "sessionId": session_id})
+
+            # Phase: extracting
+            yield sse_event({"phase": "extracting"})
+
+            # Run OCR extraction
+            extract_errors = []
+
+            def extract_text_task():
+                try:
+                    Session.ExtractText(skip_db_write=True)
+                except Exception as e:
+                    extract_errors.append(("text", e))
+
+            def extract_tables_task():
+                try:
+                    Session.ExtractTables(skip_db_write=True)
+                except Exception as e:
+                    extract_errors.append(("tables", e))
+
+            if is_tabular:
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    futures = [
+                        executor.submit(extract_text_task),
+                        executor.submit(extract_tables_task),
+                    ]
+                    for f in as_completed(futures):
+                        f.result()
+            else:
+                extract_text_task()
+
+            if extract_errors:
+                error_msg = "; ".join(f"{t}: {e}" for t, e in extract_errors)
+                yield sse_event({"phase": "error", "message": error_msg})
+                return
+
+            # Phase: extracted
+            extracted_text = Session.Get().get("Extracted Text", "")
+            text_length = len(extracted_text) if extracted_text else 0
+            yield sse_event({"phase": "extracted", "textLength": text_length})
+
+            # Phase: tables_extracted (for tabular docs)
+            if is_tabular:
+                yield sse_event({"phase": "tables_extracted"})
+
+            # Phase: streaming - Stream GPT correction+translation
+            accumulated_json = ""
+
+            # Stream text correction+translation
+            raw_ocr_text = Session.Get().get("Extracted Text", "")
+            for partial in StreamTextCorrectionAndTranslation(Doctype, raw_ocr_text):
+                accumulated_json += partial
+                yield sse_event({"phase": "streaming", "partial": accumulated_json})
+
+            # Parse the completed text result
+            try:
+                text_parsed = json.loads(accumulated_json)
+                corrected_text = text_parsed.get("corrected", text_parsed)
+                translated_text = text_parsed.get("translated", text_parsed)
+
+                # Apply results to session
+                session_data = Session.Get()
+                session_data["Correction"] = {"Text": corrected_text}
+                session_data["Translation"] = {"Text": translated_text}
+                session_data["Status"] = "Translated"
+            except json.JSONDecodeError as e:
+                print(f"[STREAM] Failed to parse text JSON: {e}")
+
+            # Stream table correction+translation if tabular
+            if is_tabular:
+                tables = Session.Get().get("Extracted Tables", [])
+                if tables:
+                    table_accumulated = ""
+                    for partial in StreamTableCorrectionAndTranslation(Doctype, tables):
+                        table_accumulated += partial
+                        yield sse_event({"phase": "streaming", "partial": table_accumulated, "type": "tables"})
+
+                    try:
+                        table_parsed = json.loads(table_accumulated)
+                        corrected_tables = table_parsed.get("corrected", table_parsed)
+                        translated_tables = table_parsed.get("translated", table_parsed)
+
+                        session_data = Session.Get()
+                        if "Correction" not in session_data:
+                            session_data["Correction"] = {}
+                        session_data["Correction"]["Tables"] = corrected_tables
+                        if "Translation" not in session_data:
+                            session_data["Translation"] = {}
+                        session_data["Translation"]["Tables"] = translated_tables
+                    except json.JSONDecodeError as e:
+                        print(f"[STREAM] Failed to parse table JSON: {e}")
+
+            # Save to database
+            Session.SaveToDatabase()
+
+            t_end = time.time()
+            print(f"[STREAM] Pipeline complete for session {session_id} [{t_end - t_start:.1f}s total]")
+
+            # Phase: complete
+            yield sse_event({"phase": "complete", "session": Session.Get()})
+
+        except Exception as e:
+            print(f"[STREAM] Error: {traceback.format_exc()}")
+            yield sse_event({"phase": "error", "message": str(e)})
+
+    resp = Response(generate(), mimetype="text/event-stream")
+    resp.headers["Cache-Control"] = "no-cache"
+    resp.headers["X-Accel-Buffering"] = "no"
+    resp.headers["Connection"] = "keep-alive"
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    return resp
 
 
 # EXTRACTION API

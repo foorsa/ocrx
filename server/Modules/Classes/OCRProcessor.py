@@ -12,6 +12,14 @@ import json
 from PyPDF2 import PdfReader
 from openai import OpenAI
 
+# Try to import Google Cloud Vision (optional dependency)
+try:
+    from google.cloud import vision as google_vision
+    GOOGLE_VISION_AVAILABLE = True
+except ImportError:
+    GOOGLE_VISION_AVAILABLE = False
+    print("[OCR] google-cloud-vision not installed, Google Vision OCR disabled")
+
 
 # Define the OCR Processor Class
 class OCRProcessor:
@@ -28,19 +36,52 @@ class OCRProcessor:
         image.save(buffer, format="JPEG", quality=85, optimize=True)
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
+    def _extract_text_with_google_vision(self, image):
+        """Use Google Cloud Vision API to extract text from an image."""
+        if not GOOGLE_VISION_AVAILABLE:
+            raise RuntimeError("google-cloud-vision is not installed")
+
+        try:
+            # Convert PIL Image to JPEG bytes
+            buffer = io.BytesIO()
+            if image.mode in ("RGBA", "P"):
+                image = image.convert("RGB")
+            image.save(buffer, format="JPEG", quality=85, optimize=True)
+            content = buffer.getvalue()
+
+            vision_client = google_vision.ImageAnnotatorClient()
+            vision_image = google_vision.Image(content=content)
+            response = vision_client.document_text_detection(image=vision_image)
+
+            if response.error.message:
+                raise RuntimeError(f"Google Vision API error: {response.error.message}")
+
+            text = response.full_text_annotation.text
+            return text if text else ""
+        except Exception as e:
+            if "not installed" in str(e):
+                raise
+            raise RuntimeError(f"Google Vision failed: {str(e)}")
+
     def _extract_text_with_vision(self, image):
         """Use GPT-4o Vision to extract text from an image."""
         base64_image = self._image_to_base64(image)
 
         response = self.openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": "Extract ALL text from this image exactly as it appears. Preserve layout. Include every word, number, date, symbol. For tables, use clear column separation. Output ONLY the extracted text.",
+                            "text": (
+                                "Extract ALL text from this document image exactly as it appears. "
+                                "Preserve the layout and structure as much as possible. "
+                                "Include every word, number, date, and symbol visible in the document. "
+                                "If there are tables, represent them with clear column separation. "
+                                "Do not add any commentary or explanation - output ONLY the extracted text."
+                            ),
                         },
                         {
                             "type": "image_url",
@@ -59,7 +100,17 @@ class OCRProcessor:
 
     # Read the Image File
     def ExtractTextFromImage(self, InformationType, SessionId, Image):
-        # Try GPT-4o Vision first
+        # Try Google Cloud Vision first
+        try:
+            print("[OCR] Extracting text with Google Cloud Vision...")
+            text = self._extract_text_with_google_vision(Image)
+            if text and text.strip():
+                print(f"[OCR] Google Vision extracted {len(text)} chars")
+                return text
+        except Exception as e:
+            print(f"[OCR] Google Vision failed: {str(e)}, falling back to GPT-4o Vision...")
+
+        # Fallback to GPT-4o Vision
         try:
             print("[OCR] Extracting text with GPT-4o Vision...")
             text = self._extract_text_with_vision(Image)
@@ -107,30 +158,56 @@ class OCRProcessor:
             extracted_text = ""
             pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
 
-            # Try GPT-4o Vision on pages in parallel
+            # Try Google Cloud Vision on pages in parallel first
             vision_success = False
             try:
-                print("[OCR] Extracting text with GPT-4o Vision (parallel)...")
+                print("[OCR] Extracting text with Google Cloud Vision (parallel)...")
                 page_list = list(pages)
                 results = [None] * len(page_list)
 
-                def process_page(args):
+                def process_page_google(args):
                     idx, page = args
-                    text = self._extract_text_with_vision(page)
+                    text = self._extract_text_with_google_vision(page)
                     page.close()
                     return idx, text
 
                 with ThreadPoolExecutor(max_workers=min(4, len(page_list))) as executor:
-                    futures = {executor.submit(process_page, (i, p)): i for i, p in enumerate(page_list)}
+                    futures = {executor.submit(process_page_google, (i, p)): i for i, p in enumerate(page_list)}
                     for future in as_completed(futures):
                         idx, text = future.result()
                         results[idx] = text
 
                 extracted_text = "\n".join(r for r in results if r)
                 vision_success = True
-                print(f"[OCR] GPT-4o Vision extracted {len(extracted_text)} chars from PDF")
+                print(f"[OCR] Google Vision extracted {len(extracted_text)} chars from PDF")
             except Exception as e:
-                print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
+                print(f"[OCR] Google Vision failed: {str(e)}, falling back to GPT-4o Vision...")
+
+            # Try GPT-4o Vision on pages in parallel as fallback
+            if not vision_success:
+                try:
+                    print("[OCR] Extracting text with GPT-4o Vision (parallel)...")
+                    pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
+                    page_list = list(pages)
+                    results = [None] * len(page_list)
+
+                    def process_page_gpt(args):
+                        idx, page = args
+                        text = self._extract_text_with_vision(page)
+                        page.close()
+                        return idx, text
+
+                    with ThreadPoolExecutor(max_workers=min(4, len(page_list))) as executor:
+                        futures = {executor.submit(process_page_gpt, (i, p)): i for i, p in enumerate(page_list)}
+                        for future in as_completed(futures):
+                            idx, text = future.result()
+                            results[idx] = text
+
+                    extracted_text = "\n".join(r for r in results if r)
+                    vision_success = True
+                    print(f"[OCR] GPT-4o Vision extracted {len(extracted_text)} chars from PDF")
+                except Exception as e:
+                    print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
 
             # Fallback to Tesseract if Vision failed
             if not vision_success:

@@ -2,6 +2,16 @@
 
 # Libraries
 import os
+
+# Google Cloud credentials setup (for Cloud Vision OCR)
+_gcp_creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON")
+if _gcp_creds_json:
+    _gcp_creds_path = "/tmp/gcp-credentials.json"
+    with open(_gcp_creds_path, "w") as _f:
+        _f.write(_gcp_creds_json)
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _gcp_creds_path
+    print(f"[GCP] Wrote credentials to {_gcp_creds_path}")
+
 from flask import (
     Blueprint,
     Flask,

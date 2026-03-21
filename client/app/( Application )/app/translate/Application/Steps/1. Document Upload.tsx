@@ -34,7 +34,7 @@ import { nextStep, resetStep, setStep } from "@/redux/actions/stepActions";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { Doctype } from "@/redux/types/states/Document Type";
 import { resetFile } from "@/redux/actions/fileActions";
-import { processDocument } from "@/redux/actions/sessionActions";
+import { processDocument, processDocumentStream } from "@/redux/actions/sessionActions";
 import { Session, Session as SessionType } from "@/redux/types/states/Session";
 import { getApiServerUrl } from "@/utils/getApiServerUrl";
 import { Steps } from "@/redux/types/states/Step";
@@ -59,10 +59,10 @@ export default function First_DocumentUpload() {
 			return toast.error("Please select a document type");
 		}
 
-		// [STEP 1] Process the document (extract, correct, translate)
-		const result = await Dispatch(processDocument({ Doctype, UploadedFile }));
+		// [STEP 1] Process the document via SSE streaming (with fallback to standard processing)
+		const result = await Dispatch(processDocumentStream({ Doctype, UploadedFile }));
 
-		if (processDocument.fulfilled.match(result) && result.payload) {
+		if (processDocumentStream.fulfilled.match(result) && result.payload) {
 			console.log("Session has been processed: ", result.payload);
 			Dispatch(setStep(Steps.Correct));
 		} else {

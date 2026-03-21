@@ -780,3 +780,104 @@ def GenerateTextCorrectionAndTranslation(Doctype, Text):
     import json
     parsed = json.loads(result)
     return parsed.get("corrected", parsed), parsed.get("translated", parsed)
+
+
+# Streaming Text Correction + Translation (used by /api/v1/process-stream)
+def StreamTextCorrectionAndTranslation(Doctype, Text):
+    """
+    Same prompt as GenerateTextCorrectionAndTranslation but streams the response.
+    Returns a generator that yields partial content strings as they arrive.
+    """
+    print("[GPT] Streaming combined AI Text Correction + Translation...")
+
+    response = client.chat.completions.create(
+        model=GPT_MODEL,
+        temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=2048,
+        stream=True,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You correct OCR text and translate it to English in one step. "
+                    "Return a JSON object with two keys: \"corrected\" (extracted fields in original language) "
+                    "and \"translated\" (same fields translated to English). Keep keys unchanged in both."
+                ),
+            },
+            {
+                "role": "user",
+                "content": GeneratePrompt(Doctype) + f"\n\nReturn both corrected and translated versions in one JSON object with keys \"corrected\" and \"translated\".\n\nOCR Text:\n{Text}",
+            },
+        ],
+    )
+
+    for chunk in response:
+        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+
+
+# Streaming Table Correction + Translation (used by /api/v1/process-stream)
+def StreamTableCorrectionAndTranslation(Doctype, Table):
+    """
+    Same prompt as GenerateTableCorrectionAndTranslation but streams the response.
+    Returns a generator that yields partial content strings as they arrive.
+    """
+    print("[GPT] Streaming combined AI Table Correction + Translation...")
+
+    DesiredFormat = ""
+    match Doctype:
+        case "Baccalaureate-Transcript-of-Marks-V1":
+            DesiredFormat = (
+                '{"Transcript": {"Columns": ["Subjects", "YYYY/YYYY S1", "YYYY/YYYY S2", ...repeat for 3 years..., "Regional Exam", "National Exam"], '
+                '"Rows": [["Subject Name", "grade", "grade", ...], ..., ["Semester Average", ...], ["Annual Average", ...]]}, '
+                '"Overall": {"Columns": ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"], '
+                '"Rows": [["value", "value", "value", "value"]]}}'
+            )
+        case "Baccalaureate-Transcript-of-Marks-V2":
+            DesiredFormat = (
+                '{"Transcript": {"Columns": ["TOPIC", "NATIONAL EXAM", "CONTINUOUS MONITORING"], '
+                '"Rows": [["Subject Name", "grade", "grade"], ...]}, '
+                '"Overall": {"Columns": ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"], '
+                '"Rows": [["value", "value", "value", "value"]]}}'
+            )
+        case "Master-Transcript-of-Marks":
+            DesiredFormat = (
+                '{"results": [{"Subject": "Subject Name", "Mark": "grade/20", "Result": "Validated/Failed", "Session": "S1/S2/..."}, ...]}'
+            )
+        case _:
+            DesiredFormat = '{"corrected": {...}, "translated": {...}}'
+
+    response = client.chat.completions.create(
+        model=GPT_MODEL,
+        temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=4096,
+        stream=True,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You correct OCR table data and translate it to English in one step. "
+                    "Fix typos in subject names. Preserve all grades exactly. "
+                    "Return a JSON object with two keys: \"corrected\" (original language, corrected) and \"translated\" (English translation). "
+                    "Both must have the exact same structure."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Fix this RAW OCR table, then translate subject names to English.\n\n"
+                    "Return JSON with:\n"
+                    "- \"corrected\": the fixed table in original language\n"
+                    "- \"translated\": the same table but with all text translated to English\n\n"
+                    f"Each table should follow this structure: {DesiredFormat}\n\n"
+                    f"OCR Tables:\n{str(Table)}"
+                ),
+            },
+        ],
+    )
+
+    for chunk in response:
+        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
