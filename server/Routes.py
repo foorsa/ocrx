@@ -253,6 +253,8 @@ def ProcessStream():
     )
     import traceback
     import time
+    import queue
+    import threading
 
     # Handle CORS preflight
     if request.method == "OPTIONS":
@@ -337,7 +339,8 @@ def ProcessStream():
                 return
 
             # Phase: extracted
-            extracted_text = Session.Get().get("Extracted Text", "")
+            session_data = Session.Get()
+            extracted_text = session_data.get("Extraction", {}).get("Text", "")
             text_length = len(extracted_text) if extracted_text else 0
             yield sse_event({"phase": "extracted", "textLength": text_length})
 
@@ -346,13 +349,60 @@ def ProcessStream():
                 yield sse_event({"phase": "tables_extracted"})
 
             # Phase: streaming - Stream GPT correction+translation
+            # For tabular docs, run text and table streams in parallel using a queue
+            raw_ocr_text = extracted_text
             accumulated_json = ""
+            table_accumulated = ""
 
-            # Stream text correction+translation
-            raw_ocr_text = Session.Get().get("Extracted Text", "")
-            for partial in StreamTextCorrectionAndTranslation(Doctype, raw_ocr_text):
-                accumulated_json += partial
-                yield sse_event({"phase": "streaming", "partial": accumulated_json})
+            if is_tabular:
+                tables = session_data.get("Extraction", {}).get("Tables", [])
+                event_queue = queue.Queue()
+
+                def stream_text_worker():
+                    try:
+                        for partial in StreamTextCorrectionAndTranslation(Doctype, raw_ocr_text):
+                            event_queue.put(("text", partial))
+                        event_queue.put(("text_done", None))
+                    except Exception as e:
+                        event_queue.put(("error", f"text: {e}"))
+
+                def stream_table_worker():
+                    try:
+                        if tables:
+                            for partial in StreamTableCorrectionAndTranslation(Doctype, tables):
+                                event_queue.put(("table", partial))
+                        event_queue.put(("table_done", None))
+                    except Exception as e:
+                        event_queue.put(("error", f"table: {e}"))
+
+                t1 = threading.Thread(target=stream_text_worker, daemon=True)
+                t2 = threading.Thread(target=stream_table_worker, daemon=True)
+                t1.start()
+                t2.start()
+
+                done_count = 0
+                while done_count < 2:
+                    try:
+                        kind, data = event_queue.get(timeout=60)
+                    except queue.Empty:
+                        break
+                    if kind == "text":
+                        accumulated_json += data
+                        yield sse_event({"phase": "streaming", "partial": accumulated_json})
+                    elif kind == "table":
+                        table_accumulated += data
+                        yield sse_event({"phase": "streaming", "partial": table_accumulated, "type": "tables"})
+                    elif kind in ("text_done", "table_done"):
+                        done_count += 1
+                    elif kind == "error":
+                        print(f"[STREAM] Parallel stream error: {data}")
+
+                t1.join(timeout=5)
+                t2.join(timeout=5)
+            else:
+                for partial in StreamTextCorrectionAndTranslation(Doctype, raw_ocr_text):
+                    accumulated_json += partial
+                    yield sse_event({"phase": "streaming", "partial": accumulated_json})
 
             # Parse the completed text result
             try:
@@ -360,7 +410,6 @@ def ProcessStream():
                 corrected_text = text_parsed.get("corrected", text_parsed)
                 translated_text = text_parsed.get("translated", text_parsed)
 
-                # Apply results to session
                 session_data = Session.Get()
                 session_data["Correction"] = {"Text": corrected_text}
                 session_data["Translation"] = {"Text": translated_text}
@@ -368,29 +417,22 @@ def ProcessStream():
             except json.JSONDecodeError as e:
                 print(f"[STREAM] Failed to parse text JSON: {e}")
 
-            # Stream table correction+translation if tabular
-            if is_tabular:
-                tables = Session.Get().get("Extracted Tables", [])
-                if tables:
-                    table_accumulated = ""
-                    for partial in StreamTableCorrectionAndTranslation(Doctype, tables):
-                        table_accumulated += partial
-                        yield sse_event({"phase": "streaming", "partial": table_accumulated, "type": "tables"})
+            # Parse the completed table result
+            if is_tabular and table_accumulated:
+                try:
+                    table_parsed = json.loads(table_accumulated)
+                    corrected_tables = table_parsed.get("corrected", table_parsed)
+                    translated_tables = table_parsed.get("translated", table_parsed)
 
-                    try:
-                        table_parsed = json.loads(table_accumulated)
-                        corrected_tables = table_parsed.get("corrected", table_parsed)
-                        translated_tables = table_parsed.get("translated", table_parsed)
-
-                        session_data = Session.Get()
-                        if "Correction" not in session_data:
-                            session_data["Correction"] = {}
-                        session_data["Correction"]["Tables"] = corrected_tables
-                        if "Translation" not in session_data:
-                            session_data["Translation"] = {}
-                        session_data["Translation"]["Tables"] = translated_tables
-                    except json.JSONDecodeError as e:
-                        print(f"[STREAM] Failed to parse table JSON: {e}")
+                    session_data = Session.Get()
+                    if "Correction" not in session_data:
+                        session_data["Correction"] = {}
+                    session_data["Correction"]["Tables"] = corrected_tables
+                    if "Translation" not in session_data:
+                        session_data["Translation"] = {}
+                    session_data["Translation"]["Tables"] = translated_tables
+                except json.JSONDecodeError as e:
+                    print(f"[STREAM] Failed to parse table JSON: {e}")
 
             # Save to database
             Session.SaveToDatabase()

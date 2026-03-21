@@ -15,7 +15,7 @@ import os
 from unicodedata import normalize
 
 # Classes Required for Operations
-from Modules.Classes.OCRProcessor import OCRProcessor
+from Modules.Classes.OCRProcessor import OCR as _shared_ocr
 from Modules.Classes.GPTCorrector import GPTCorrector
 from PDFGenerator import PDFGenerator
 
@@ -219,8 +219,8 @@ class SessionGenerator:
         # Process the session document
         print(f"[...] Processing Session: {self.session['Session Id']}")
         print(f"[...] Document Type: {self.session['Document Type']}")
-        # Optical Character Recognition
-        OCR = OCRProcessor()
+        # Optical Character Recognition (reuse shared singleton)
+        OCR = _shared_ocr
 
         ExtractedText = ""
 
@@ -283,8 +283,8 @@ class SessionGenerator:
 
     def ExtractTables(self, skip_db_write=False):
         # Extract Table from the session document
-        # Optical Character Recognition
-        OCR = OCRProcessor()
+        # Optical Character Recognition (reuse shared singleton)
+        OCR = _shared_ocr
 
         if self.session["Information Type"] != "Tabular":
             print("[WARNING] The Document is not Tabular.")

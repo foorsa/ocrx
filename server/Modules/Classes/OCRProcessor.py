@@ -26,6 +26,8 @@ class OCRProcessor:
     def __init__(self):
         self.ET_SESSION = ExtractTable(os.environ.get("ET_API_KEY"))
         self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        # Cache the Google Vision client (gRPC channel setup is expensive)
+        self._vision_client = None
 
     def _image_to_base64(self, image):
         """Convert a PIL Image to a base64 string (JPEG for smaller payload)."""
@@ -49,7 +51,9 @@ class OCRProcessor:
             image.save(buffer, format="JPEG", quality=85, optimize=True)
             content = buffer.getvalue()
 
-            vision_client = google_vision.ImageAnnotatorClient()
+            if self._vision_client is None:
+                self._vision_client = google_vision.ImageAnnotatorClient()
+            vision_client = self._vision_client
             vision_image = google_vision.Image(content=content)
             response = vision_client.document_text_detection(image=vision_image)
 
@@ -68,7 +72,7 @@ class OCRProcessor:
         base64_image = self._image_to_base64(image)
 
         response = self.openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "user",
@@ -209,14 +213,25 @@ class OCRProcessor:
                 except Exception as e:
                     print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
 
-            # Fallback to Tesseract if Vision failed
+            # Fallback to Tesseract if Vision failed (parallel)
             if not vision_success:
-                extracted_text = ""
                 pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
-                for page in pages:
-                    page_text = pytesseract.image_to_string(page, lang="fra+ara+eng", config="")
-                    extracted_text += page_text
+                page_list = list(pages)
+                results = [None] * len(page_list)
+
+                def process_page_tesseract(args):
+                    idx, page = args
+                    text = pytesseract.image_to_string(page, lang="fra+ara+eng", config="")
                     page.close()
+                    return idx, text
+
+                with ThreadPoolExecutor(max_workers=min(4, len(page_list))) as executor:
+                    futures = {executor.submit(process_page_tesseract, (i, p)): i for i, p in enumerate(page_list)}
+                    for future in as_completed(futures):
+                        idx, text = future.result()
+                        results[idx] = text
+
+                extracted_text = "\n".join(r for r in results if r)
 
             # Clean up
             os.remove(TEMPORARY_PDF_PATH)
