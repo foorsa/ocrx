@@ -256,14 +256,6 @@ def ProcessStream():
     import queue
     import threading
 
-    # Handle CORS preflight
-    if request.method == "OPTIONS":
-        resp = Response("", status=200)
-        resp.headers["Access-Control-Allow-Origin"] = "*"
-        resp.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-        resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
-        return resp
-
     # --- Validation (same as Process) ---
     if "file" not in request.files or "document_type" not in request.form:
         return jsonify({"error": "File and Document Type fields are required."}), 400
@@ -451,7 +443,6 @@ def ProcessStream():
     resp.headers["Cache-Control"] = "no-cache"
     resp.headers["X-Accel-Buffering"] = "no"
     resp.headers["Connection"] = "keep-alive"
-    resp.headers["Access-Control-Allow-Origin"] = "*"
     return resp
 
 
