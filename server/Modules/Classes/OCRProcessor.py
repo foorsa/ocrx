@@ -40,13 +40,19 @@ class OCRProcessor:
                     "content": [
                         {
                             "type": "text",
-                            "text": "Extract ALL text from this image exactly as it appears. Preserve layout. Include every word, number, date, symbol. For tables, use clear column separation. Output ONLY the extracted text.",
+                            "text": (
+                                "Extract ALL text from this document image exactly as it appears. "
+                                "Preserve the layout and structure as much as possible. "
+                                "Include every word, number, date, and symbol visible in the document. "
+                                "If there are tables, represent them with clear column separation. "
+                                "Do not add any commentary or explanation - output ONLY the extracted text."
+                            ),
                         },
                         {
                             "type": "image_url",
                             "image_url": {
                                 "url": f"data:image/jpeg;base64,{base64_image}",
-                                "detail": "auto",
+                                "detail": "low",
                             },
                         },
                     ],
@@ -59,42 +65,31 @@ class OCRProcessor:
 
     # Read the Image File
     def ExtractTextFromImage(self, InformationType, SessionId, Image):
-        import time
-
-        # Try Tesseract first (instant, ~0.5s)
+        # Try GPT-4o Vision first
         try:
-            t0 = time.time()
-            print("[OCR] Extracting text with Tesseract...")
+            print("[OCR] Extracting text with GPT-4o Vision...")
+            text = self._extract_text_with_vision(Image)
+            if text and text.strip():
+                print(f"[OCR] GPT-4o Vision extracted {len(text)} chars")
+                return text
+        except Exception as e:
+            print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
+
+        # Fallback to Tesseract
+        try:
             TextContent = pytesseract.image_to_string(
                 Image,
                 lang="fra+ara+eng",
                 config="",
             )
-            print(f"[OCR] Tesseract extracted {len(TextContent)} chars in {time.time() - t0:.1f}s")
-            if TextContent and len(TextContent.strip()) > 20:
-                return TextContent
-            print("[OCR] Tesseract output too short, falling back to Vision...")
+            return TextContent
         except Exception as e:
-            print(f"[OCR] Tesseract failed: {str(e)}, falling back to Vision...")
-
-        # Fallback to GPT-4o Vision (slower but higher quality)
-        try:
-            t0 = time.time()
-            print("[OCR] Extracting text with GPT-4o Vision...")
-            text = self._extract_text_with_vision(Image)
-            print(f"[OCR] GPT-4o Vision extracted {len(text)} chars in {time.time() - t0:.1f}s")
-            if text and text.strip():
-                return text
-        except Exception as e:
-            print(f"[OCR] GPT-4o Vision also failed: {str(e)}")
-
-        return ""
+            print(f"[OCR ERROR] Tesseract also failed: {str(e)}")
+            return ""
 
     def ExtractTextFromPDF(self, InformationType, SessionId, PDFBytes):
-        import time
         try:
             # First, try direct text extraction from the PDF (works for digital PDFs)
-            t0 = time.time()
             PDFBytes.seek(0)
             reader = PdfReader(PDFBytes)
             direct_text = ""
@@ -104,63 +99,53 @@ class OCRProcessor:
                     direct_text += page_text
 
             if direct_text.strip():
-                print(f"[OCR] Extracted text directly from PDF ({len(direct_text)} chars) in {time.time() - t0:.1f}s")
+                print(f"[OCR] Extracted text directly from PDF ({len(direct_text)} chars)")
                 return direct_text
 
-            # Fall back to Tesseract OCR for scanned PDFs (much faster than Vision)
-            print("[OCR] No embedded text found, converting pages to images for Tesseract...")
+            # Fall back to Vision/OCR for scanned PDFs
+            print("[OCR] No embedded text found, converting pages to images...")
             TEMPORARY_PDF_PATH = os.path.join(tempfile.gettempdir(), f"{SessionId}.pdf")
 
             PDFBytes.seek(0)
             with open(TEMPORARY_PDF_PATH, "wb") as f:
                 f.write(PDFBytes.getbuffer())
 
-            t1 = time.time()
-            pages = convert_from_path(TEMPORARY_PDF_PATH, 200)
-            print(f"[OCR] PDF to images: {time.time() - t1:.1f}s")
+            extracted_text = ""
+            pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
 
-            # Use Tesseract on all pages in parallel
-            t2 = time.time()
-            page_list = list(pages)
-            results = [None] * len(page_list)
-
-            def process_page_tesseract(args):
-                idx, page = args
-                text = pytesseract.image_to_string(page, lang="fra+ara+eng", config="")
-                page.close()
-                return idx, text
-
-            with ThreadPoolExecutor(max_workers=min(4, len(page_list))) as executor:
-                futures = {executor.submit(process_page_tesseract, (i, p)): i for i, p in enumerate(page_list)}
-                for future in as_completed(futures):
-                    idx, text = future.result()
-                    results[idx] = text
-
-            extracted_text = "\n".join(r for r in results if r)
-            print(f"[OCR] Tesseract extracted {len(extracted_text)} chars from {len(page_list)} pages in {time.time() - t2:.1f}s")
-
-            # If Tesseract got very little text, fall back to Vision
-            if len(extracted_text.strip()) < 20:
-                print("[OCR] Tesseract output too short, falling back to Vision...")
-                t3 = time.time()
-                pages = convert_from_path(TEMPORARY_PDF_PATH, 200)
+            # Try GPT-4o Vision on pages in parallel
+            vision_success = False
+            try:
+                print("[OCR] Extracting text with GPT-4o Vision (parallel)...")
                 page_list = list(pages)
                 results = [None] * len(page_list)
 
-                def process_page_vision(args):
+                def process_page(args):
                     idx, page = args
                     text = self._extract_text_with_vision(page)
                     page.close()
                     return idx, text
 
                 with ThreadPoolExecutor(max_workers=min(4, len(page_list))) as executor:
-                    futures = {executor.submit(process_page_vision, (i, p)): i for i, p in enumerate(page_list)}
+                    futures = {executor.submit(process_page, (i, p)): i for i, p in enumerate(page_list)}
                     for future in as_completed(futures):
                         idx, text = future.result()
                         results[idx] = text
 
                 extracted_text = "\n".join(r for r in results if r)
-                print(f"[OCR] Vision extracted {len(extracted_text)} chars in {time.time() - t3:.1f}s")
+                vision_success = True
+                print(f"[OCR] GPT-4o Vision extracted {len(extracted_text)} chars from PDF")
+            except Exception as e:
+                print(f"[OCR] GPT-4o Vision failed: {str(e)}, falling back to Tesseract...")
+
+            # Fallback to Tesseract if Vision failed
+            if not vision_success:
+                extracted_text = ""
+                pages = convert_from_path(TEMPORARY_PDF_PATH, 120)
+                for page in pages:
+                    page_text = pytesseract.image_to_string(page, lang="fra+ara+eng", config="")
+                    extracted_text += page_text
+                    page.close()
 
             # Clean up
             os.remove(TEMPORARY_PDF_PATH)
