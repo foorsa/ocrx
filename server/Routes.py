@@ -299,83 +299,84 @@ def ProcessStream():
             # Phase: extracting
             yield sse_event({"phase": "extracting"})
 
-            # Run OCR extraction
-            extract_errors = []
-
-            def extract_text_task():
-                try:
-                    Session.ExtractText(skip_db_write=True)
-                except Exception as e:
-                    extract_errors.append(("text", e))
-
-            def extract_tables_task():
-                try:
-                    Session.ExtractTables(skip_db_write=True)
-                except Exception as e:
-                    extract_errors.append(("tables", e))
-
-            if is_tabular:
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    futures = [
-                        executor.submit(extract_text_task),
-                        executor.submit(extract_tables_task),
-                    ]
-                    for f in as_completed(futures):
-                        f.result()
-            else:
-                extract_text_task()
-
-            if extract_errors:
-                error_msg = "; ".join(f"{t}: {e}" for t, e in extract_errors)
-                yield sse_event({"phase": "error", "message": error_msg})
-                return
-
-            # Phase: extracted
-            session_data = Session.Get()
-            extracted_text = session_data.get("Extraction", {}).get("Text", "")
-            text_length = len(extracted_text) if extracted_text else 0
-            yield sse_event({"phase": "extracted", "textLength": text_length})
-
-            # Phase: tables_extracted (for tabular docs)
-            if is_tabular:
-                yield sse_event({"phase": "tables_extracted"})
-
-            # Phase: streaming - Stream GPT correction+translation
-            # For tabular docs, run text and table streams in parallel using a queue
-            raw_ocr_text = extracted_text
             accumulated_json = ""
             table_accumulated = ""
+            event_queue = queue.Queue()
 
             if is_tabular:
-                tables = session_data.get("Extraction", {}).get("Tables", [])
-                event_queue = queue.Queue()
+                # --- PIPELINED: extraction → correction overlap ---
+                # Each extraction feeds its correction immediately via the shared queue.
+                # Text OCR (~11s) and table extraction (~4s) run in parallel.
+                # As soon as tables finish (~4s), table correction starts while text OCR continues.
+                # As soon as text OCR finishes (~11s), text correction starts while table correction continues.
+                # This overlaps extraction and correction phases for maximum speed.
 
-                def stream_text_worker():
+                text_extracted = threading.Event()
+                tables_extracted = threading.Event()
+                extracted_text_holder = [None]  # mutable container for thread result
+                extracted_tables_holder = [None]
+                pipeline_errors = []
+
+                def extract_and_correct_text():
                     try:
-                        for partial in StreamTextCorrectionAndTranslation(Doctype, raw_ocr_text):
+                        Session.ExtractText(skip_db_write=True)
+                        raw_text = Session.session.get("Extraction", {}).get("Text", "")
+                        extracted_text_holder[0] = raw_text
+                        text_extracted.set()
+                        # Immediately start text correction in this same thread
+                        for partial in StreamTextCorrectionAndTranslation(Doctype, raw_text):
                             event_queue.put(("text", partial))
                         event_queue.put(("text_done", None))
                     except Exception as e:
+                        text_extracted.set()
+                        pipeline_errors.append(("text", e))
                         event_queue.put(("error", f"text: {e}"))
+                        event_queue.put(("text_done", None))
 
-                def stream_table_worker():
+                def extract_and_correct_tables():
                     try:
+                        Session.ExtractTables(skip_db_write=True)
+                        tables = Session.session.get("Extraction", {}).get("Tables", [])
+                        extracted_tables_holder[0] = tables
+                        tables_extracted.set()
+                        # Immediately start table correction in this same thread
                         if tables:
                             for partial in StreamTableCorrectionAndTranslation(Doctype, tables):
                                 event_queue.put(("table", partial))
                         event_queue.put(("table_done", None))
                     except Exception as e:
-                        event_queue.put(("error", f"table: {e}"))
+                        tables_extracted.set()
+                        pipeline_errors.append(("tables", e))
+                        event_queue.put(("error", f"tables: {e}"))
+                        event_queue.put(("table_done", None))
 
-                t1 = threading.Thread(target=stream_text_worker, daemon=True)
-                t2 = threading.Thread(target=stream_table_worker, daemon=True)
+                t1 = threading.Thread(target=extract_and_correct_text, daemon=True)
+                t2 = threading.Thread(target=extract_and_correct_tables, daemon=True)
                 t1.start()
                 t2.start()
 
+                # Wait briefly for extraction to start, then send extracted event when text is ready
+                text_extracted.wait(timeout=120)
+                if extracted_text_holder[0] is not None:
+                    yield sse_event({"phase": "extracted", "textLength": len(extracted_text_holder[0])})
+                tables_extracted.wait(timeout=120)
+                if extracted_tables_holder[0] is not None:
+                    yield sse_event({"phase": "tables_extracted"})
+
+                if pipeline_errors:
+                    # Check if both failed
+                    text_failed = any(t == "text" for t, _ in pipeline_errors)
+                    table_failed = any(t == "tables" for t, _ in pipeline_errors)
+                    if text_failed:
+                        error_msg = "; ".join(f"{t}: {e}" for t, e in pipeline_errors)
+                        yield sse_event({"phase": "error", "message": error_msg})
+                        return
+
+                # Stream correction results from both workers
                 done_count = 0
                 while done_count < 2:
                     try:
-                        kind, data = event_queue.get(timeout=60)
+                        kind, data = event_queue.get(timeout=120)
                     except queue.Empty:
                         break
                     if kind == "text":
@@ -387,11 +388,21 @@ def ProcessStream():
                     elif kind in ("text_done", "table_done"):
                         done_count += 1
                     elif kind == "error":
-                        print(f"[STREAM] Parallel stream error: {data}")
+                        print(f"[STREAM] Pipeline error: {data}")
 
                 t1.join(timeout=5)
                 t2.join(timeout=5)
             else:
+                # Non-tabular: extract text then stream correction
+                try:
+                    Session.ExtractText(skip_db_write=True)
+                except Exception as e:
+                    yield sse_event({"phase": "error", "message": f"text: {e}"})
+                    return
+
+                raw_ocr_text = Session.session.get("Extraction", {}).get("Text", "")
+                yield sse_event({"phase": "extracted", "textLength": len(raw_ocr_text)})
+
                 for partial in StreamTextCorrectionAndTranslation(Doctype, raw_ocr_text):
                     accumulated_json += partial
                     yield sse_event({"phase": "streaming", "partial": accumulated_json})
