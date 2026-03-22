@@ -17,7 +17,7 @@ import {
 import { setDocumentType } from "@/redux/actions/documentTypeActions";
 import BaccalaureateDegree from "@/redux/data/core/Baccalaureate/Docs/Baccalaureate Certificate";
 import { setSearch } from "@/redux/slices/searchSlice";
-import { clearBatch, clearSession, setActiveBatchSession, BatchItemProgress } from "@/redux/slices/sessionSlice";
+import { clearBatch, clearSession, setSession, setActiveBatchSession, BatchItemProgress } from "@/redux/slices/sessionSlice";
 import { resetFile } from "@/redux/actions/fileActions";
 import { resetStep, setStep } from "@/redux/actions/stepActions";
 import { useRouter } from "next/navigation";
@@ -42,6 +42,11 @@ export default function Container({
 	const Dispatch = useAppDispatch();
 	const [expanded, setExpanded] = useState(false);
 	const [dismissed, setDismissed] = useState(false);
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	useEffect(() => {
 		if (DocId !== undefined && DocId != "" && typeof DocId === "string") {
@@ -99,9 +104,11 @@ export default function Container({
 	const totalCount = progressEntries.length;
 	const showBar = Session.isBatch && totalCount > 0 && !dismissed;
 
-	const handleViewDoc = (index: number) => {
-		Dispatch(setActiveBatchSession(index));
-		Dispatch(setStep(Steps.Correct));
+	const handleViewDoc = (item: BatchItemProgress) => {
+		if (item.session) {
+			Dispatch(setSession(item.session));
+			Dispatch(setStep(Steps.Correct));
+		}
 	};
 
 	const handleDismiss = () => {
@@ -146,7 +153,7 @@ export default function Container({
 			</div>
 
 			{/* Batch progress bar — portaled to body, persists across all steps */}
-			{typeof document !== "undefined" && showBar && createPortal(
+			{mounted && showBar && createPortal(
 				<div
 					style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9999 }}
 					className="bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 shadow-2xl"
@@ -207,7 +214,7 @@ export default function Container({
 					{/* Expanded file list */}
 					{expanded && (
 						<div className="px-4 pb-3 max-h-48 overflow-y-auto flex flex-col gap-1.5">
-							{progressEntries.map((item, index) => (
+							{progressEntries.map((item) => (
 								<div
 									key={item.fileId}
 									className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800"
@@ -232,7 +239,7 @@ export default function Container({
 									</span>
 									{item.status === "completed" && item.session && (
 										<button
-											onClick={() => handleViewDoc(index)}
+											onClick={() => handleViewDoc(item)}
 											className="flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-medium flex-shrink-0"
 											type="button"
 										>
