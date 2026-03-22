@@ -1,13 +1,14 @@
 import Modal from "@/app/Components/Modals/Modal";
 import TranslatePage from "../../translate/page";
 
-export default function TranslateModal({
+export default async function TranslateModal({
     searchParams,
 }: {
-    searchParams: { [key: string]: string | string[] | undefined };
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
     // Query
-    const QueryDOC = searchParams.doc;
+    const resolvedParams = await searchParams;
+    const QueryDOC = resolvedParams.doc;
 
     return (
         <Modal>
