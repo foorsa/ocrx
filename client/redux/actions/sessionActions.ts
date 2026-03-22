@@ -8,6 +8,10 @@ import { FileType, BatchFileType } from '../types/states/File';
 import { toast } from 'react-hot-toast';
 import { setPhase, updateStreamingField, setBatchProgress } from '@/redux/slices/sessionSlice';
 
+// Generation counter — incremented every time a new single-doc stream starts.
+// Each stream callback checks its captured generation against this value before
+// dispatching any updates, so a superseded stream can never pollute a newer one.
+let currentStreamGeneration = 0;
 
 export const processDocument
     = createAsyncThunk('session/process', async (
@@ -48,20 +52,37 @@ export const processDocumentStream
         },
         { dispatch, rejectWithValue }
     ) => {
+        // Claim a generation slot — any older running stream will see its
+        // generation is stale and stop dispatching updates to Redux.
+        const myGeneration = ++currentStreamGeneration;
+
         try {
             const session = await processDocumentStreamAPI(
                 Doctype,
                 UploadedFile,
                 (eventData: any) => {
+                    // Only dispatch if we are still the active stream
+                    if (currentStreamGeneration !== myGeneration) return;
                     if (eventData.phase) dispatch(setPhase(eventData.phase));
                     if (eventData.type === 'streaming' && eventData.field) {
                         dispatch(updateStreamingField({ field: eventData.field, value: eventData.value }));
                     }
                 }
             );
+
+            // Guard final state update against a superseded stream
+            if (currentStreamGeneration !== myGeneration) {
+                return rejectWithValue("Stream superseded by newer request");
+            }
+
             toast.success('Document processed successfully.');
             return session;
         } catch (streamError: any) {
+            // Skip fallback if this stream has been superseded
+            if (currentStreamGeneration !== myGeneration) {
+                return rejectWithValue("Stream superseded");
+            }
+
             console.warn("[STREAM] Streaming failed, falling back:", streamError?.message);
             try {
                 const ProcessResponse: any = await toast.promise(processDocumentAPI(Doctype, UploadedFile), {
@@ -69,6 +90,9 @@ export const processDocumentStream
                     success: 'Document processed successfully.',
                     error: 'Failed to process document.',
                 });
+                if (currentStreamGeneration !== myGeneration) {
+                    return rejectWithValue("Stream superseded during fallback");
+                }
                 if (ProcessResponse.Status === "Failed" || !ProcessResponse.Session) {
                     toast.error(ProcessResponse.Error);
                     return rejectWithValue(ProcessResponse.Error || "Failed to process document.");
@@ -96,7 +120,6 @@ export const processBatch = createAsyncThunk(
             dispatch(setBatchProgress({ fileId: file.id, fileName: file.name, status: "pending", phase: "waiting", session: null, error: null }));
         }
         const queue = [...Files];
-        const inFlight: Promise<void>[] = [];
         const processOne = async (file: BatchFileType) => {
             dispatch(setBatchProgress({ fileId: file.id, fileName: file.name, status: "processing", phase: "starting", session: null, error: null }));
             try {
