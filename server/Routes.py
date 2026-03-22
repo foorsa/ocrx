@@ -450,12 +450,16 @@ def ProcessStream():
                     yield sse_event({"phase": "error", "message": "No content to extract"})
                     return
 
-            # Parse the completed text result — write directly to Session.session
-            # (Session.Get() returns a deep copy, so we must mutate the internal dict)
+            # Parse text result — GPT now returns a flat translated JSON (no corrected/translated wrapper)
             try:
                 text_parsed = json.loads(accumulated_json)
-                corrected_text = text_parsed.get("corrected", text_parsed)
-                translated_text = text_parsed.get("translated", text_parsed)
+                # Handle both new format (flat object) and legacy format (corrected/translated keys)
+                if "translated" in text_parsed:
+                    translated_text = text_parsed["translated"]
+                    corrected_text = text_parsed.get("corrected", translated_text)
+                else:
+                    translated_text = text_parsed
+                    corrected_text = text_parsed
 
                 Session.session["Correction"] = {"Text": corrected_text}
                 Session.session["Translation"] = {"Text": translated_text}
@@ -463,16 +467,20 @@ def ProcessStream():
             except json.JSONDecodeError as e:
                 print(f"[STREAM] Failed to parse text JSON: {e}")
 
-            # Parse the completed table result
+            # Parse table result — GPT now returns translated table directly (no wrapper)
             if is_tabular and table_accumulated:
                 try:
                     table_parsed = json.loads(table_accumulated)
-                    corrected_tables = table_parsed.get("corrected", table_parsed)
-                    translated_tables = table_parsed.get("translated", table_parsed)
+                    if "translated" in table_parsed:
+                        translated_tables = table_parsed["translated"]
+                    else:
+                        translated_tables = table_parsed
+                    # Use raw ExtractTable output as corrected, GPT output as translated
+                    raw_tables = Session.session.get("Extraction", {}).get("Tables", [])
 
                     if "Correction" not in Session.session:
                         Session.session["Correction"] = {}
-                    Session.session["Correction"]["Tables"] = corrected_tables
+                    Session.session["Correction"]["Tables"] = raw_tables if raw_tables else translated_tables
                     if "Translation" not in Session.session:
                         Session.session["Translation"] = {}
                     Session.session["Translation"]["Tables"] = translated_tables

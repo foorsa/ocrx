@@ -785,29 +785,28 @@ def GenerateTextCorrectionAndTranslation(Doctype, Text):
 # Streaming Text Correction + Translation (used by /api/v1/process-stream)
 def StreamTextCorrectionAndTranslation(Doctype, Text):
     """
-    Same prompt as GenerateTextCorrectionAndTranslation but streams the response.
-    Returns a generator that yields partial content strings as they arrive.
+    Streams GPT correction + translation for embedded-text PDFs.
+    Returns only the translated version to minimize output tokens.
     """
-    print("[GPT] Streaming combined AI Text Correction + Translation...")
+    print("[GPT] Streaming AI Text Translation...")
 
     response = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
         response_format={"type": "json_object"},
-        max_tokens=2048,
+        max_tokens=1024,
         stream=True,
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You correct OCR text and translate it to English in one step. "
-                    "Return a JSON object with two keys: \"corrected\" (extracted fields in original language) "
-                    "and \"translated\" (same fields translated to English). Keep keys unchanged in both."
+                    "You extract structured fields from OCR text, fix errors, and translate to English. "
+                    "Return a single flat JSON object with field keys and English-translated values. No nesting."
                 ),
             },
             {
                 "role": "user",
-                "content": GeneratePrompt(Doctype) + f"\n\nReturn both corrected and translated versions in one JSON object with keys \"corrected\" and \"translated\".\n\nOCR Text:\n{Text}",
+                "content": GeneratePrompt(Doctype) + f"\n\nExtract fields, fix OCR errors, translate values to English. Return one JSON object.\n\nOCR Text:\n{Text}",
             },
         ],
     )
@@ -820,10 +819,10 @@ def StreamTextCorrectionAndTranslation(Doctype, Text):
 # Streaming Table Correction + Translation (used by /api/v1/process-stream)
 def StreamTableCorrectionAndTranslation(Doctype, Table):
     """
-    Same prompt as GenerateTableCorrectionAndTranslation but streams the response.
-    Returns a generator that yields partial content strings as they arrive.
+    Translate table subject names to English. Preserves grades exactly.
+    Returns only the translated table to minimize output tokens.
     """
-    print("[GPT] Streaming combined AI Table Correction + Translation...")
+    print("[GPT] Streaming AI Table Translation...")
 
     DesiredFormat = ""
     match Doctype:
@@ -846,33 +845,28 @@ def StreamTableCorrectionAndTranslation(Doctype, Table):
                 '{"results": [{"Subject": "Subject Name", "Mark": "grade/20", "Result": "Validated/Failed", "Session": "S1/S2/..."}, ...]}'
             )
         case _:
-            DesiredFormat = '{"corrected": {...}, "translated": {...}}'
+            DesiredFormat = '{"Transcript": {...}, "Overall": {...}}'
 
     response = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
         response_format={"type": "json_object"},
-        max_tokens=4096,
+        max_tokens=2048,
         stream=True,
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You correct OCR table data and translate it to English in one step. "
-                    "Fix typos in subject names. Preserve all grades exactly. "
-                    "Return a JSON object with two keys: \"corrected\" (original language, corrected) and \"translated\" (English translation). "
-                    "Both must have the exact same structure."
+                    "Translate table subject names and column headers to English. "
+                    "Keep all grades/numbers exactly as-is. Return a single JSON object (no wrapping key)."
                 ),
             },
             {
                 "role": "user",
                 "content": (
-                    "Fix this RAW OCR table, then translate subject names to English.\n\n"
-                    "Return JSON with:\n"
-                    "- \"corrected\": the fixed table in original language\n"
-                    "- \"translated\": the same table but with all text translated to English\n\n"
-                    f"Each table should follow this structure: {DesiredFormat}\n\n"
-                    f"OCR Tables:\n{str(Table)}"
+                    f"Translate subject names and headers to English. Keep grades unchanged.\n"
+                    f"Output format: {DesiredFormat}\n\n"
+                    f"Table data:\n{str(Table)}"
                 ),
             },
         ],
@@ -886,18 +880,16 @@ def StreamTableCorrectionAndTranslation(Doctype, Table):
 # Combined Vision OCR + Correction + Translation in ONE call (used by /api/v1/process-stream)
 def StreamVisionExtractAndTranslate(Doctype, base64_images):
     """
-    Send page images directly to GPT-4o-mini Vision with a combined prompt that
-    extracts text fields, corrects them, and translates to English — all in one call.
-    Eliminates the separate OCR step entirely.
-    Returns a generator that yields partial JSON content strings.
+    Send page images directly to GPT-4o-mini Vision to extract fields and
+    translate to English in one call. Returns only the translated fields.
     """
-    print("[GPT] Streaming Vision Extract + Correct + Translate (single call)...")
+    print("[GPT] Streaming Vision Extract + Translate (single call)...")
 
     prompt = GeneratePrompt(Doctype)
 
     # Build image content blocks for all pages
     image_content = []
-    for i, b64_img in enumerate(base64_images):
+    for b64_img in base64_images:
         image_content.append({
             "type": "image_url",
             "image_url": {
@@ -910,19 +902,15 @@ def StreamVisionExtractAndTranslate(Doctype, base64_images):
         model=GPT_MODEL,
         temperature=0,
         response_format={"type": "json_object"},
-        max_tokens=2048,
+        max_tokens=1024,
         stream=True,
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You are a document processing AI. Given document images, you:\n"
-                    "1. Extract all text visible in the images\n"
-                    "2. Identify and fill in the required fields\n"
-                    "3. Correct any OCR-like errors\n"
-                    "4. Return a JSON with two keys: \"corrected\" (fields in original language) "
-                    "and \"translated\" (same fields translated to English).\n"
-                    "Keep field keys unchanged in both. Return ONLY valid JSON."
+                    "Extract structured fields from document images, fix errors, "
+                    "translate values to English. Return a single flat JSON object with "
+                    "field keys and English values. No nesting, no extra keys."
                 ),
             },
             {
@@ -932,10 +920,8 @@ def StreamVisionExtractAndTranslate(Doctype, base64_images):
                         "type": "text",
                         "text": (
                             f"{prompt}\n\n"
-                            "Look at the document image(s) below. Extract the required fields, "
-                            "correct any errors, and return both corrected (original language) "
-                            "and translated (English) versions.\n\n"
-                            "Return JSON: {{\"corrected\": {{field: value, ...}}, \"translated\": {{field: value, ...}}}}"
+                            "Extract the required fields from the image(s), translate to English. "
+                            "Return one flat JSON object."
                         ),
                     },
                     *image_content,

@@ -47,8 +47,7 @@ def CreateFlaskApp():
     Blueprint("views", __name__, template_folder="templates")
 
     # Create The Upload Folder if it doesn't exist
-    if not os.path.exists(FlaskApp.config["UPLOAD_FOLDER"]):
-        os.makedirs(FlaskApp.config["UPLOAD_FOLDER"])
+    os.makedirs(FlaskApp.config["UPLOAD_FOLDER"], exist_ok=True)
 
     WindowsTessData = os.path.join(os.path.dirname(__file__), "tessdata")
 
