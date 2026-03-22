@@ -281,6 +281,6 @@ export default function TaskWidget() {
 				</>
 			)}
 		</div>,
-		document.body
+		document.documentElement
 	);
 }
