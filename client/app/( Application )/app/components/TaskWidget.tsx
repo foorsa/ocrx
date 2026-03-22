@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { Steps } from "@/redux/types/states/Step";
@@ -27,7 +27,7 @@ type BgTask = {
 	docLabel: string;
 };
 
-export default function TaskWidget() {
+export default function TaskWidget({ inDialog = false }: { inDialog?: boolean }) {
 	const Doctype = useAppSelector((state) => state.documentType);
 	const Session = useAppSelector((state) => state.session);
 	const Dispatch = useAppDispatch();
@@ -40,26 +40,24 @@ export default function TaskWidget() {
 	const wasLoadingRef = useRef(false);
 	const docLabelRef = useRef<string>("");
 
-	// Ref on the outer portal div — used to fight HeadlessUI's inert/aria-hidden
-	const widgetRef = useRef<HTMLDivElement>(null);
+	// When rendered outside the Dialog (layout.tsx), track if the Next.js root
+	// element gets marked `inert` by HeadlessUI (dialog opened). If it does, we
+	// hide this instance so the inDialog instance (inside the Dialog) is the
+	// only one visible, avoiding duplicates.
+	const [parentInerted, setParentInerted] = useState(false);
 
 	useEffect(() => { setMounted(true); }, []);
 
-	// HeadlessUI v1.7+ sets `inert` (and aria-hidden) on all body-level siblings
-	// of its dialog portal, which makes our widget transparent to pointer events.
-	// This MutationObserver removes those attributes the instant they appear.
 	useEffect(() => {
-		const el = widgetRef.current;
-		if (!el) return;
-		const restore = () => {
-			if (el.hasAttribute("inert")) el.removeAttribute("inert");
-			if (el.getAttribute("aria-hidden") === "true") el.removeAttribute("aria-hidden");
-		};
-		restore(); // run once immediately on mount
-		const obs = new MutationObserver(restore);
-		obs.observe(el, { attributes: true, attributeFilter: ["inert", "aria-hidden"] });
+		if (inDialog) return; // inDialog instance never needs this guard
+		const root = document.getElementById("__next") as HTMLElement | null;
+		if (!root) return;
+		const check = () => setParentInerted(root.hasAttribute("inert"));
+		check();
+		const obs = new MutationObserver(check);
+		obs.observe(root, { attributes: true, attributeFilter: ["inert"] });
 		return () => obs.disconnect();
-	}); // intentionally no deps — re-subscribes every render so the ref is always fresh
+	}, [mounted, inDialog]);
 
 	useEffect(() => {
 		docLabelRef.current = (Doctype as any)?.title || "Document";
@@ -150,11 +148,13 @@ export default function TaskWidget() {
 		Dispatch(clearBatch());
 	};
 
+	// Non-dialog instance hides itself when the Dialog is open (HeadlessUI marks
+	// #__next as inert), so the inDialog instance is the sole visible copy.
 	if (!mounted || !showWidget) return null;
+	if (!inDialog && parentInerted) return null;
 
-	return createPortal(
+	const widgetContent = (
 		<div
-			ref={widgetRef}
 			id="task-widget"
 			style={{
 				position: "fixed",
@@ -167,6 +167,7 @@ export default function TaskWidget() {
 			}}
 			className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
 		>
+			{/* ── Single-doc task list ────────────────────────────────────── */}
 			{showSingleWidget && (
 				<>
 					<div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
@@ -182,7 +183,7 @@ export default function TaskWidget() {
 							<div className="flex flex-col">
 								<span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
 									{processingBgCount > 0
-										? `Processing ${doneBgCount + 1} of ${bgTasks.length}...`
+										? `Processing ${doneBgCount + 1} of ${bgTasks.length}…`
 										: `${doneBgCount} of ${bgTasks.length} ${bgTasks.length === 1 ? "document" : "documents"} ready`}
 								</span>
 								{processingBgCount > 0 && latestBgTask?.phase && (
@@ -215,6 +216,7 @@ export default function TaskWidget() {
 				</>
 			)}
 
+			{/* ── Batch progress widget ───────────────────────────────────── */}
 			{showBatchWidget && (
 				<>
 					<div className="flex items-center">
@@ -232,7 +234,7 @@ export default function TaskWidget() {
 								<div className="flex flex-col items-start">
 									<span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
 										{processingCount > 0
-											? `Processing ${completedCount + failedCount + 1}/${totalCount}...`
+											? `Processing ${completedCount + failedCount + 1}/${totalCount}…`
 											: `${completedCount}/${totalCount} documents ready`}
 									</span>
 									{failedCount > 0 && <span className="text-xs text-red-500 font-medium">{failedCount} failed</span>}
@@ -280,7 +282,15 @@ export default function TaskWidget() {
 					)}
 				</>
 			)}
-		</div>,
-		document.documentElement
+		</div>
 	);
+
+	// inDialog: render inline (no portal) — the widget lives inside the HeadlessUI
+	// Dialog's DOM tree so HeadlessUI never marks it inert, and React events work
+	// the same way they do for Dialog.Panel buttons.
+	if (inDialog) return widgetContent;
+
+	// Default: portal to documentElement so the widget is never a body > * sibling
+	// that HeadlessUI could target.
+	return createPortal(widgetContent, document.documentElement);
 }
