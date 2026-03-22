@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { ArrowLeft3, ArrowRight3, CloseSquare, Warning2 } from "iconsax-react";
 import Heading from "./Core/B. Correct/A. Heading";
@@ -8,7 +8,7 @@ import Fields from "./Core/B. Correct/C. Fields";
 import Preview from "./Core/B. Correct/B. Preview";
 import { resetStep, setStep } from "@/redux/actions/stepActions";
 import { toast } from "react-hot-toast";
-import { cancelSession, clearSession, resetSessionStatus } from "@/redux/slices/sessionSlice";
+import { cancelSession, clearSession, resetSessionStatus, setActiveBatchSession, setSession } from "@/redux/slices/sessionSlice";
 import { Steps } from "@/redux/types/states/Step";
 import { generateDocument } from "@/redux/actions/sessionActions";
 import LoadingScreens from "./Core/Utilities/Common";
@@ -19,6 +19,16 @@ export default function Second_CorrectData() {
 	const Doctype = useAppSelector((state) => state.documentType);
 	const Session = useAppSelector((state) => state.session);
 	const File = useAppSelector((state) => state.file);
+	const isBatch = Session.isBatch;
+	const batchResults = Session.batchResults || [];
+	const [batchIndex, setBatchIndex] = useState(0);
+
+	// In batch mode, set active session from batch results on mount / index change
+	React.useEffect(() => {
+		if (isBatch && batchResults.length > 0) {
+			dispatch(setActiveBatchSession(batchIndex));
+		}
+	}, [isBatch, batchIndex, batchResults.length]);
 
 	const handleResetOperation = () => {
 		dispatch(clearSession());
@@ -26,7 +36,6 @@ export default function Second_CorrectData() {
 	};
 
 	const handleNextStep = async () => {
-		// Verify the presence of all the fields in the document type
 		var isValid = true;
 
 		if (!Doctype?.fields) {
@@ -34,7 +43,6 @@ export default function Second_CorrectData() {
 			return toast.error("Please select a document type.");
 		}
 
-		// Verify the presence of all the fields in the document type
 		const StateFields:
 			| {
 					[key: string]: string;
@@ -55,19 +63,11 @@ export default function Second_CorrectData() {
 		});
 
 		if (isValid) {
-			console.log("All fields are present.");
-			console.log(
-				"Session Identifier is: ",
-				Session.Data && Session.Data["Session Id"]
-			);
-
 			if (Session?.Data?.Translation?.Text) {
-				// Generate the document
 				const result = await dispatch(
 					generateDocument({ CorrectedSession: Session.Data })
 				);
 
-				// Navigate to Finish only if generation succeeded
 				if (generateDocument.fulfilled.match(result)) {
 					dispatch(setStep(Steps.Finish));
 				}
@@ -92,13 +92,36 @@ export default function Second_CorrectData() {
 
 	return (
 		<div className="relative w-full">
+			{/* Batch navigation */}
+			{isBatch && batchResults.length > 1 && !Session.isLoading && (
+				<div className="flex items-center justify-between mb-3 px-1">
+					<button
+						type="button"
+						disabled={batchIndex === 0}
+						onClick={() => setBatchIndex(batchIndex - 1)}
+						className="text-xs font-medium text-sky-600 hover:text-sky-700 disabled:text-zinc-400 disabled:cursor-not-allowed"
+					>
+						Previous
+					</button>
+					<span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+						Document {batchIndex + 1} of {batchResults.length}
+					</span>
+					<button
+						type="button"
+						disabled={batchIndex >= batchResults.length - 1}
+						onClick={() => setBatchIndex(batchIndex + 1)}
+						className="text-xs font-medium text-sky-600 hover:text-sky-700 disabled:text-zinc-400 disabled:cursor-not-allowed"
+					>
+						Next
+					</button>
+				</div>
+			)}
+
 			{!Session.isLoading && (
 				<>
 					<Heading />
-					{
-						// If the file exists
-						File?.file && <Preview />
-					}
+					{File && Array.isArray(File) && File[batchIndex]?.file && <Preview />}
+					{File && !Array.isArray(File) && (File as any)?.file && <Preview />}
 					<Fields />
 				</>
 			)}

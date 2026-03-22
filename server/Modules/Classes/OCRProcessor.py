@@ -3,6 +3,7 @@ import os
 import tempfile
 import base64
 import io
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pdf2image import convert_from_path
 import pytesseract
@@ -28,6 +29,7 @@ class OCRProcessor:
         self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         # Cache the Google Vision client (gRPC channel setup is expensive)
         self._vision_client = None
+        self._vision_lock = threading.Lock()
 
     def _image_to_base64(self, image, max_dim=1024):
         """Convert a PIL Image to a base64 string (JPEG, resized for speed)."""
@@ -56,8 +58,9 @@ class OCRProcessor:
             image.save(buffer, format="JPEG", quality=85, optimize=True)
             content = buffer.getvalue()
 
-            if self._vision_client is None:
-                self._vision_client = google_vision.ImageAnnotatorClient()
+            with self._vision_lock:
+                if self._vision_client is None:
+                    self._vision_client = google_vision.ImageAnnotatorClient()
             vision_client = self._vision_client
             vision_image = google_vision.Image(content=content)
             response = vision_client.document_text_detection(image=vision_image)

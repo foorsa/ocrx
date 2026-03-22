@@ -43,7 +43,7 @@ export const persistor = persistStore(store);
 // Export the store and persistor
 export default { store, persistor };
 
-// Root State 
+// Root State
 export type RootState = ReturnType<typeof store.getState>;
 
 // Root Dispatch
