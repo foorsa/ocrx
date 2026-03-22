@@ -1,6 +1,6 @@
 import { Session as SessionType } from '@/redux/types/states/Session';
 
-// sessionActions.ts - deploy trigger
+// sessionActions.ts
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { processDocumentAPI, processDocumentStreamAPI, initializeSessionAPI, extractTextAPI, extractTableAPI, correctTextAPI, correctTableAPI, translateTextAPI, translateTableAPI, generateDocumentAPI } from '@/redux/apis/sessionAPI';
 import { Doctype } from '../types/states/Document Type';
