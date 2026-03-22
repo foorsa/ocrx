@@ -3,6 +3,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
+import TaskWidget from "@/app/( Application )/app/components/TaskWidget";
 
 export default function Modal({ children }: { children: React.ReactNode }) {
 	const [open, setOpen] = useState(true);
@@ -10,7 +11,7 @@ export default function Modal({ children }: { children: React.ReactNode }) {
 	const Router = useRouter();
 
 	// Track the last mousedown target in capture phase (fires before HeadlessUI's
-	// outside-click detection regardless of whether it uses capture or bubble).
+	// outside-click detection regardless of whether HeadlessUI uses capture or bubble).
 	const lastMousedownTargetRef = useRef<EventTarget | null>(null);
 
 	useEffect(() => {
@@ -75,6 +76,16 @@ export default function Modal({ children }: { children: React.ReactNode }) {
 							</AnimatePresence>
 						</div>
 					</div>
+
+					{/*
+					  TaskWidget lives INSIDE the Dialog so HeadlessUI never marks it
+					  as inert (HeadlessUI only marks #__next — the body > * element
+					  containing the main React tree). The inDialog prop tells the
+					  widget to render inline (no createPortal) so React event
+					  delegation works exactly like it does for Dialog.Panel buttons.
+					  position: fixed on the widget keeps it at bottom-left regardless.
+					*/}
+					<TaskWidget inDialog />
 				</Dialog>
 			</Transition.Root>
 		</AnimatePresence>
