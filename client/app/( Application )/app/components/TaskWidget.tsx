@@ -148,7 +148,7 @@ export default function TaskWidget() {
 
 	return createPortal(
 		<div
-			style={{ position: "fixed", bottom: 16, left: 16, width: 340, zIndex: 9999 }}
+			style={{ position: "fixed", bottom: 16, left: 16, width: 340, zIndex: 2147483647, pointerEvents: "auto", isolation: "isolate" }}
 			className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
 		>
 			{/* ── Single-doc task list ────────────────────────────────────── */}
