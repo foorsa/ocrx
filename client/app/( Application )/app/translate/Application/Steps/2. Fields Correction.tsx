@@ -11,7 +11,6 @@ import { toast } from "react-hot-toast";
 import { cancelSession, clearSession, resetSessionStatus, setActiveBatchSession, setSession } from "@/redux/slices/sessionSlice";
 import { Steps } from "@/redux/types/states/Step";
 import { generateDocument } from "@/redux/actions/sessionActions";
-import LoadingScreens from "./Core/Utilities/Common";
 
 // Selection for Document Type
 export default function Second_CorrectData() {
@@ -117,15 +116,10 @@ export default function Second_CorrectData() {
 				</div>
 			)}
 
-			{!Session.isLoading && (
-				<>
-					<Heading />
-					{File && Array.isArray(File) && File[batchIndex]?.file && <Preview />}
-					{File && !Array.isArray(File) && (File as any)?.file && <Preview />}
-					<Fields />
-				</>
-			)}
-			{Session.isLoading && <LoadingScreens Type="Generating" />}
+			<Heading />
+			{File && Array.isArray(File) && File[batchIndex]?.file && <Preview />}
+			{File && !Array.isArray(File) && (File as any)?.file && <Preview />}
+			<Fields />
 			{/* Error State */}
 			{!Session.isLoading && Session.Status === "failed" && Session.Error && (
 				<div className="flex flex-col gap-2 w-full mb-3 p-3 rounded-xl border border-red-500 bg-red-950/30 text-red-400">
