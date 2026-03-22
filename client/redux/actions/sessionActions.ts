@@ -51,8 +51,6 @@ export const processDocumentStream
         },
         { dispatch, rejectWithValue }
     ) => {
-        const loadingToast = toast.loading('Processing Document (streaming)...');
-
         try {
             const session = await processDocumentStreamAPI(
                 Doctype,
@@ -71,12 +69,10 @@ export const processDocumentStream
                 }
             );
 
-            toast.dismiss(loadingToast);
             toast.success('Document processed successfully.');
             return session;
         } catch (streamError: any) {
             console.warn("[STREAM] Streaming failed, falling back to standard processing:", streamError?.message);
-            toast.dismiss(loadingToast);
 
             // Fallback to the existing processDocumentAPI
             try {
@@ -243,12 +239,8 @@ export const generateDocument
         { CorrectedSession }: { CorrectedSession: SessionType },
         { rejectWithValue }
     ) => {
-        const loadingToast = toast.loading('Generating Document...');
-
         try {
             const GeneratedDocument = await generateDocumentAPI(CorrectedSession);
-
-            toast.dismiss(loadingToast);
 
             if (GeneratedDocument.Status === "Failed" || !GeneratedDocument.Session) {
                 toast.error(GeneratedDocument.Error || "Failed to generate document.");
@@ -260,7 +252,6 @@ export const generateDocument
             toast.success('Document generated successfully.');
             return ProcessedSession;
         } catch (error: any) {
-            toast.dismiss(loadingToast);
             const message = error?.message || "Failed to generate document.";
             toast.error(message);
             return rejectWithValue(message);
