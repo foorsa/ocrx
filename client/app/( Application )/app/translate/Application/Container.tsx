@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import First_DocumentUpload from "./Steps/1. Document Upload";
 import Stepper from "./Steps/0. Stepper";
@@ -31,6 +31,14 @@ import {
 	Eye,
 } from "iconsax-react";
 
+// A single background task entry (persists across clearSession calls)
+type BgTask = {
+	id: string;
+	status: "processing" | "done" | "failed";
+	phase?: string;
+	docLabel: string;
+};
+
 export default function Container({
 	DocId,
 }: {
@@ -41,8 +49,68 @@ export default function Container({
 	const Session = useAppSelector((state) => state.session);
 	const Dispatch = useAppDispatch();
 	const [expanded, setExpanded] = useState(false);
-	const [dismissed, setDismissed] = useState(false);
+	const [widgetDismissed, setWidgetDismissed] = useState(false);
 	const [mounted, setMounted] = useState(false);
+
+	// ── Background task list ──────────────────────────────────────────────────
+	// Tracks single-doc translations independently of Redux session state so the
+	// widget stays visible even when the user navigates to a new document.
+	const [bgTasks, setBgTasks] = useState<BgTask[]>([]);
+	const wasLoadingRef = useRef(false);
+	const docLabelRef = useRef<string>("");
+
+	// Keep doc label in sync so we capture it when loading starts
+	useEffect(() => {
+		docLabelRef.current = (Doctype as any)?.title || "Document";
+	}, [Doctype]);
+
+	// Detect single-doc loading START → add a new task
+	useEffect(() => {
+		const isLoading = Session.isLoading && !Session.isBatch;
+		if (isLoading && !wasLoadingRef.current) {
+			const newTask: BgTask = {
+				id: Date.now().toString(),
+				status: "processing",
+				phase: Session.phase || undefined,
+				docLabel: docLabelRef.current,
+			};
+			setBgTasks((prev) => [...prev, newTask]);
+			setWidgetDismissed(false);
+		}
+		wasLoadingRef.current = isLoading;
+	}, [Session.isLoading, Session.isBatch]);
+
+	// Update phase on the latest processing task while loading
+	useEffect(() => {
+		if (Session.isLoading && !Session.isBatch && Session.phase) {
+			setBgTasks((prev) => {
+				const lastIdx = prev.map((t, i) => ({ t, i })).filter(({ t }) => t.status === "processing").pop()?.i;
+				if (lastIdx === undefined) return prev;
+				return prev.map((t, i) => (i === lastIdx ? { ...t, phase: Session.phase || t.phase } : t));
+			});
+		}
+	}, [Session.phase, Session.isLoading, Session.isBatch]);
+
+	// Detect single-doc loading END → mark the latest processing task done/failed
+	useEffect(() => {
+		if (!Session.isLoading && !Session.isBatch) {
+			setBgTasks((prev) => {
+				const lastProcessingIdx = prev.map((t, i) => ({ t, i })).filter(({ t }) => t.status === "processing").pop()?.i;
+				if (lastProcessingIdx === undefined) return prev;
+				return prev.map((t, i) =>
+					i === lastProcessingIdx ? { ...t, status: "done", phase: undefined } : t
+				);
+			});
+		}
+	}, [Session.isLoading, Session.isBatch]);
+
+	// ── Batch widget state ────────────────────────────────────────────────────
+	useEffect(() => {
+		if (Session.isLoading && Session.isBatch) {
+			setWidgetDismissed(false);
+			setExpanded(true);
+		}
+	}, [Session.isLoading, Session.isBatch]);
 
 	useEffect(() => {
 		setMounted(true);
@@ -86,26 +154,28 @@ export default function Container({
 		Dispatch(setSearch(""));
 	}, []);
 
-	// Reset dismissed when loading starts
-	useEffect(() => {
-		if (Session.isLoading) {
-			setDismissed(false);
-			if (Session.isBatch) setExpanded(true);
-		}
-	}, [Session.isLoading, Session.isBatch]);
-
-	// Batch progress data
+	// ── Batch progress helpers ────────────────────────────────────────────────
 	const batchProgress = Session.batchProgress || {};
 	const progressEntries = Object.values(batchProgress) as BatchItemProgress[];
-	const completedCount = progressEntries.filter(p => p.status === "completed").length;
-	const failedCount = progressEntries.filter(p => p.status === "failed").length;
-	const processingCount = progressEntries.filter(p => p.status === "processing").length;
-	const pendingCount = progressEntries.filter(p => p.status === "pending").length;
+	const completedCount = progressEntries.filter((p) => p.status === "completed").length;
+	const failedCount = progressEntries.filter((p) => p.status === "failed").length;
+	const processingCount = progressEntries.filter((p) => p.status === "processing").length;
+	const pendingCount = progressEntries.filter((p) => p.status === "pending").length;
 	const totalCount = progressEntries.length;
-	const showBatchWidget = Session.isBatch && totalCount > 0 && !dismissed;
-	const showSingleWidget = !Session.isBatch && Session.isLoading && !dismissed;
+
+	// ── Visibility ───────────────────────────────────────────────────────────
+	const showBatchWidget = Session.isBatch && totalCount > 0 && !widgetDismissed;
+	// Single-doc: show as long as there are tasks (processing OR done) and not dismissed
+	const showSingleWidget = !Session.isBatch && bgTasks.length > 0 && !widgetDismissed;
 	const showWidget = showBatchWidget || showSingleWidget;
 
+	// Derived single-task counts
+	const processingBgCount = bgTasks.filter((t) => t.status === "processing").length;
+	const doneBgCount = bgTasks.filter((t) => t.status === "done").length;
+	const failedBgCount = bgTasks.filter((t) => t.status === "failed").length;
+	const latestBgTask = bgTasks[bgTasks.length - 1];
+
+	// ── Handlers ─────────────────────────────────────────────────────────────
 	const handleViewDoc = (item: BatchItemProgress) => {
 		if (item.session) {
 			Dispatch(setSession(item.session));
@@ -114,8 +184,9 @@ export default function Container({
 	};
 
 	const handleDismiss = () => {
-		setDismissed(true);
+		setWidgetDismissed(true);
 		setExpanded(false);
+		setBgTasks([]);
 		Dispatch(clearBatch());
 	};
 
@@ -125,68 +196,104 @@ export default function Container({
 				<Stepper />
 				<AnimatePresence initial={false} mode="wait">
 					{Step === Steps.Upload && (
-						<motion.div
-							key="upload"
-							{...slideTransition}
-							className="relative w-full"
-						>
+						<motion.div key="upload" {...slideTransition} className="relative w-full">
 							<First_DocumentUpload />
 						</motion.div>
 					)}
 					{Step === Steps.Correct && (
-						<motion.div
-							key="correct"
-							{...slideTransition}
-							className="relative w-full"
-						>
+						<motion.div key="correct" {...slideTransition} className="relative w-full">
 							<Second_CorrectData />
 						</motion.div>
 					)}
 					{Step === Steps.Finish && (
-						<motion.div
-							key="finish"
-							{...slideTransition}
-							className="relative w-full"
-						>
+						<motion.div key="finish" {...slideTransition} className="relative w-full">
 							<Third_FinishOperation />
 						</motion.div>
 					)}
 				</AnimatePresence>
 			</div>
 
-			{/* Processing widget — portaled to body, bottom-left corner, persists across all steps */}
+			{/* ── Persistent task-manager widget ─────────────────────────────────────
+			    Portaled to document.body so it floats over all steps.
+			    Stays visible even when the user navigates to a new document. */}
 			{mounted && showWidget && createPortal(
 				<div
-					style={{ position: "fixed", bottom: 16, left: 16, width: 320, zIndex: 9999 }}
+					style={{ position: "fixed", bottom: 16, left: 16, width: 340, zIndex: 9999 }}
 					className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
 				>
-					{/* Single-doc loading state */}
+					{/* ── Single-doc task list ──────────────────────────────────── */}
 					{showSingleWidget && (
-						<div className="flex items-center justify-between px-4 py-3">
-							<div className="flex items-center gap-3">
-								<svg className="w-4 h-4 text-sky-500 animate-spin flex-shrink-0" viewBox="0 0 24 24" fill="none">
-									<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-									<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-								</svg>
-								<div className="flex flex-col">
-									<span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Generating document...</span>
-									{Session.phase && (
-										<span className="text-xs text-zinc-500 capitalize">{Session.phase}</span>
+						<>
+							{/* Header */}
+							<div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+								<div className="flex items-center gap-2.5">
+									{processingBgCount > 0 ? (
+										<svg className="w-4 h-4 text-sky-500 animate-spin flex-shrink-0" viewBox="0 0 24 24" fill="none">
+											<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+											<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+										</svg>
+									) : (
+										<TickCircle color="currentColor" variant="Bold" className="w-4 h-4 text-green-500 flex-shrink-0" />
 									)}
+									<div className="flex flex-col">
+										<span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+											{processingBgCount > 0
+												? `Processing ${doneBgCount + failedBgCount + 1} of ${bgTasks.length}…`
+												: `${doneBgCount} of ${bgTasks.length} ${bgTasks.length === 1 ? "document" : "documents"} ready`}
+										</span>
+										{processingBgCount > 0 && latestBgTask?.phase && (
+											<span className="text-xs text-zinc-500 capitalize">{latestBgTask.phase}</span>
+										)}
+									</div>
 								</div>
+								<button
+									onClick={handleDismiss}
+									className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors p-0.5"
+									type="button"
+									title="Close"
+								>
+									<CloseSquare color="currentColor" variant="Bulk" className="w-4 h-4" />
+								</button>
 							</div>
-							<button
-								onClick={() => setDismissed(true)}
-								className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-								type="button"
-								title="Hide"
-							>
-								<CloseSquare color="currentColor" variant="Bulk" className="w-4 h-4" />
-							</button>
-						</div>
+
+							{/* Task list */}
+							<div className="px-3 py-2 flex flex-col gap-1.5 max-h-48 overflow-y-auto">
+								{bgTasks.map((task, idx) => (
+									<div
+										key={task.id}
+										className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800"
+									>
+										{task.status === "processing" && (
+											<svg className="w-3.5 h-3.5 text-sky-500 animate-spin flex-shrink-0" viewBox="0 0 24 24" fill="none">
+												<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+												<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+											</svg>
+										)}
+										{task.status === "done" && (
+											<TickCircle color="currentColor" variant="Bold" className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+										)}
+										{task.status === "failed" && (
+											<CloseCircle color="currentColor" variant="Bold" className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+										)}
+										<span className="text-xs flex-1 truncate text-zinc-700 dark:text-zinc-300">
+											{task.docLabel || `Document ${idx + 1}`}
+										</span>
+										{task.status === "processing" && task.phase && (
+											<span className="text-xs text-zinc-400 capitalize flex-shrink-0">{task.phase}</span>
+										)}
+										{task.status === "done" && (
+											<span className="text-xs text-green-600 font-medium flex-shrink-0">Ready</span>
+										)}
+										{task.status === "failed" && (
+											<span className="text-xs text-red-500 font-medium flex-shrink-0">Failed</span>
+										)}
+									</div>
+								))}
+							</div>
+						</>
 					)}
 
-					{/* Batch progress state */}
+					{/* ── Batch progress state ──────────────────────────────────────── */}
 					{showBatchWidget && (
 						<>
 							{/* Header */}
@@ -209,9 +316,8 @@ export default function Container({
 										<div className="flex flex-col items-start">
 											<span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
 												{processingCount > 0
-													? `Processing ${completedCount + failedCount + 1}/${totalCount}...`
-													: `${completedCount}/${totalCount} documents ready`
-												}
+													? `Processing ${completedCount + failedCount + 1}/${totalCount}…`
+													: `${completedCount}/${totalCount} documents ready`}
 											</span>
 											{failedCount > 0 && (
 												<span className="text-xs text-red-500 font-medium">{failedCount} failed</span>
@@ -231,17 +337,14 @@ export default function Container({
 										}
 									</div>
 								</button>
-								{/* Dismiss button — only when all done */}
-								{processingCount === 0 && pendingCount === 0 && (
-									<button
-										onClick={handleDismiss}
-										className="px-3 py-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-										type="button"
-										title="Dismiss"
-									>
-										<CloseSquare color="currentColor" variant="Bulk" className="w-4 h-4" />
-									</button>
-								)}
+								<button
+									onClick={handleDismiss}
+									className="px-3 py-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+									type="button"
+									title="Dismiss"
+								>
+									<CloseSquare color="currentColor" variant="Bulk" className="w-4 h-4" />
+								</button>
 							</div>
 
 							{/* Expanded file list */}
