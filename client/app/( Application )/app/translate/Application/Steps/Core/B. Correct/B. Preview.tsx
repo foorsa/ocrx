@@ -1,12 +1,14 @@
 import { useAppSelector } from "@/redux/hooks";
-import { FileType } from "@/redux/types/states/File";
+import { BatchFileType } from "@/redux/types/states/File";
 import { TableDocument } from "iconsax-react";
 import React from "react";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 
 export default function Preview() {
-	const UploadedFile: FileType = useAppSelector((state) => state.file);
+	const files: BatchFileType[] = useAppSelector((state) => state.file) || [];
+	// Show the first file's preview (in batch mode, individual previews per active doc)
+	const UploadedFile = files.length > 0 ? files[0] : null;
 
 	const isImage = UploadedFile?.type?.includes("image");
 	const isPdf = UploadedFile?.type === "application/pdf";
@@ -19,7 +21,7 @@ export default function Preview() {
 					<TableDocument size="64" variant="Bulk" color="currentColor" />
 				</div>
 			)}
-			{isImage && UploadedFile.preview && (
+			{isImage && UploadedFile?.preview && (
 				<Zoom classDialog="w-full h-full backdrop:blur-3xl bg-zinc-50/50 dark:bg-zinc-800/50">
 					<img
 						className="flex flex-col w-full h-auto max-h-96 min-h-none justify-center items-center overflow-hidden blocksm bg-white border border-zinc-200 shadow-2xl hover:bg-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-700 relative rounded-xl mb-5"
@@ -29,7 +31,7 @@ export default function Preview() {
 					/>
 				</Zoom>
 			)}
-			{isPdf && UploadedFile.preview && (
+			{isPdf && UploadedFile?.preview && (
 				<iframe
 					src={UploadedFile.preview}
 					className="w-full h-96 bg-white border border-zinc-200 shadow-2xl dark:bg-zinc-800 dark:border-zinc-700 rounded-xl mb-5"

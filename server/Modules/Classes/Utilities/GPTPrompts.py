@@ -795,10 +795,60 @@ def GenerateTextCorrectionAndTranslation(Doctype, Text):
 # Streaming Text Correction + Translation (used by /api/v1/process-stream)
 def StreamTextCorrectionAndTranslation(Doctype, Text):
     """
-    Same prompt as GenerateTextCorrectionAndTranslation but streams the response.
-    Returns a generator that yields partial content strings as they arrive.
+    Streams translated text fields from embedded PDF text. Returns flat JSON.
     """
-    print("[GPT] Streaming combined AI Text Correction + Translation...")
+    print("[GPT] Streaming text translation...")
+
+    response = client.chat.completions.create(
+        model=GPT_MODEL,
+        temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=1024,
+        stream=True,
+        messages=[
+            {
+                "role": "system",
+                "content": "Extract fields from OCR text, fix errors, translate values to English. Return one flat JSON.",
+            },
+            {
+                "role": "user",
+                "content": GeneratePrompt(Doctype) + f"\n\nOCR Text:\n{Text}",
+            },
+        ],
+    )
+
+    for chunk in response:
+        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+
+
+def StreamTableTranslation(Doctype, Table):
+    """
+    Translate-only for tables. Raw ExtractTable data is already structured.
+    Only translates subject names/headers. Returns translated table directly.
+    """
+    print("[GPT] Streaming table translation...")
+
+    DesiredFormat = ""
+    match Doctype:
+        case "Baccalaureate-Transcript-of-Marks-V1":
+            DesiredFormat = (
+                '{"Transcript": {"Columns": ["Subjects", ...year columns..., "Regional Exam", "National Exam"], '
+                '"Rows": [["Subject", "grade", ...], ...]}, '
+                '"Overall": {"Columns": ["Continuous Control", "Regional Exam", "National Exam", "Overall"], '
+                '"Rows": [["value", "value", "value", "value"]]}}'
+            )
+        case "Baccalaureate-Transcript-of-Marks-V2":
+            DesiredFormat = (
+                '{"Transcript": {"Columns": ["TOPIC", "NATIONAL EXAM", "CONTINUOUS MONITORING"], '
+                '"Rows": [["Subject", "grade", "grade"], ...]}, '
+                '"Overall": {"Columns": ["Continuous Control", "Regional Exam", "National Exam", "Overall"], '
+                '"Rows": [["value", "value", "value", "value"]]}}'
+            )
+        case "Master-Transcript-of-Marks":
+            DesiredFormat = '{"results": [{"Subject": "Name", "Mark": "grade/20", "Result": "Validated/Failed", "Session": "S1/S2"}, ...]}'
+        case _:
+            DesiredFormat = '{"Transcript": {...}, "Overall": {...}}'
 
     response = client.chat.completions.create(
         model=GPT_MODEL,
@@ -809,15 +859,11 @@ def StreamTextCorrectionAndTranslation(Doctype, Text):
         messages=[
             {
                 "role": "system",
-                "content": (
-                    "You correct OCR text and translate it to English in one step. "
-                    "Return a JSON object with two keys: \"corrected\" (extracted fields in original language) "
-                    "and \"translated\" (same fields translated to English). Keep keys unchanged in both."
-                ),
+                "content": "Translate table subject names/headers to English. Keep all numbers/grades exactly as-is. Return JSON directly.",
             },
             {
                 "role": "user",
-                "content": GeneratePrompt(Doctype) + f"\n\nReturn both corrected and translated versions in one JSON object with keys \"corrected\" and \"translated\".\n\nOCR Text:\n{Text}",
+                "content": f"Translate to English. Format: {DesiredFormat}\n\nData:\n{str(Table)}",
             },
         ],
     )
@@ -827,62 +873,63 @@ def StreamTextCorrectionAndTranslation(Doctype, Text):
             yield chunk.choices[0].delta.content
 
 
-# Streaming Table Correction + Translation (used by /api/v1/process-stream)
-def StreamTableCorrectionAndTranslation(Doctype, Table):
-    """
-    Same prompt as GenerateTableCorrectionAndTranslation but streams the response.
-    Returns a generator that yields partial content strings as they arrive.
-    """
-    print("[GPT] Streaming combined AI Table Correction + Translation...")
+# Keep old name as alias for backward compat with non-streaming /process endpoint
+StreamTableCorrectionAndTranslation = StreamTableTranslation
 
-    DesiredFormat = ""
+
+def StreamTextAndTablesFromText(Doctype, Text):
+    """
+    SINGLE GPT call that extracts fields AND tables from embedded PDF text.
+    Eliminates the need for ExtractTable API entirely for digital PDFs.
+    Returns JSON: {"fields": {...}, "tables": {...}}
+    """
+    print("[GPT] Single call: fields + tables from embedded text...")
+
+    prompt = GeneratePrompt(Doctype)
+
+    table_format = ""
     match Doctype:
         case "Baccalaureate-Transcript-of-Marks-V1":
-            DesiredFormat = (
-                '{"Transcript": {"Columns": ["Subjects", "YYYY/YYYY S1", "YYYY/YYYY S2", ...repeat for 3 years..., "Regional Exam", "National Exam"], '
-                '"Rows": [["Subject Name", "grade", "grade", ...], ..., ["Semester Average", ...], ["Annual Average", ...]]}, '
-                '"Overall": {"Columns": ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"], '
+            table_format = (
+                '"tables": {"Transcript": {"Columns": ["Subjects", ...year/semester columns..., "Regional Exam", "National Exam"], '
+                '"Rows": [["Subject in English", "grade", ...], ...]}, '
+                '"Overall": {"Columns": ["Continuous Control", "Regional Exam", "National Exam", "Overall"], '
                 '"Rows": [["value", "value", "value", "value"]]}}'
             )
         case "Baccalaureate-Transcript-of-Marks-V2":
-            DesiredFormat = (
-                '{"Transcript": {"Columns": ["Subjects", "YYYY/YYYY S1", "YYYY/YYYY S2", "YYYY/YYYY S1", "YYYY/YYYY S2", "YYYY/YYYY S1", "YYYY/YYYY CC", "Regional Exam", "National Exam"], '
+            table_format = (
+                '"tables": {"Transcript": {"Columns": ["Subjects", "YYYY/YYYY S1", "YYYY/YYYY S2", "YYYY/YYYY S1", "YYYY/YYYY S2", "YYYY/YYYY S1", "YYYY/YYYY CC", "Regional Exam", "National Exam"], '
                 '"Rows": [["Subject Name", "grade", "grade", "grade", "grade", "grade", "grade", "grade", "grade"], ..., ["Semester Average", ...], ["Annual Average", ...]]}, '
                 '"Overall": {"Columns": ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"], '
                 '"Rows": [["value", "value", "value", "value"]]}}'
             )
         case "Master-Transcript-of-Marks":
-            DesiredFormat = (
-                '{"results": [{"Subject": "Subject Name", "Mark": "grade/20", "Result": "Validated/Failed", "Session": "S1/S2/..."}, ...]}'
-            )
+            table_format = '"tables": {"results": [{"Subject": "English Name", "Mark": "grade/20", "Result": "Validated/Failed", "Session": "S1/S2"}, ...]}'
         case _:
-            DesiredFormat = '{"corrected": {...}, "translated": {...}}'
+            table_format = '"tables": {...}'
 
     response = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
         response_format={"type": "json_object"},
-        max_tokens=4096,
+        max_tokens=3072,
         stream=True,
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You correct OCR table data and translate it to English in one step. "
-                    "Fix typos in subject names. Preserve all grades exactly. "
-                    "Return a JSON object with two keys: \"corrected\" (original language, corrected) and \"translated\" (English translation). "
-                    "Both must have the exact same structure."
+                    "Extract all fields AND table data from this document text. "
+                    "Translate everything to English. Keep grades/numbers exact. "
+                    f'Return JSON: {{"fields": {{field: value, ...}}, {table_format}}}'
                 ),
             },
             {
                 "role": "user",
                 "content": (
-                    "Fix this RAW OCR table, then translate subject names to English.\n\n"
-                    "Return JSON with:\n"
-                    "- \"corrected\": the fixed table in original language\n"
-                    "- \"translated\": the same table but with all text translated to English\n\n"
-                    f"Each table should follow this structure: {DesiredFormat}\n\n"
-                    f"OCR Tables:\n{str(Table)}"
+                    f"{prompt}\n\n"
+                    "Extract fields AND tables. Translate to English.\n"
+                    f'Return: {{"fields": {{...}}, {table_format}}}\n\n'
+                    f"Document text:\n{Text}"
                 ),
             },
         ],
@@ -893,21 +940,19 @@ def StreamTableCorrectionAndTranslation(Doctype, Table):
             yield chunk.choices[0].delta.content
 
 
-# Combined Vision OCR + Correction + Translation in ONE call (used by /api/v1/process-stream)
-def StreamVisionExtractAndTranslate(Doctype, base64_images):
+def StreamVisionExtractAll(Doctype, base64_images, is_tabular=False):
     """
-    Send page images directly to GPT-4o-mini Vision with a combined prompt that
-    extracts text fields, corrects them, and translates to English — all in one call.
-    Eliminates the separate OCR step entirely.
-    Returns a generator that yields partial JSON content strings.
+    SINGLE GPT vision call that extracts EVERYTHING from document images:
+    - Text fields (translated to English)
+    - Table data (if tabular doc) with subject names translated
+    Returns one JSON object with "fields" and optionally "tables" keys.
     """
-    print("[GPT] Streaming Vision Extract + Correct + Translate (single call)...")
+    print(f"[GPT] Single vision call: fields{' + tables' if is_tabular else ''} ...")
 
     prompt = GeneratePrompt(Doctype)
 
-    # Build image content blocks for all pages
     image_content = []
-    for i, b64_img in enumerate(base64_images):
+    for b64_img in base64_images:
         image_content.append({
             "type": "image_url",
             "image_url": {
@@ -916,38 +961,54 @@ def StreamVisionExtractAndTranslate(Doctype, base64_images):
             },
         })
 
+    if is_tabular:
+        table_instruction = ""
+        match Doctype:
+            case "Baccalaureate-Transcript-of-Marks-V1":
+                table_instruction = (
+                    '\n\n"tables": {"Transcript": {"Columns": ["Subjects", ...year/semester columns..., "Regional Exam", "National Exam"], '
+                    '"Rows": [["Subject in English", "grade", ...], ...]}, '
+                    '"Overall": {"Columns": ["Continuous Control", "Regional Exam", "National Exam", "Overall"], '
+                    '"Rows": [["value", "value", "value", "value"]]}}'
+                )
+            case "Baccalaureate-Transcript-of-Marks-V2":
+                table_instruction = (
+                    '\n\n"tables": {"Transcript": {"Columns": ["TOPIC", "NATIONAL EXAM", "CONTINUOUS MONITORING"], '
+                    '"Rows": [["Subject in English", "grade", "grade"], ...]}, '
+                    '"Overall": {"Columns": ["Continuous Control", "Regional Exam", "National Exam", "Overall"], '
+                    '"Rows": [["value", "value", "value", "value"]]}}'
+                )
+            case "Master-Transcript-of-Marks":
+                table_instruction = '\n\n"tables": {"results": [{"Subject": "English Name", "Mark": "grade/20", "Result": "Validated/Failed", "Session": "S1/S2"}, ...]}'
+
+        system_msg = (
+            "Extract all text fields AND table data from document images. "
+            "Translate all values to English. Keep grades/numbers exact. "
+            "Return JSON: {\"fields\": {field: value, ...}, " + table_instruction.strip() + "}"
+        )
+        user_text = (
+            f"{prompt}\n\n"
+            "Extract fields AND tables from the image(s). Translate everything to English.\n"
+            f"Return: {{\"fields\": {{...}}, {table_instruction.strip()}}}"
+        )
+        max_tok = 3072
+    else:
+        system_msg = "Extract fields from document images, translate to English. Return flat JSON."
+        user_text = f"{prompt}\n\nExtract fields, translate to English. Return one flat JSON."
+        max_tok = 1024
+
     response = client.chat.completions.create(
         model=GPT_MODEL,
         temperature=0,
         response_format={"type": "json_object"},
-        max_tokens=2048,
+        max_tokens=max_tok,
         stream=True,
         messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a document processing AI. Given document images, you:\n"
-                    "1. Extract all text visible in the images\n"
-                    "2. Identify and fill in the required fields\n"
-                    "3. Correct any OCR-like errors\n"
-                    "4. Return a JSON with two keys: \"corrected\" (fields in original language) "
-                    "and \"translated\" (same fields translated to English).\n"
-                    "Keep field keys unchanged in both. Return ONLY valid JSON."
-                ),
-            },
+            {"role": "system", "content": system_msg},
             {
                 "role": "user",
                 "content": [
-                    {
-                        "type": "text",
-                        "text": (
-                            f"{prompt}\n\n"
-                            "Look at the document image(s) below. Extract the required fields, "
-                            "correct any errors, and return both corrected (original language) "
-                            "and translated (English) versions.\n\n"
-                            "Return JSON: {{\"corrected\": {{field: value, ...}}, \"translated\": {{field: value, ...}}}}"
-                        ),
-                    },
+                    {"type": "text", "text": user_text},
                     *image_content,
                 ],
             },
@@ -957,3 +1018,7 @@ def StreamVisionExtractAndTranslate(Doctype, base64_images):
     for chunk in response:
         if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
             yield chunk.choices[0].delta.content
+
+
+# Legacy alias
+StreamVisionExtractAndTranslate = StreamVisionExtractAll

@@ -11,3 +11,8 @@ export interface FileType {
     type: string;
     preview: string;
 }
+
+// Batch file with unique id for tracking
+export interface BatchFileType extends FileType {
+    id: string;
+}

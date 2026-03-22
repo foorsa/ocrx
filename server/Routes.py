@@ -247,15 +247,13 @@ def ProcessStream():
     SSE streaming endpoint: Initialize -> Extract -> Correct+Translate with real-time progress.
     Returns Server-Sent Events with phase updates and streamed GPT output.
     """
-    from concurrent.futures import ThreadPoolExecutor, as_completed
     from Modules.Classes.Utilities.GPTPrompts import (
         StreamTextCorrectionAndTranslation,
-        StreamTableCorrectionAndTranslation,
-        StreamVisionExtractAndTranslate,
+        StreamTextAndTablesFromText,
+        StreamVisionExtractAll,
     )
     import traceback
     import time
-    import queue
     import threading
 
     # --- Validation (same as Process) ---
@@ -302,8 +300,6 @@ def ProcessStream():
             yield sse_event({"phase": "extracting"})
 
             accumulated_json = ""
-            table_accumulated = ""
-            event_queue = queue.Queue()
 
             # --- Prepare page images for combined vision call ---
             # Convert PDF pages to base64 images ONCE, then send directly to GPT
@@ -345,7 +341,7 @@ def ProcessStream():
                         pdf_bytes.seek(0)
                         with open(TEMP_PATH, "wb") as f:
                             f.write(pdf_bytes.getbuffer())
-                        pages = convert_from_path(TEMP_PATH, 120)
+                        pages = convert_from_path(TEMP_PATH, 100)
                         for page in pages:
                             base64_images.append(_ocr_singleton._image_to_base64(page))
                             page.close()
@@ -356,131 +352,58 @@ def ProcessStream():
                     base64_images.append(_ocr_singleton._image_to_base64(img))
                     img.close()
 
+            # --- SINGLE GPT CALL for everything (fields + tables if tabular) ---
+            yield sse_event({"phase": "extracted", "textLength": 0})
             if is_tabular:
-                # --- PIPELINED: Vision text extraction + table extraction overlap ---
-                # Text: single GPT vision call does OCR + correct + translate (~12-15s)
-                # Tables: ExtractTable API (~4s) → GPT correct+translate (~15s)
-                # Both run in parallel for maximum speed.
-
-                pipeline_errors = []
-
-                def vision_extract_text():
-                    """Combined vision OCR + correction + translation in ONE GPT call."""
-                    try:
-                        if has_embedded_text:
-                            # Digital PDF: use text-based correction (no vision needed)
-                            Session.session["Extraction"]["Text"] = embedded_text
-                            for partial in StreamTextCorrectionAndTranslation(Doctype, embedded_text):
-                                event_queue.put(("text", partial))
-                        elif base64_images:
-                            # Scanned PDF: single vision call does everything
-                            for partial in StreamVisionExtractAndTranslate(Doctype, base64_images):
-                                event_queue.put(("text", partial))
-                        else:
-                            event_queue.put(("error", "text: No content to extract"))
-                        event_queue.put(("text_done", None))
-                    except Exception as e:
-                        pipeline_errors.append(("text", e))
-                        event_queue.put(("error", f"text: {e}"))
-                        event_queue.put(("text_done", None))
-
-                def extract_and_correct_tables():
-                    """ExtractTable API → GPT correct+translate."""
-                    try:
-                        Session.ExtractTables(skip_db_write=True)
-                        tables = Session.session.get("Extraction", {}).get("Tables", [])
-                        if tables:
-                            for partial in StreamTableCorrectionAndTranslation(Doctype, tables):
-                                event_queue.put(("table", partial))
-                        event_queue.put(("table_done", None))
-                    except Exception as e:
-                        pipeline_errors.append(("tables", e))
-                        event_queue.put(("error", f"tables: {e}"))
-                        event_queue.put(("table_done", None))
-
-                t1 = threading.Thread(target=vision_extract_text, daemon=True)
-                t2 = threading.Thread(target=extract_and_correct_tables, daemon=True)
-                t1.start()
-                t2.start()
-
-                yield sse_event({"phase": "extracted", "textLength": 0})
                 yield sse_event({"phase": "tables_extracted"})
 
-                # Stream results from both workers
-                done_count = 0
-                while done_count < 2:
-                    try:
-                        kind, data = event_queue.get(timeout=120)
-                    except queue.Empty:
-                        break
-                    if kind == "text":
-                        accumulated_json += data
-                        yield sse_event({"phase": "streaming", "partial": accumulated_json})
-                    elif kind == "table":
-                        table_accumulated += data
-                        yield sse_event({"phase": "streaming", "partial": table_accumulated, "type": "tables"})
-                    elif kind in ("text_done", "table_done"):
-                        done_count += 1
-                    elif kind == "error":
-                        print(f"[STREAM] Pipeline error: {data}")
-
-                t1.join(timeout=5)
-                t2.join(timeout=5)
-
-                if pipeline_errors:
-                    text_failed = any(t == "text" for t, _ in pipeline_errors)
-                    if text_failed and not accumulated_json:
-                        error_msg = "; ".join(f"{t}: {e}" for t, e in pipeline_errors)
-                        yield sse_event({"phase": "error", "message": error_msg})
-                        return
-            else:
-                # Non-tabular: single combined vision call
-                yield sse_event({"phase": "extracted", "textLength": 0})
-
-                if has_embedded_text:
-                    Session.session["Extraction"]["Text"] = embedded_text
-                    for partial in StreamTextCorrectionAndTranslation(Doctype, embedded_text):
-                        accumulated_json += partial
-                        yield sse_event({"phase": "streaming", "partial": accumulated_json})
-                elif base64_images:
-                    for partial in StreamVisionExtractAndTranslate(Doctype, base64_images):
+            if has_embedded_text:
+                # Digital PDF with embedded text
+                Session.session["Extraction"]["Text"] = embedded_text
+                if is_tabular:
+                    # SINGLE GPT call: extracts fields + tables from text (no ExtractTable API)
+                    for partial in StreamTextAndTablesFromText(Doctype, embedded_text):
                         accumulated_json += partial
                         yield sse_event({"phase": "streaming", "partial": accumulated_json})
                 else:
-                    yield sse_event({"phase": "error", "message": "No content to extract"})
-                    return
+                    for partial in StreamTextCorrectionAndTranslation(Doctype, embedded_text):
+                        accumulated_json += partial
+                        yield sse_event({"phase": "streaming", "partial": accumulated_json})
 
-            # Parse the completed text result — write directly to Session.session
-            # (Session.Get() returns a deep copy, so we must mutate the internal dict)
+            elif base64_images:
+                # Scanned PDF: ONE vision call extracts fields + tables together
+                for partial in StreamVisionExtractAll(Doctype, base64_images, is_tabular=is_tabular):
+                    accumulated_json += partial
+                    yield sse_event({"phase": "streaming", "partial": accumulated_json})
+            else:
+                yield sse_event({"phase": "error", "message": "No content to extract"})
+                return
+
+            # Parse results and populate session
             try:
-                text_parsed = json.loads(accumulated_json)
-                corrected_text = text_parsed.get("corrected", text_parsed)
-                translated_text = text_parsed.get("translated", text_parsed)
+                parsed = json.loads(accumulated_json)
 
-                Session.session["Correction"] = {"Text": corrected_text}
-                Session.session["Translation"] = {"Text": translated_text}
+                if is_tabular:
+                    # Both vision and text calls return {"fields": {...}, "tables": {...}}
+                    fields = parsed.get("fields", parsed)
+                    tables = parsed.get("tables", None)
+
+                    Session.session["Correction"] = {"Text": fields}
+                    Session.session["Translation"] = {"Text": fields}
+                    if tables:
+                        Session.session["Correction"]["Tables"] = tables
+                        Session.session["Translation"]["Tables"] = tables
+                else:
+                    # Flat field JSON (non-tabular)
+                    Session.session["Correction"] = {"Text": parsed}
+                    Session.session["Translation"] = {"Text": parsed}
+
                 Session.session["Status"] = "Translated"
             except json.JSONDecodeError as e:
-                print(f"[STREAM] Failed to parse text JSON: {e}")
+                print(f"[STREAM] Failed to parse JSON: {e}")
 
-            # Parse the completed table result
-            if is_tabular and table_accumulated:
-                try:
-                    table_parsed = json.loads(table_accumulated)
-                    corrected_tables = table_parsed.get("corrected", table_parsed)
-                    translated_tables = table_parsed.get("translated", table_parsed)
-
-                    if "Correction" not in Session.session:
-                        Session.session["Correction"] = {}
-                    Session.session["Correction"]["Tables"] = corrected_tables
-                    if "Translation" not in Session.session:
-                        Session.session["Translation"] = {}
-                    Session.session["Translation"]["Tables"] = translated_tables
-                except json.JSONDecodeError as e:
-                    print(f"[STREAM] Failed to parse table JSON: {e}")
-
-            # Save to database
-            Session.SaveToDatabase()
+            # Save to database in background thread (don't block SSE response)
+            threading.Thread(target=Session.SaveToDatabase, daemon=True).start()
 
             t_end = time.time()
             print(f"[STREAM] Pipeline complete for session {session_id} [{t_end - t_start:.1f}s total]")

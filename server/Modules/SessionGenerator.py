@@ -40,7 +40,16 @@ retry_count = 0
 
 while retry_count < max_retries:
     try:
-        client = MongoClient(uri, server_api=ServerApi("1"))
+        client = MongoClient(
+            uri,
+            server_api=ServerApi("1"),
+            maxPoolSize=100,
+            minPoolSize=5,
+            maxIdleTimeMS=45000,
+            connectTimeoutMS=10000,
+            socketTimeoutMS=300000,
+            retryWrites=True,
+        )
         db = client.get_database("OCRX-db")
         print("[MongoDB] Connected to the database successfully.")
         break  # Connection successful, break out of the loop
@@ -53,10 +62,6 @@ else:
     # Maximum number of retries reached, raise an exception or handle the error.
     print("[MongoDB] Failed to connect to MongoDB after multiple attempts.")
     raise Exception("Failed to connect to MongoDB after multiple attempts.")
-
-# Continue with your MongoDB operations using the 'db' object.
-
-client = MongoClient(uri, server_api=ServerApi("1"))
 
 # Load BSON Data from the database
 from bson import json_util

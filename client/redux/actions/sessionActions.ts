@@ -4,9 +4,9 @@ import { Session as SessionType } from '@/redux/types/states/Session';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { processDocumentAPI, processDocumentStreamAPI, initializeSessionAPI, extractTextAPI, extractTableAPI, correctTextAPI, correctTableAPI, translateTextAPI, translateTableAPI, generateDocumentAPI } from '@/redux/apis/sessionAPI';
 import { Doctype } from '../types/states/Document Type';
-import { FileType } from '../types/states/File';
+import { FileType, BatchFileType } from '../types/states/File';
 import { toast } from 'react-hot-toast';
-import { setPhase, updateStreamingField } from '@/redux/slices/sessionSlice';
+import { setPhase, updateStreamingField, setBatchProgress } from '@/redux/slices/sessionSlice';
 
 
 export const processDocument
@@ -33,10 +33,6 @@ export const processDocument
             }
 
             const ProcessedSession = ProcessResponse.Session as SessionType;
-
-            console.log("[OK] Session Processed Successfully, setting Session in Redux Store.");
-            console.log("[OK] Session: ", ProcessedSession);
-
             return ProcessedSession;
         } catch (error: any) {
             const message = error?.message || "Failed to process document.";
@@ -62,7 +58,6 @@ export const processDocumentStream
                 Doctype,
                 UploadedFile,
                 (eventData: any) => {
-                    // Handle different event types from the SSE stream
                     if (eventData.phase) {
                         dispatch(setPhase(eventData.phase));
                     }
@@ -78,10 +73,6 @@ export const processDocumentStream
 
             toast.dismiss(loadingToast);
             toast.success('Document processed successfully.');
-
-            console.log("[OK] Session Processed via Stream Successfully, setting Session in Redux Store.");
-            console.log("[OK] Session: ", session);
-
             return session;
         } catch (streamError: any) {
             console.warn("[STREAM] Streaming failed, falling back to standard processing:", streamError?.message);
@@ -100,12 +91,7 @@ export const processDocumentStream
                     return rejectWithValue(ProcessResponse.Error || "Failed to process document.");
                 }
 
-                const ProcessedSession = ProcessResponse.Session as SessionType;
-
-                console.log("[OK] Session Processed via Fallback Successfully.");
-                console.log("[OK] Session: ", ProcessedSession);
-
-                return ProcessedSession;
+                return ProcessResponse.Session as SessionType;
             } catch (fallbackError: any) {
                 const message = fallbackError?.message || "Failed to process document.";
                 toast.error(message);
@@ -114,13 +100,149 @@ export const processDocumentStream
         }
     })
 
+
+// Batch processing: process multiple files with concurrency control
+const BATCH_CONCURRENCY = 5; // Max parallel streams
+
+export const processBatch = createAsyncThunk(
+    'session/processBatch',
+    async (
+        {
+            Doctype,
+            Files,
+        }: {
+            Doctype: Doctype;
+            Files: BatchFileType[];
+        },
+        { dispatch, rejectWithValue }
+    ) => {
+        const results: SessionType[] = [];
+        let completedCount = 0;
+
+        // Initialize progress for all files
+        for (const file of Files) {
+            dispatch(setBatchProgress({
+                fileId: file.id,
+                fileName: file.name,
+                status: "pending",
+                phase: "waiting",
+                session: null,
+                error: null,
+            }));
+        }
+
+        // Process with concurrency limit
+        const queue = [...Files];
+        const inFlight: Promise<void>[] = [];
+
+        const processOne = async (file: BatchFileType) => {
+            dispatch(setBatchProgress({
+                fileId: file.id,
+                fileName: file.name,
+                status: "processing",
+                phase: "starting",
+                session: null,
+                error: null,
+            }));
+
+            try {
+                const session = await processDocumentStreamAPI(
+                    Doctype,
+                    file,
+                    (eventData: any) => {
+                        if (eventData.phase) {
+                            dispatch(setBatchProgress({
+                                fileId: file.id,
+                                fileName: file.name,
+                                status: "processing",
+                                phase: eventData.phase,
+                                session: null,
+                                error: null,
+                            }));
+                        }
+                    }
+                );
+
+                results.push(session);
+                completedCount++;
+
+                dispatch(setBatchProgress({
+                    fileId: file.id,
+                    fileName: file.name,
+                    status: "completed",
+                    phase: "complete",
+                    session,
+                    error: null,
+                }));
+
+                toast.success(`${file.name} processed (${completedCount}/${Files.length})`, { duration: 2000 });
+            } catch (err: any) {
+                // Fallback to sync API
+                try {
+                    const resp: any = await processDocumentAPI(Doctype, file);
+                    if (resp.Session) {
+                        results.push(resp.Session);
+                        completedCount++;
+                        dispatch(setBatchProgress({
+                            fileId: file.id,
+                            fileName: file.name,
+                            status: "completed",
+                            phase: "complete",
+                            session: resp.Session,
+                            error: null,
+                        }));
+                        toast.success(`${file.name} processed (${completedCount}/${Files.length})`, { duration: 2000 });
+                        return;
+                    }
+                } catch {
+                    // Both failed
+                }
+
+                dispatch(setBatchProgress({
+                    fileId: file.id,
+                    fileName: file.name,
+                    status: "failed",
+                    phase: "error",
+                    session: null,
+                    error: err?.message || "Failed to process",
+                }));
+            }
+        };
+
+        // Concurrency-limited execution
+        const runWithConcurrency = async () => {
+            const executing = new Set<Promise<void>>();
+
+            for (const file of queue) {
+                const p = processOne(file).then(() => {
+                    executing.delete(p);
+                });
+                executing.add(p);
+
+                if (executing.size >= BATCH_CONCURRENCY) {
+                    await Promise.race(executing);
+                }
+            }
+
+            await Promise.all(executing);
+        };
+
+        try {
+            await runWithConcurrency();
+            toast.success(`Batch complete: ${completedCount}/${Files.length} processed`);
+            return results;
+        } catch (error: any) {
+            return rejectWithValue(error?.message || "Batch processing failed");
+        }
+    }
+);
+
+
 export const generateDocument
     = createAsyncThunk('session/generate', async (
         { CorrectedSession }: { CorrectedSession: SessionType },
         { rejectWithValue }
     ) => {
-        console.log("[OK] Generating Document Response: ", CorrectedSession["Session Id"]);
-
         const loadingToast = toast.loading('Generating Document...');
 
         try {
@@ -136,9 +258,6 @@ export const generateDocument
             const ProcessedSession = GeneratedDocument.Session as SessionType;
 
             toast.success('Document generated successfully.');
-
-            console.log("[OK] Generated document successfully: " + GeneratedDocument.Session["Session Id"]);
-
             return ProcessedSession;
         } catch (error: any) {
             toast.dismiss(loadingToast);
