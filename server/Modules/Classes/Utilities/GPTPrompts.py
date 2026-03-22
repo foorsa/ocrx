@@ -867,6 +867,69 @@ def StreamTableTranslation(Doctype, Table):
 StreamTableCorrectionAndTranslation = StreamTableTranslation
 
 
+def StreamTextAndTablesFromText(Doctype, Text):
+    """
+    SINGLE GPT call that extracts fields AND tables from embedded PDF text.
+    Eliminates the need for ExtractTable API entirely for digital PDFs.
+    Returns JSON: {"fields": {...}, "tables": {...}}
+    """
+    print("[GPT] Single call: fields + tables from embedded text...")
+
+    prompt = GeneratePrompt(Doctype)
+
+    table_format = ""
+    match Doctype:
+        case "Baccalaureate-Transcript-of-Marks-V1":
+            table_format = (
+                '"tables": {"Transcript": {"Columns": ["Subjects", ...year/semester columns..., "Regional Exam", "National Exam"], '
+                '"Rows": [["Subject in English", "grade", ...], ...]}, '
+                '"Overall": {"Columns": ["Continuous Control", "Regional Exam", "National Exam", "Overall"], '
+                '"Rows": [["value", "value", "value", "value"]]}}'
+            )
+        case "Baccalaureate-Transcript-of-Marks-V2":
+            table_format = (
+                '"tables": {"Transcript": {"Columns": ["TOPIC", "NATIONAL EXAM", "CONTINUOUS MONITORING"], '
+                '"Rows": [["Subject in English", "grade", "grade"], ...]}, '
+                '"Overall": {"Columns": ["Continuous Control", "Regional Exam", "National Exam", "Overall"], '
+                '"Rows": [["value", "value", "value", "value"]]}}'
+            )
+        case "Master-Transcript-of-Marks":
+            table_format = '"tables": {"results": [{"Subject": "English Name", "Mark": "grade/20", "Result": "Validated/Failed", "Session": "S1/S2"}, ...]}'
+        case _:
+            table_format = '"tables": {...}'
+
+    response = client.chat.completions.create(
+        model=GPT_MODEL,
+        temperature=0,
+        response_format={"type": "json_object"},
+        max_tokens=3072,
+        stream=True,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Extract all fields AND table data from this document text. "
+                    "Translate everything to English. Keep grades/numbers exact. "
+                    f'Return JSON: {{"fields": {{field: value, ...}}, {table_format}}}'
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"{prompt}\n\n"
+                    "Extract fields AND tables. Translate to English.\n"
+                    f'Return: {{"fields": {{...}}, {table_format}}}\n\n'
+                    f"Document text:\n{Text}"
+                ),
+            },
+        ],
+    )
+
+    for chunk in response:
+        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+
+
 def StreamVisionExtractAll(Doctype, base64_images, is_tabular=False):
     """
     SINGLE GPT vision call that extracts EVERYTHING from document images:

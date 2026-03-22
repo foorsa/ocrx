@@ -247,15 +247,13 @@ def ProcessStream():
     SSE streaming endpoint: Initialize -> Extract -> Correct+Translate with real-time progress.
     Returns Server-Sent Events with phase updates and streamed GPT output.
     """
-    from concurrent.futures import ThreadPoolExecutor, as_completed
     from Modules.Classes.Utilities.GPTPrompts import (
         StreamTextCorrectionAndTranslation,
-        StreamTableTranslation,
+        StreamTextAndTablesFromText,
         StreamVisionExtractAll,
     )
     import traceback
     import time
-    import queue
     import threading
 
     # --- Validation (same as Process) ---
@@ -302,8 +300,6 @@ def ProcessStream():
             yield sse_event({"phase": "extracting"})
 
             accumulated_json = ""
-            table_accumulated = ""
-            event_queue = queue.Queue()
 
             # --- Prepare page images for combined vision call ---
             # Convert PDF pages to base64 images ONCE, then send directly to GPT
@@ -345,7 +341,7 @@ def ProcessStream():
                         pdf_bytes.seek(0)
                         with open(TEMP_PATH, "wb") as f:
                             f.write(pdf_bytes.getbuffer())
-                        pages = convert_from_path(TEMP_PATH, 120)
+                        pages = convert_from_path(TEMP_PATH, 100)
                         for page in pages:
                             base64_images.append(_ocr_singleton._image_to_base64(page))
                             page.close()
@@ -365,52 +361,10 @@ def ProcessStream():
                 # Digital PDF with embedded text
                 Session.session["Extraction"]["Text"] = embedded_text
                 if is_tabular:
-                    # Parallel: text translation + (ExtractTable → table translation)
-                    pipeline_errors = []
-
-                    def translate_text():
-                        try:
-                            for partial in StreamTextCorrectionAndTranslation(Doctype, embedded_text):
-                                event_queue.put(("text", partial))
-                            event_queue.put(("text_done", None))
-                        except Exception as e:
-                            pipeline_errors.append(("text", e))
-                            event_queue.put(("text_done", None))
-
-                    def extract_and_translate_tables():
-                        try:
-                            Session.ExtractTables(skip_db_write=True)
-                            tables = Session.session.get("Extraction", {}).get("Tables", [])
-                            if tables:
-                                for partial in StreamTableTranslation(Doctype, tables):
-                                    event_queue.put(("table", partial))
-                            event_queue.put(("table_done", None))
-                        except Exception as e:
-                            pipeline_errors.append(("tables", e))
-                            event_queue.put(("table_done", None))
-
-                    t1 = threading.Thread(target=translate_text, daemon=True)
-                    t2 = threading.Thread(target=extract_and_translate_tables, daemon=True)
-                    t1.start()
-                    t2.start()
-
-                    done_count = 0
-                    while done_count < 2:
-                        try:
-                            kind, data = event_queue.get(timeout=120)
-                        except queue.Empty:
-                            break
-                        if kind == "text":
-                            accumulated_json += data
-                            yield sse_event({"phase": "streaming", "partial": accumulated_json})
-                        elif kind == "table":
-                            table_accumulated += data
-                            yield sse_event({"phase": "streaming", "partial": table_accumulated, "type": "tables"})
-                        elif kind in ("text_done", "table_done"):
-                            done_count += 1
-
-                    t1.join(timeout=5)
-                    t2.join(timeout=5)
+                    # SINGLE GPT call: extracts fields + tables from text (no ExtractTable API)
+                    for partial in StreamTextAndTablesFromText(Doctype, embedded_text):
+                        accumulated_json += partial
+                        yield sse_event({"phase": "streaming", "partial": accumulated_json})
                 else:
                     for partial in StreamTextCorrectionAndTranslation(Doctype, embedded_text):
                         accumulated_json += partial
@@ -429,8 +383,8 @@ def ProcessStream():
             try:
                 parsed = json.loads(accumulated_json)
 
-                if is_tabular and base64_images and not has_embedded_text:
-                    # Single vision call returned {"fields": {...}, "tables": {...}}
+                if is_tabular:
+                    # Both vision and text calls return {"fields": {...}, "tables": {...}}
                     fields = parsed.get("fields", parsed)
                     tables = parsed.get("tables", None)
 
@@ -440,33 +394,16 @@ def ProcessStream():
                         Session.session["Correction"]["Tables"] = tables
                         Session.session["Translation"]["Tables"] = tables
                 else:
-                    # Flat field JSON (non-tabular or embedded text)
-                    translated = parsed.get("translated", parsed)
-                    Session.session["Correction"] = {"Text": translated}
-                    Session.session["Translation"] = {"Text": translated}
+                    # Flat field JSON (non-tabular)
+                    Session.session["Correction"] = {"Text": parsed}
+                    Session.session["Translation"] = {"Text": parsed}
 
                 Session.session["Status"] = "Translated"
             except json.JSONDecodeError as e:
                 print(f"[STREAM] Failed to parse JSON: {e}")
 
-            # Parse table result (only for embedded-text tabular docs with separate table call)
-            if is_tabular and table_accumulated:
-                try:
-                    table_parsed = json.loads(table_accumulated)
-                    translated_tables = table_parsed.get("translated", table_parsed)
-                    raw_tables = Session.session.get("Extraction", {}).get("Tables", [])
-
-                    if "Correction" not in Session.session:
-                        Session.session["Correction"] = {}
-                    Session.session["Correction"]["Tables"] = raw_tables or translated_tables
-                    if "Translation" not in Session.session:
-                        Session.session["Translation"] = {}
-                    Session.session["Translation"]["Tables"] = translated_tables
-                except json.JSONDecodeError as e:
-                    print(f"[STREAM] Failed to parse table JSON: {e}")
-
-            # Save to database
-            Session.SaveToDatabase()
+            # Save to database in background thread (don't block SSE response)
+            threading.Thread(target=Session.SaveToDatabase, daemon=True).start()
 
             t_end = time.time()
             print(f"[STREAM] Pipeline complete for session {session_id} [{t_end - t_start:.1f}s total]")

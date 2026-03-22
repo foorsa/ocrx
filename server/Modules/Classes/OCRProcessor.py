@@ -29,13 +29,18 @@ class OCRProcessor:
         # Cache the Google Vision client (gRPC channel setup is expensive)
         self._vision_client = None
 
-    def _image_to_base64(self, image):
-        """Convert a PIL Image to a base64 string (JPEG for smaller payload)."""
-        buffer = io.BytesIO()
+    def _image_to_base64(self, image, max_dim=1024):
+        """Convert a PIL Image to a base64 string (JPEG, resized for speed)."""
         # Convert RGBA/palette to RGB before saving as JPEG
         if image.mode in ("RGBA", "P"):
             image = image.convert("RGB")
-        image.save(buffer, format="JPEG", quality=85, optimize=True)
+        # Resize large images — GPT vision with detail=low uses 512px tiles anyway
+        w, h = image.size
+        if max(w, h) > max_dim:
+            scale = max_dim / max(w, h)
+            image = image.resize((int(w * scale), int(h * scale)), resample=1)
+        buffer = io.BytesIO()
+        image.save(buffer, format="JPEG", quality=60)
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     def _extract_text_with_google_vision(self, image):
