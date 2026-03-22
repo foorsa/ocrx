@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { Steps } from "@/redux/types/states/Step";
@@ -20,7 +20,6 @@ import {
 	Eye,
 } from "iconsax-react";
 
-// A single background task entry (persists across clearSession calls)
 type BgTask = {
 	id: string;
 	status: "processing" | "done" | "failed";
@@ -37,21 +36,35 @@ export default function TaskWidget() {
 	const [expanded, setExpanded] = useState(false);
 	const [widgetDismissed, setWidgetDismissed] = useState(false);
 
-	// Background task list
 	const [bgTasks, setBgTasks] = useState<BgTask[]>([]);
 	const wasLoadingRef = useRef(false);
 	const docLabelRef = useRef<string>("");
 
-	useEffect(() => {
-		setMounted(true);
-	}, []);
+	// Ref on the outer portal div — used to fight HeadlessUI's inert/aria-hidden
+	const widgetRef = useRef<HTMLDivElement>(null);
 
-	// Keep doc label in sync so we capture it when loading starts
+	useEffect(() => { setMounted(true); }, []);
+
+	// HeadlessUI v1.7+ sets `inert` (and aria-hidden) on all body-level siblings
+	// of its dialog portal, which makes our widget transparent to pointer events.
+	// This MutationObserver removes those attributes the instant they appear.
+	useEffect(() => {
+		const el = widgetRef.current;
+		if (!el) return;
+		const restore = () => {
+			if (el.hasAttribute("inert")) el.removeAttribute("inert");
+			if (el.getAttribute("aria-hidden") === "true") el.removeAttribute("aria-hidden");
+		};
+		restore(); // run once immediately on mount
+		const obs = new MutationObserver(restore);
+		obs.observe(el, { attributes: true, attributeFilter: ["inert", "aria-hidden"] });
+		return () => obs.disconnect();
+	}); // intentionally no deps — re-subscribes every render so the ref is always fresh
+
 	useEffect(() => {
 		docLabelRef.current = (Doctype as any)?.title || "Document";
 	}, [Doctype]);
 
-	// Detect single-doc loading START -> add a new task
 	useEffect(() => {
 		const isLoading = Session.isLoading && !Session.isBatch;
 		if (isLoading && !wasLoadingRef.current) {
@@ -69,7 +82,6 @@ export default function TaskWidget() {
 		wasLoadingRef.current = isLoading;
 	}, [Session.isLoading, Session.isBatch]);
 
-	// Update phase on the latest processing task while loading
 	useEffect(() => {
 		if (Session.isLoading && !Session.isBatch && Session.phase) {
 			setBgTasks((prev) => {
@@ -85,7 +97,6 @@ export default function TaskWidget() {
 		}
 	}, [Session.phase, Session.isLoading, Session.isBatch]);
 
-	// Detect single-doc loading END -> mark the latest processing task done
 	useEffect(() => {
 		if (!Session.isLoading && !Session.isBatch) {
 			setBgTasks((prev) => {
@@ -103,7 +114,6 @@ export default function TaskWidget() {
 		}
 	}, [Session.isLoading, Session.isBatch]);
 
-	// Auto-expand batch widget when it starts
 	useEffect(() => {
 		if (Session.isLoading && Session.isBatch) {
 			setWidgetDismissed(false);
@@ -111,7 +121,6 @@ export default function TaskWidget() {
 		}
 	}, [Session.isLoading, Session.isBatch]);
 
-	// Batch progress helpers
 	const batchProgress = Session.batchProgress || {};
 	const progressEntries = Object.values(batchProgress) as BatchItemProgress[];
 	const completedCount = progressEntries.filter((p) => p.status === "completed").length;
@@ -119,17 +128,14 @@ export default function TaskWidget() {
 	const processingCount = progressEntries.filter((p) => p.status === "processing").length;
 	const totalCount = progressEntries.length;
 
-	// Visibility
 	const showBatchWidget = Session.isBatch && totalCount > 0 && !widgetDismissed;
 	const showSingleWidget = !Session.isBatch && bgTasks.length > 0 && !widgetDismissed;
 	const showWidget = showBatchWidget || showSingleWidget;
 
-	// Single-doc derived counts
 	const processingBgCount = bgTasks.filter((t) => t.status === "processing").length;
 	const doneBgCount = bgTasks.filter((t) => t.status === "done").length;
 	const latestBgTask = bgTasks[bgTasks.length - 1];
 
-	// Handlers
 	const handleViewDoc = (item: BatchItemProgress) => {
 		if (item.session) {
 			Dispatch(setSession(item.session));
@@ -148,6 +154,7 @@ export default function TaskWidget() {
 
 	return createPortal(
 		<div
+			ref={widgetRef}
 			id="task-widget"
 			style={{
 				position: "fixed",
@@ -160,7 +167,6 @@ export default function TaskWidget() {
 			}}
 			className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
 		>
-			{/* Single-doc task list */}
 			{showSingleWidget && (
 				<>
 					<div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
@@ -209,7 +215,6 @@ export default function TaskWidget() {
 				</>
 			)}
 
-			{/* Batch progress widget */}
 			{showBatchWidget && (
 				<>
 					<div className="flex items-center">
