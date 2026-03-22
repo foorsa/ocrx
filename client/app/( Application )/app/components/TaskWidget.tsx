@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { Steps } from "@/redux/types/states/Step";
 import {
@@ -31,6 +32,7 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 	const Doctype = useAppSelector((state) => state.documentType);
 	const Session = useAppSelector((state) => state.session);
 	const Dispatch = useAppDispatch();
+	const Router = useRouter();
 
 	const [mounted, setMounted] = useState(false);
 	const [expanded, setExpanded] = useState(false);
@@ -134,10 +136,22 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 	const doneBgCount = bgTasks.filter((t) => t.status === "done").length;
 	const latestBgTask = bgTasks[bgTasks.length - 1];
 
+	// Open the processed document: advance to Correct step (and navigate to
+	// translate page if we're currently outside the modal).
+	const handleOpenDoc = () => {
+		Dispatch(setStep(Steps.Correct));
+		if (!inDialog) {
+			Router.push("/app/translate");
+		}
+	};
+
 	const handleViewDoc = (item: BatchItemProgress) => {
 		if (item.session) {
 			Dispatch(setSession(item.session));
 			Dispatch(setStep(Steps.Correct));
+			if (!inDialog) {
+				Router.push("/app/translate");
+			}
 		}
 	};
 
@@ -208,7 +222,16 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 								{task.status === "failed" && <CloseCircle color="currentColor" variant="Bold" className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />}
 								<span className="text-xs flex-1 truncate text-zinc-700 dark:text-zinc-300">{task.docLabel || `Document ${idx + 1}`}</span>
 								{task.status === "processing" && task.phase && <span className="text-xs text-zinc-400 capitalize flex-shrink-0">{task.phase}</span>}
-								{task.status === "done" && <span className="text-xs text-green-600 font-medium flex-shrink-0">Ready</span>}
+								{task.status === "done" && (
+									<button
+										onClick={handleOpenDoc}
+										className="flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-medium flex-shrink-0 transition-colors"
+										type="button"
+									>
+										<Eye color="currentColor" variant="Bulk" className="w-3.5 h-3.5" />
+										Open
+									</button>
+								)}
 								{task.status === "failed" && <span className="text-xs text-red-500 font-medium flex-shrink-0">Failed</span>}
 							</div>
 						))}
@@ -266,7 +289,7 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 									{item.status === "pending" && <Timer color="currentColor" variant="Bulk" className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />}
 									<span className="text-xs truncate flex-1 text-zinc-700 dark:text-zinc-300">{item.fileName}</span>
 									{item.status === "completed" && item.session && (
-										<button onClick={() => handleViewDoc(item)} className="flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-medium flex-shrink-0" type="button">
+										<button onClick={() => handleViewDoc(item)} className="flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-medium flex-shrink-0 transition-colors" type="button">
 											<Eye color="currentColor" variant="Bulk" className="w-3.5 h-3.5" />
 											View
 										</button>
