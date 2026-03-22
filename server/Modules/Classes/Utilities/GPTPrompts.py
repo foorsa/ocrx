@@ -537,22 +537,29 @@ def GenerateTableCorrection(Doctype, Table):
                 "{"
                 + '\n    "Transcript": {'
                 + '\n        "Columns": ['
-                + '\n            "TOPIC",'
-                + '\n            "NATIONAL EXAM",'
-                + '\n            "CONTINUOUS MONITORING",'
+                + '\n            "Subjects",'
+                + '\n            "{{ First Year, E.g. 2022/2023 }} S1",'
+                + '\n            "{{ First Year, E.g. 2022/2023 }} S2",'
+                + '\n            "{{ Second Year, E.g. 2023/2024 }} S1",'
+                + '\n            "{{ Second Year, E.g. 2023/2024 }} S2",'
+                + '\n            "{{ Third Year, E.g. 2024/2025 }} S1",'
+                + '\n            "{{ Third Year, E.g. 2024/2025 }} CC",'
+                + '\n            "Regional Exam",'
+                + '\n            "National Exam"'
                 + "\n        ],"
                 + '\n        "Rows": ['
                 + "\n            ["
-                + '\n                "{{TOPIC 1, E.g. French, Mathematic, etc.}}",'
-                + '\n                "{{MARK OF TOPIC 1 IN NATIONAL EXAM, E.g. 10/20, etc.}}",'
-                + '\n                "{{MARK OF TOPIC 1 IN CONTINUOUS MONITORING, E.g. 10/20, etc.}}",'
+                + '\n                "{{SUBJECT 1, E.g. French Language, Mathematics, etc.}}",'
+                + '\n                "{{MARK S1}}",'
+                + '\n                "{{MARK S2}}",'
+                + '\n                "{{MARK S1}}",'
+                + '\n                "{{MARK S2}}",'
+                + '\n                "{{MARK S1}}",'
+                + '\n                "{{MARK CC}}",'
+                + '\n                "{{REGIONAL EXAM MARK}}",'
+                + '\n                "{{NATIONAL EXAM MARK}}"'
                 + "\n            ],"
-                + "\n            ["
-                + '\n                "{{TOPIC 2, E.g. French, Mathematic, etc.}}",'
-                + '\n                "{{MARK OF TOPIC 2 IN NATIONAL EXAM, E.g. 10/20, etc.}}",'
-                + '\n                "{{MARK OF TOPIC 2 IN CONTINUOUS MONITORING, E.g. 10/20, etc.}}",'
-                + "\n            ],"
-                + "\n            // More Topics Marks ..."
+                + "\n            // More Subjects ... include ALL subjects, averages (Moyenne Semestrielle, Moyenne Annuelle)"
                 + "\n        ]"
                 + "\n    },"
                 + '\n    "Overall" : {'
@@ -564,10 +571,10 @@ def GenerateTableCorrection(Doctype, Table):
                 + "\n        ],"
                 + '\n        "Rows": ['
                 + "\n            ["
-                + '\n                "{{Continuous Control Average ...}}",'
-                + '\n                "{{Regional Exam Average ...}}",'
-                + '\n                "{{National Exam Average ...}}",'
-                + '\n                "{{Overall Average ...}}"'
+                + '\n                "{{Continuous Control Average}}",'
+                + '\n                "{{Regional Exam Average}}",'
+                + '\n                "{{National Exam Average}}",'
+                + '\n                "{{Overall Average}}"'
                 + "\n            ]"
                 + "\n        ]"
                 + "\n    }"
@@ -582,7 +589,7 @@ def GenerateTableCorrection(Doctype, Table):
                 messages=[
                     {
                         "role": "system",
-                        "content": "You correct OCR table data into structured JSON. Fix typos in subject names. Preserve all grades exactly. Return valid JSON only.",
+                        "content": "You correct OCR table data into structured JSON. Fix typos and nonsense in subject names. Preserve all grades exactly. Return valid JSON only.",
                     },
                     {
                         "role": "user",
@@ -591,8 +598,11 @@ def GenerateTableCorrection(Doctype, Table):
                             "Rules:\n"
                             "- Fix subject name typos and remove nonsense words\n"
                             "- Keep all grades/numbers exactly as they are\n"
-                            "- Transcript table: 3 columns (TOPIC, NATIONAL EXAM, CONTINUOUS MONITORING)\n"
-                            "- Ignore coefficient columns — only extract the raw marks\n"
+                            "- Extract years from the original transcript (e.g. 2022/2023)\n"
+                            "- Transcript table: Subjects + 3 years (S1, S2/CC each) + Regional Exam + National Exam = 9 columns\n"
+                            "- Include ALL subjects including Arabic Language, Computer Science, Attendance/Conduct, etc.\n"
+                            "- Include average rows: Semester Average (Moyenne Semestrielle) and Annual Average (Moyenne Annuelle)\n"
+                            "- Leave cells empty (\"\") if the value is missing for that column\n"
                             "- Overall table: 4 columns (Continuous Control, Regional Exam, National Exam, Overall Average)\n\n"
                             f"OCR Tables:\n{str(Table)}\n\n"
                             f"Desired JSON format:\n{str(DesiredJSONTable)}"
@@ -697,8 +707,8 @@ def GenerateTableCorrectionAndTranslation(Doctype, Table):
             )
         case "Baccalaureate-Transcript-of-Marks-V2":
             DesiredFormat = (
-                '{"Transcript": {"Columns": ["TOPIC", "NATIONAL EXAM", "CONTINUOUS MONITORING"], '
-                '"Rows": [["Subject Name", "grade", "grade"], ...]}, '
+                '{"Transcript": {"Columns": ["Subjects", "YYYY/YYYY S1", "YYYY/YYYY S2", "YYYY/YYYY S1", "YYYY/YYYY S2", "YYYY/YYYY S1", "YYYY/YYYY CC", "Regional Exam", "National Exam"], '
+                '"Rows": [["Subject Name", "grade", "grade", "grade", "grade", "grade", "grade", "grade", "grade"], ..., ["Semester Average", ...], ["Annual Average", ...]]}, '
                 '"Overall": {"Columns": ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"], '
                 '"Rows": [["value", "value", "value", "value"]]}}'
             )
@@ -836,8 +846,8 @@ def StreamTableCorrectionAndTranslation(Doctype, Table):
             )
         case "Baccalaureate-Transcript-of-Marks-V2":
             DesiredFormat = (
-                '{"Transcript": {"Columns": ["TOPIC", "NATIONAL EXAM", "CONTINUOUS MONITORING"], '
-                '"Rows": [["Subject Name", "grade", "grade"], ...]}, '
+                '{"Transcript": {"Columns": ["Subjects", "YYYY/YYYY S1", "YYYY/YYYY S2", "YYYY/YYYY S1", "YYYY/YYYY S2", "YYYY/YYYY S1", "YYYY/YYYY CC", "Regional Exam", "National Exam"], '
+                '"Rows": [["Subject Name", "grade", "grade", "grade", "grade", "grade", "grade", "grade", "grade"], ..., ["Semester Average", ...], ["Annual Average", ...]]}, '
                 '"Overall": {"Columns": ["Average of Continuous Control", "Regional Exam Average", "National Exam Average", "Overall Average"], '
                 '"Rows": [["value", "value", "value", "value"]]}}'
             )
