@@ -171,7 +171,7 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 			}
 		}
 		// Remove this item from the visible list.
-		setViewedFileIds((prev) => new Set([...prev, item.fileId]));
+		setViewedFileIds((prev) => { const next = new Set(Array.from(prev)); next.add(item.fileId); return next; });
 		// If no more items to show after removing this one, dismiss the widget.
 		const remaining = visibleEntries.filter((p) => p.fileId !== item.fileId);
 		if (remaining.length === 0) {
