@@ -42,6 +42,9 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 	const wasLoadingRef = useRef(false);
 	const docLabelRef = useRef<string>("");
 
+	// Track which batch file IDs the user has already opened so we can hide them.
+	const [viewedFileIds, setViewedFileIds] = useState<Set<string>>(new Set());
+
 	// When rendered outside the Dialog (layout.tsx), track if the Next.js root
 	// element gets marked `inert` by HeadlessUI (dialog opened). If it does, we
 	// hide this instance so the inDialog instance (inside the Dialog) is the
@@ -51,7 +54,7 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 	useEffect(() => { setMounted(true); }, []);
 
 	useEffect(() => {
-		if (inDialog) return; // inDialog instance never needs this guard
+		if (inDialog) return;
 		const root = document.getElementById("__next") as HTMLElement | null;
 		if (!root) return;
 		const check = () => setParentInerted(root.hasAttribute("inert"));
@@ -123,12 +126,23 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 
 	const batchProgress = Session.batchProgress || {};
 	const progressEntries = Object.values(batchProgress) as BatchItemProgress[];
+
+	// Batch items still waiting to be seen (hide ones the user already opened).
+	const visibleEntries = progressEntries.filter(
+		(p) => !viewedFileIds.has(p.fileId)
+	);
+
 	const completedCount = progressEntries.filter((p) => p.status === "completed").length;
 	const failedCount = progressEntries.filter((p) => p.status === "failed").length;
 	const processingCount = progressEntries.filter((p) => p.status === "processing").length;
 	const totalCount = progressEntries.length;
 
-	const showBatchWidget = Session.isBatch && totalCount > 0 && !widgetDismissed;
+	// Visible counts used for the header (don't count already-viewed items).
+	const visibleCompletedCount = visibleEntries.filter((p) => p.status === "completed").length;
+	const visibleProcessingCount = visibleEntries.filter((p) => p.status === "processing").length;
+	const visibleFailedCount = visibleEntries.filter((p) => p.status === "failed").length;
+
+	const showBatchWidget = Session.isBatch && visibleEntries.length > 0 && !widgetDismissed;
 	const showSingleWidget = !Session.isBatch && bgTasks.length > 0 && !widgetDismissed;
 	const showWidget = showBatchWidget || showSingleWidget;
 
@@ -136,13 +150,16 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 	const doneBgCount = bgTasks.filter((t) => t.status === "done").length;
 	const latestBgTask = bgTasks[bgTasks.length - 1];
 
-	// Open the processed document: advance to Correct step (and navigate to
-	// translate page if we're currently outside the modal).
+	// Open the processed document: advance to Correct step, navigate if needed,
+	// then dismiss the widget — it has done its job.
 	const handleOpenDoc = () => {
 		Dispatch(setStep(Steps.Correct));
 		if (!inDialog) {
 			Router.push("/app/translate");
 		}
+		// Dismiss immediately so only the result page remains visible.
+		setWidgetDismissed(true);
+		setBgTasks([]);
 	};
 
 	const handleViewDoc = (item: BatchItemProgress) => {
@@ -153,17 +170,24 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 				Router.push("/app/translate");
 			}
 		}
+		// Remove this item from the visible list.
+		setViewedFileIds((prev) => new Set([...prev, item.fileId]));
+		// If no more items to show after removing this one, dismiss the widget.
+		const remaining = visibleEntries.filter((p) => p.fileId !== item.fileId);
+		if (remaining.length === 0) {
+			setWidgetDismissed(true);
+			Dispatch(clearBatch());
+		}
 	};
 
 	const handleDismiss = () => {
 		setWidgetDismissed(true);
 		setExpanded(false);
 		setBgTasks([]);
+		setViewedFileIds(new Set());
 		Dispatch(clearBatch());
 	};
 
-	// Non-dialog instance hides itself when the Dialog is open (HeadlessUI marks
-	// #__next as inert), so the inDialog instance is the sole visible copy.
 	if (!mounted || !showWidget) return null;
 	if (!inDialog && parentInerted) return null;
 
@@ -245,22 +269,22 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 					<div className="flex items-center">
 						<button onClick={() => setExpanded(!expanded)} className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors" type="button">
 							<div className="flex items-center gap-3">
-								{processingCount > 0 && (
+								{visibleProcessingCount > 0 && (
 									<svg className="w-4 h-4 text-sky-500 animate-spin flex-shrink-0" viewBox="0 0 24 24" fill="none">
 										<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
 										<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
 									</svg>
 								)}
-								{processingCount === 0 && completedCount > 0 && (
+								{visibleProcessingCount === 0 && visibleCompletedCount > 0 && (
 									<TickCircle color="currentColor" variant="Bold" className="w-4 h-4 text-green-500 flex-shrink-0" />
 								)}
 								<div className="flex flex-col items-start">
 									<span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-										{processingCount > 0
+										{visibleProcessingCount > 0
 											? `Processing ${completedCount + failedCount + 1}/${totalCount}…`
-											: `${completedCount}/${totalCount} documents ready`}
+											: `${visibleCompletedCount} ready — tap to open`}
 									</span>
-									{failedCount > 0 && <span className="text-xs text-red-500 font-medium">{failedCount} failed</span>}
+									{visibleFailedCount > 0 && <span className="text-xs text-red-500 font-medium">{visibleFailedCount} failed</span>}
 								</div>
 							</div>
 							<div className="flex items-center gap-2">
@@ -276,7 +300,7 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 					</div>
 					{expanded && (
 						<div className="px-3 pb-3 max-h-48 overflow-y-auto flex flex-col gap-1.5">
-							{progressEntries.map((item) => (
+							{visibleEntries.map((item) => (
 								<div key={item.fileId} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
 									{item.status === "completed" && <TickCircle color="currentColor" variant="Bold" className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />}
 									{item.status === "failed" && <CloseCircle color="currentColor" variant="Bold" className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />}
@@ -308,12 +332,6 @@ export default function TaskWidget({ inDialog = false }: { inDialog?: boolean })
 		</div>
 	);
 
-	// inDialog: render inline (no portal) — the widget lives inside the HeadlessUI
-	// Dialog's DOM tree so HeadlessUI never marks it inert, and React events work
-	// the same way they do for Dialog.Panel buttons.
 	if (inDialog) return widgetContent;
-
-	// Default: portal to documentElement so the widget is never a body > * sibling
-	// that HeadlessUI could target.
 	return createPortal(widgetContent, document.documentElement);
 }
