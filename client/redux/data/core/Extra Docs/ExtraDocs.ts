@@ -4,6 +4,9 @@ import { StatementOfPenaltiesIssuesByDeprivationOfLiberty } from "./Docs/Stateme
 import { TechnicalUniversityDegree } from "./Docs/Technical University degree";
 import { CertificateOfAchievement } from "./Docs/Certificate of achievement";
 import { RegistrationCertificate } from "./Docs/Registration Certificate";
+import { BankStatement } from "./Docs/Bank Statement";
+import { BirthCertificate } from "./Docs/Birth Certificate";
+import { DeathCertificate } from "./Docs/Death Certificate";
 
 export const ExtraDocs: DocumentsGroupType = {
     name: "Extra Documents",
@@ -14,6 +17,9 @@ export const ExtraDocs: DocumentsGroupType = {
         StatementOfPenaltiesIssuesByDeprivationOfLiberty,
         TechnicalUniversityDegree,
         CertificateOfAchievement,
-        RegistrationCertificate
+        RegistrationCertificate,
+        BankStatement,
+        BirthCertificate,
+        DeathCertificate,
     ]
 }
