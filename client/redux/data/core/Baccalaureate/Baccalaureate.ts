@@ -1,7 +1,9 @@
 import {
     DocumentType,
     DocumentsGroupType,
-} from "@/redux/types/states/Document Type"; import { BaccalaureateCertificate } from "./Docs/Baccalaureate Certificate";
+} from "@/redux/types/states/Document Type";
+import { BaccalaureateCertificate } from "./Docs/Baccalaureate Certificate";
+import { BaccalaureateCertificateV2 } from "./Docs/Baccalaureate Certificate (V2)";
 import { SchoolCertificate } from "./Docs/School Certificate";
 import { TranscriptOfMarksV1 } from "./Docs/Transcript of Marks (V1)";
 import { TranscriptOfMarksV2 } from "./Docs/Transcript of Marks (V2)";
@@ -12,6 +14,7 @@ export const Baccalaureate: DocumentsGroupType = {
     id: "Baccalaureate",
     documents: [
         BaccalaureateCertificate,
+        BaccalaureateCertificateV2,
         SchoolCertificate,
         TranscriptOfMarksV1,
         TranscriptOfMarksV2
