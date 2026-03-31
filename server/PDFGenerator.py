@@ -10,13 +10,16 @@ from Modules.Classes.DocxTableGenerator import DocxTableGenerator
 
 TemplateIDs = {
     "Baccalaureate-Certificate": os.environ.get(
-        "TemplateIDs_Baccalaureate_Certificate"
+        "TemplateIDs_Baccalaureate_Certificate",
+        "1X3rr9TPPR7egAZLvDalNBAnkOYizgAmezHwFgRw1rzE",
     ),
     "Baccalaureate-Certificate-V2": os.environ.get(
-        "TemplateIDs_Baccalaureate_Certificate_V2"
+        "TemplateIDs_Baccalaureate_Certificate_V2",
+        "1kJMRbEAy3c3x0sPuV5kSb9rebgs-ULjV08uj8ow3xlc",
     ),
     "Baccalaureate-School-Certificate": os.environ.get(
-        "TemplateIDs_Baccalaureate_School_Certificate"
+        "TemplateIDs_Baccalaureate_School_Certificate",
+        "18HyzaYEH9JPbseo_SXebTBZ-O8gjAIP_x-m6XDRVbAU",
     ),
     "Baccalaureate-Transcript-of-Marks-V1": os.environ.get(
         "TemplateIDs_Baccalaureate_Transcript_of_Marks_V1",
@@ -26,41 +29,57 @@ TemplateIDs = {
         "TemplateIDs_Baccalaureate_Transcript_of_Marks_V2",
         "1yTkDcROEOUAyMPdfQn09770AQK3iLjaXpWAo7Ad7iMo",
     ),
-    "Bachelor-Certificate": os.environ.get("TemplateIDs_Bachelor_Certificate"),
-    "Master-Certificate": os.environ.get("TemplateIDs_Master_Certificate"),
+    "Bachelor-Certificate": os.environ.get(
+        "TemplateIDs_Bachelor_Certificate",
+        "1gBQowrWKrdR98okjfY8s7rRL3vteY64f6sM3Wx8TzR8",
+    ),
+    "Master-Certificate": os.environ.get(
+        "TemplateIDs_Master_Certificate",
+        "1gBQowrWKrdR98okjfY8s7rRL3vteY64f6sM3Wx8TzR8",
+    ),
     "Master-Transcript-of-Marks": os.environ.get(
         "TemplateIDs_Master_Transcript_of_Marks",
         "1yI3Gdxlw1YlEz-OuhxXNlNqelvzYphNxyo2nnS0n3cM",
     ),
     "Master-Certificate-of-Success-at-Diploma": os.environ.get(
-        "TemplateIDs_Master_Certificate_of_Success_at_Diploma"
+        "TemplateIDs_Master_Certificate_of_Success_at_Diploma",
+        "1TFocZylhyKTNXlvZ8Bz-sKJAPOdpIdx1w37-Kyw7rJk",
     ),
     "Master-Certificate-of-Schooling": os.environ.get(
-        "TemplateIDs_Master_Certificate_of_Schooling"
+        "TemplateIDs_Master_Certificate_of_Schooling",
+        "1tWVsD9xKxVLYlM4FwnsHsIkEyVLPj0X_hcyqitvFhHM",
     ),
     "ExtraDocs-Police-Record-Checks": os.environ.get(
-        "TemplateIDs_ExtraDocs_Police_Record_Checks"
+        "TemplateIDs_ExtraDocs_Police_Record_Checks",
+        "18JiMZbk2qHXnhi0ecqHKq3L4Hu4GLNWnirx2PXKAoi0",
     ),
     "ExtraDocs-Statement-of-Penalties-Issued-by-Deprivation-of-Liberty": os.environ.get(
-        "TemplateIDs_Extradocs_Statement_of_Penalties_Issued_by_Deprivation_of_Liberty"
+        "TemplateIDs_Extradocs_Statement_of_Penalties_Issued_by_Deprivation_of_Liberty",
+        "1G42GpqZrapdmjbinaa6JGeKXK0v2V4wkX4Be2K7RvoI",
     ),
     "ExtraDocs-Registration-Certificate": os.environ.get(
-        "TemplateIDs_ExtraDocs_Registration_Certificate"
+        "TemplateIDs_ExtraDocs_Registration_Certificate",
+        "1O_7KR2t0m4eSPbCsSCu5uhuUasn7e-Vxo3TIfJHmUKA",
     ),
     "ExtraDocs-Technical-University-Degree": os.environ.get(
-        "TemplateIDs_ExtraDocs_Technical_University_Degree"
+        "TemplateIDs_ExtraDocs_Technical_University_Degree",
+        "1O_7KR2t0m4eSPbCsSCu5uhuUasn7e-Vxo3TIfJHmUKA",
     ),
     "ExtraDocs-Certificate-of-Achievement": os.environ.get(
-        "TemplateIDs_ExtraDocs_Certificate_of_Achievement"
+        "TemplateIDs_ExtraDocs_Certificate_of_Achievement",
+        "168Q9wIx0aiGOp6Fco4EDac_867xDNq41JLFW57IJh58",
     ),
     "ExtraDocs-Bank-Statement": os.environ.get(
-        "TemplateIDs_ExtraDocs_Bank_Statement"
+        "TemplateIDs_ExtraDocs_Bank_Statement",
+        "1jNldSomjyT-Y2UFM7BpZIb4bqQGGNN-qysOGgr1PqtM",
     ),
     "ExtraDocs-Birth-Certificate": os.environ.get(
-        "TemplateIDs_ExtraDocs_Birth_Certificate"
+        "TemplateIDs_ExtraDocs_Birth_Certificate",
+        "1aqtqLEQ54UQ2uCOqqSGD5fpC9npjlgVy0QpA_6sZZcQ",
     ),
     "ExtraDocs-Death-Certificate": os.environ.get(
-        "TemplateIDs_ExtraDocs_Death_Certificate"
+        "TemplateIDs_ExtraDocs_Death_Certificate",
+        "1IYNkZ7Cuw0fG44wWnKryjtO17jJEBocihClsv3Yrfrg",
     ),
 }
 
@@ -70,18 +89,20 @@ class PDFGenerator:
         Document_Type = Session["Document Type"]
 
         # [1] Get the Template ID
-        print("[...] Getting the Template ID...")
+        print(f"[...] Getting the Template ID for '{Document_Type}'...")
         Template_Id = TemplateIDs.get(Document_Type)
 
         # If no template ID is configured, fall back to local PDF generation for tabular docs
         if not Template_Id:
-            print(f"[!] No Template ID configured for {Document_Type}")
+            print(f"[!] No Template ID configured for '{Document_Type}'. Available types: {list(TemplateIDs.keys())}")
             return self._fallback_local_pdf(Session)
+
+        print(f"[OK] Template ID found: {Template_Id}")
 
         # [2] Get the Google Apps Script URL
         URL = os.environ.get("GOOGLE_SCRIPT_URL")
         if not URL:
-            print("[!] GOOGLE_SCRIPT_URL not configured")
+            print("[!] GOOGLE_SCRIPT_URL not configured — cannot use Google Docs templates")
             return self._fallback_local_pdf(Session)
 
         # [3] Gather the information to fill in the template
