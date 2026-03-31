@@ -12,6 +12,9 @@ TemplateIDs = {
     "Baccalaureate-Certificate": os.environ.get(
         "TemplateIDs_Baccalaureate_Certificate"
     ),
+    "Baccalaureate-Certificate-V2": os.environ.get(
+        "TemplateIDs_Baccalaureate_Certificate_V2"
+    ),
     "Baccalaureate-School-Certificate": os.environ.get(
         "TemplateIDs_Baccalaureate_School_Certificate"
     ),
@@ -46,6 +49,15 @@ TemplateIDs = {
     ),
     "ExtraDocs-Certificate-of-Achievement": os.environ.get(
         "TemplateIDs_ExtraDocs_Certificate_of_Achievement"
+    ),
+    "ExtraDocs-Bank-Statement": os.environ.get(
+        "TemplateIDs_ExtraDocs_Bank_Statement"
+    ),
+    "ExtraDocs-Birth-Certificate": os.environ.get(
+        "TemplateIDs_ExtraDocs_Birth_Certificate"
+    ),
+    "ExtraDocs-Death-Certificate": os.environ.get(
+        "TemplateIDs_ExtraDocs_Death_Certificate"
     ),
 }
 
