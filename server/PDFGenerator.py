@@ -19,15 +19,18 @@ TemplateIDs = {
         "TemplateIDs_Baccalaureate_School_Certificate"
     ),
     "Baccalaureate-Transcript-of-Marks-V1": os.environ.get(
-        "TemplateIDs_Baccalaureate_Transcript_of_Marks_V1"
+        "TemplateIDs_Baccalaureate_Transcript_of_Marks_V1",
+        "1P8IUOG1ee2RS3y3TTGVLNeueHHaym4-S5fsnXoO4HqY",
     ),
     "Baccalaureate-Transcript-of-Marks-V2": os.environ.get(
-        "TemplateIDs_Baccalaureate_Transcript_of_Marks_V2"
+        "TemplateIDs_Baccalaureate_Transcript_of_Marks_V2",
+        "1yTkDcROEOUAyMPdfQn09770AQK3iLjaXpWAo7Ad7iMo",
     ),
     "Bachelor-Certificate": os.environ.get("TemplateIDs_Bachelor_Certificate"),
     "Master-Certificate": os.environ.get("TemplateIDs_Master_Certificate"),
     "Master-Transcript-of-Marks": os.environ.get(
-        "TemplateIDs_Master_Transcript_of_Marks"
+        "TemplateIDs_Master_Transcript_of_Marks",
+        "1yI3Gdxlw1YlEz-OuhxXNlNqelvzYphNxyo2nnS0n3cM",
     ),
     "Master-Certificate-of-Success-at-Diploma": os.environ.get(
         "TemplateIDs_Master_Certificate_of_Success_at_Diploma"

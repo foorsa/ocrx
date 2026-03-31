@@ -10,7 +10,7 @@ export const TranscriptOfMarks: DocumentType = {
     "description": " An academic transcript states the candidate name, the institution he studied at, and a list of all courses taken, all grades received and degrees conferred.",
     "tags": ["Regular", "Tabular"],
     "state": "Available",
-    "templateId": "",
+    "templateId": "1yI3Gdxlw1YlEz-OuhxXNlNqelvzYphNxyo2nnS0n3cM",
     "tableOptions": DEFAULT_TABLE_OPTIONS,
     "fields": [
         {
