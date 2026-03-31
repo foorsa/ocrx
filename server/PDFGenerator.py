@@ -83,6 +83,11 @@ TemplateIDs = {
     ),
 }
 
+# Warn at startup if GOOGLE_SCRIPT_URL is missing
+if not os.environ.get("GOOGLE_SCRIPT_URL"):
+    print("[WARNING] GOOGLE_SCRIPT_URL is not set — all documents will fall back to local PDF generation instead of Google Docs templates.")
+    print("[WARNING] Set GOOGLE_SCRIPT_URL in your .env file or hosting platform environment variables.")
+
 
 class PDFGenerator:
     def Generate(self, Session):

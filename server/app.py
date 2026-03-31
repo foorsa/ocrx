@@ -2,6 +2,10 @@
 
 # Libraries
 import os
+import dotenv
+
+# Load environment variables from .env BEFORE any os.environ.get() calls
+dotenv.load_dotenv()
 
 # Google Cloud credentials setup (for Cloud Vision OCR)
 _gcp_creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON")
@@ -22,7 +26,6 @@ from flask import (
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
 import json
-import dotenv
 
 # Modules
 from Modules.SessionGenerator import SessionGenerator
