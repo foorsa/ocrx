@@ -22,7 +22,7 @@ from flask import Blueprint, jsonify, request
 
 # Import any other required modules
 from Modules.SessionGenerator import SessionGenerator
-from Config import UPLOAD_FOLDER
+from Config import UPLOAD_FOLDER, DOWNLOAD_FOLDER
 
 # Create a Blueprint object for the API routes
 API_BLUEPRINT = Blueprint("API", __name__, template_folder="templates")
@@ -747,13 +747,12 @@ def TranslateTable():
 # Download endpoint for locally generated documents
 @API_BLUEPRINT.route("/api/v1/download/<filename>", methods=["GET"])
 def DownloadFile(filename):
-    download_folder = os.path.join(os.path.dirname(__file__), "..", "Downloads")
-    if not os.path.exists(os.path.join(download_folder, filename)):
+    if not os.path.exists(os.path.join(DOWNLOAD_FOLDER, filename)):
         return jsonify({"error": "File not found"}), 404
     mimetype = "application/pdf" if filename.endswith(".pdf") else \
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     return send_from_directory(
-        download_folder,
+        DOWNLOAD_FOLDER,
         filename,
         as_attachment=True,
         mimetype=mimetype,

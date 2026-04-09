@@ -7,6 +7,7 @@ import io
 import base64
 import datetime
 from fpdf import FPDF
+from Config import DOWNLOAD_FOLDER
 
 
 TABULAR_TYPES = [
@@ -14,8 +15,6 @@ TABULAR_TYPES = [
     "Baccalaureate-Transcript-of-Marks-V1",
     "Baccalaureate-Transcript-of-Marks-V2",
 ]
-
-DOWNLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "..", "Downloads")
 
 
 def _format_document_type(doc_type):
@@ -39,6 +38,62 @@ class DocxTableGenerator:
     def is_tabular(self, session):
         return session.get("Information Type") == "Tabular" and \
                session.get("Document Type") in TABULAR_TYPES
+
+    def generate_text_pdf(self, session):
+        """Generate a PDF from text fields for non-tabular document types."""
+        if not os.path.exists(DOWNLOAD_FOLDER):
+            os.makedirs(DOWNLOAD_FOLDER)
+
+        pdf = _TranscriptPDF()
+        pdf.alias_nb_pages()
+        pdf.set_auto_page_break(auto=True, margin=20)
+        pdf.add_page()
+
+        translation = session.get("Translation", {})
+        text_fields = translation.get("Text", {})
+        doc_type = session.get("Document Type", "")
+
+        # Title
+        pdf.set_font("Helvetica", "B", 16)
+        pdf.set_text_color(26, 26, 46)
+        pdf.cell(0, 12, _format_document_type(doc_type), align="C", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(4)
+
+        # Horizontal rule
+        pdf.set_draw_color(26, 26, 46)
+        pdf.set_line_width(0.5)
+        pdf.line(pdf.l_margin, pdf.get_y(), pdf.w - pdf.r_margin, pdf.get_y())
+        pdf.ln(8)
+
+        # Text fields
+        for key, value in text_fields.items():
+            if value:
+                pdf.set_font("Helvetica", "B", 10)
+                pdf.set_text_color(33, 33, 33)
+                label_w = pdf.get_string_width(f"{key}: ") + 2
+                pdf.cell(label_w, 7, f"{key}: ")
+                pdf.set_font("Helvetica", "", 10)
+                pdf.set_text_color(60, 60, 60)
+                pdf.multi_cell(0, 7, str(value), new_x="LMARGIN", new_y="NEXT")
+                pdf.ln(1)
+
+        # Footer info
+        pdf.ln(8)
+        pdf.set_font("Helvetica", "", 7)
+        pdf.set_text_color(136, 136, 136)
+        pdf.cell(0, 5, f"Session ID: {session.get('Session Id', '')}    Date: {session.get('Operation Date', '')}", align="L")
+
+        # Save to file
+        session_id = session.get("Session Id", "document")
+        filename = f"{session_id}.pdf"
+        filepath = os.path.join(DOWNLOAD_FOLDER, filename)
+        pdf.output(filepath)
+
+        # Get base64 for direct download
+        pdf_bytes = pdf.output()
+        file_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
+
+        return filename, file_base64
 
     def generate(self, session):
         if not os.path.exists(DOWNLOAD_FOLDER):
