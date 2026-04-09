@@ -40,13 +40,8 @@ export default function Third_FinishOperation() {
 	const hasFileData = !!Session?.Generation?.["File Data"];
 
 	const handleDownloadDocument = () => {
-		if (!Session?.Generation?.["PDF Link"] || Session?.Generation["PDF Link"] === "") {
-			toast.error("The document is not ready yet.");
-			return;
-		}
-
-		// If base64 file data is available (backend-generated PDF), download directly
-		if (Session.Generation["File Data"]) {
+		// If base64 file data is available, download directly via blob (most reliable)
+		if (Session?.Generation?.["File Data"]) {
 			const byteCharacters = atob(Session.Generation["File Data"]);
 			const byteNumbers = new Array(byteCharacters.length);
 			for (let i = 0; i < byteCharacters.length; i++) {
@@ -69,8 +64,13 @@ export default function Third_FinishOperation() {
 			return;
 		}
 
-		// For Google Drive links, open in new tab
-		window.open(resolveLink(Session.Generation["PDF Link"]), "_blank");
+		// Fallback: open PDF Link in new tab
+		if (Session?.Generation?.["PDF Link"] && Session.Generation["PDF Link"] !== "") {
+			window.open(resolveLink(Session.Generation["PDF Link"]), "_blank");
+			return;
+		}
+
+		toast.error("The document is not ready yet.");
 	};
 
 	const handleCorrectDocument = () => {

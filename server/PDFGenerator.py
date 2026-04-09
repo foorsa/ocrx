@@ -138,13 +138,21 @@ class PDFGenerator:
                 ResponseData = Response.json()
 
                 if ResponseData["status"] != "success":
-                    print(f"[X] Google Apps Script error: {ResponseData['message']}")
+                    print(f"[X] Google Apps Script error: {ResponseData.get('message', 'unknown')}")
+                    return self._fallback_local_pdf(Session)
+
+                pdf_link = ResponseData.get("pdfLink", "")
+                doc_link = ResponseData.get("docLink", "")
+                preview_link = ResponseData.get("previewLink", "")
+
+                if not pdf_link:
+                    print("[X] Google Apps Script returned empty PDF link")
                     return self._fallback_local_pdf(Session)
 
                 Links = {
-                    "PDF Link": ResponseData["pdfLink"],
-                    "Google Docs Link": ResponseData["docLink"],
-                    "Preview Link": ResponseData["previewLink"],
+                    "PDF Link": pdf_link,
+                    "Google Docs Link": doc_link,
+                    "Preview Link": preview_link,
                 }
                 print(f"[OK] Document generated via template: {Links['PDF Link']}")
 
