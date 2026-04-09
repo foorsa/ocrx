@@ -148,26 +148,25 @@ class PDFGenerator:
             return self._fallback_local_pdf(Session)
 
     def _fallback_local_pdf(self, Session):
-        """Fall back to local PDF generation for tabular documents."""
+        """Fall back to local PDF generation."""
         docx_gen = DocxTableGenerator()
-        if docx_gen.is_tabular(Session):
-            print("[...] Falling back to local PDF generation for tabular document...")
-            try:
+        try:
+            if docx_gen.is_tabular(Session):
+                print("[...] Falling back to local PDF generation for tabular document...")
                 filename, file_base64 = docx_gen.generate(Session)
-                print(f"[OK] Generated local PDF: {filename}")
-                download_path = f"/api/v1/download/{filename}"
-                return {
-                    "PDF Link": download_path,
-                    "Google Docs Link": download_path,
-                    "Preview Link": download_path,
-                    "File Data": file_base64,
-                    "File Name": filename,
-                }
-            except Exception as e:
-                print(f"[X] Local PDF generation failed: {e}")
+            else:
+                print("[...] Falling back to local PDF generation for text document...")
+                filename, file_base64 = docx_gen.generate_text_pdf(Session)
 
-        return {
-            "Error": "Error Generating PDF.",
-            "Status": 400,
-            "Message": "No template configured and local generation failed.",
-        }
+            print(f"[OK] Generated local PDF: {filename}")
+            download_path = f"/api/v1/download/{filename}"
+            return {
+                "PDF Link": download_path,
+                "Google Docs Link": download_path,
+                "Preview Link": download_path,
+                "File Data": file_base64,
+                "File Name": filename,
+            }
+        except Exception as e:
+            print(f"[X] Local PDF generation failed: {e}")
+            raise Exception(f"PDF generation failed: {e}")

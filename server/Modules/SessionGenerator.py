@@ -502,10 +502,12 @@ class SessionGenerator:
         # Method to generate PDF files from Correct Output
         PDF = PDFGenerator()
 
-        Session = self.session
-
         # Generate the PDF
         Links = PDF.Generate(self.Get())
+
+        # Check if generation returned an error
+        if "Error" in Links:
+            raise Exception(Links.get("Message", Links["Error"]))
 
         # Add the Links to the Session
         self.session["Generation"] = Links
