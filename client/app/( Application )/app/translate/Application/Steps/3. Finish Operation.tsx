@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import {
 	ArrowRight3,
