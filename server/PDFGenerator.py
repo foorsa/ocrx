@@ -90,6 +90,14 @@ if not os.environ.get("GOOGLE_SCRIPT_URL"):
 
 
 class PDFGenerator:
+    def _generate_local_pdf(self, Session):
+        """Generate a local PDF and return (filename, file_base64)."""
+        docx_gen = DocxTableGenerator()
+        if docx_gen.is_tabular(Session):
+            return docx_gen.generate(Session)
+        else:
+            return docx_gen.generate_text_pdf(Session)
+
     def Generate(self, Session):
         Document_Type = Session["Document Type"]
 
@@ -139,6 +147,16 @@ class PDFGenerator:
                     "Preview Link": ResponseData["previewLink"],
                 }
                 print(f"[OK] Document generated via template: {Links['PDF Link']}")
+
+                # Always generate a local PDF for reliable blob download
+                try:
+                    filename, file_base64 = self._generate_local_pdf(Session)
+                    Links["File Data"] = file_base64
+                    Links["File Name"] = filename
+                    print(f"[OK] Local PDF also generated for download: {filename}")
+                except Exception as e:
+                    print(f"[!] Local PDF generation failed, download will use Google link: {e}")
+
                 return Links
             except Exception as Error:
                 print(f"[X] Error parsing Google Apps Script response: {Error}")
