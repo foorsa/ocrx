@@ -10,7 +10,7 @@ from Modules.Classes.DocxTableGenerator import DocxTableGenerator
 TemplateIDs = {
     "Baccalaureate-Certificate": os.environ.get(
         "TemplateIDs_Baccalaureate_Certificate",
-        "1X3rr9TPPR7egAZLvDalNBAnkOYizgAmezHwFgRw1rzE",
+        "1G4MkDqydk7FppspfLYjH50mg2v15PGe0lj6GDX5drNY",
     ),
     "Baccalaureate-Certificate-V2": os.environ.get(
         "TemplateIDs_Baccalaureate_Certificate_V2",
@@ -18,7 +18,7 @@ TemplateIDs = {
     ),
     "Baccalaureate-School-Certificate": os.environ.get(
         "TemplateIDs_Baccalaureate_School_Certificate",
-        "18HyzaYEH9JPbseo_SXebTBZ-O8gjAIP_x-m6XDRVbAU",
+        "1wd3NV2GlidXm_wBubH0l85DO0qiLMqCrtBksYlnqe9o",
     ),
     "Baccalaureate-Transcript-of-Marks-V1": os.environ.get(
         "TemplateIDs_Baccalaureate_Transcript_of_Marks_V1",
@@ -30,11 +30,11 @@ TemplateIDs = {
     ),
     "Bachelor-Certificate": os.environ.get(
         "TemplateIDs_Bachelor_Certificate",
-        "1gBQowrWKrdR98okjfY8s7rRL3vteY64f6sM3Wx8TzR8",
+        "1XVB2gaCxbCu021MPxtMd4HFUaO7Pgb-HdDn9hIofTTc",
     ),
     "Master-Certificate": os.environ.get(
         "TemplateIDs_Master_Certificate",
-        "1gBQowrWKrdR98okjfY8s7rRL3vteY64f6sM3Wx8TzR8",
+        "1_k7sTZl77Q8H0V6z9qHG7w_vrChSkfouXubOuwFdNuw",
     ),
     "Master-Transcript-of-Marks": os.environ.get(
         "TemplateIDs_Master_Transcript_of_Marks",
@@ -42,31 +42,31 @@ TemplateIDs = {
     ),
     "Master-Certificate-of-Success-at-Diploma": os.environ.get(
         "TemplateIDs_Master_Certificate_of_Success_at_Diploma",
-        "1TFocZylhyKTNXlvZ8Bz-sKJAPOdpIdx1w37-Kyw7rJk",
+        "1tPwRsWLdbbQyRU0qqnifQY1INoKT0c6NJQCkXriJqOc",
     ),
     "Master-Certificate-of-Schooling": os.environ.get(
         "TemplateIDs_Master_Certificate_of_Schooling",
-        "1tWVsD9xKxVLYlM4FwnsHsIkEyVLPj0X_hcyqitvFhHM",
+        "1GudSJq0yOy5u_iJH70DgOmDvqEvvZ6YPhygbxVyhZTk",
     ),
     "ExtraDocs-Police-Record-Checks": os.environ.get(
         "TemplateIDs_ExtraDocs_Police_Record_Checks",
-        "18JiMZbk2qHXnhi0ecqHKq3L4Hu4GLNWnirx2PXKAoi0",
+        "1if3Sb6XvUL4E5BaJdQu--uMp4ew3lXVlKbuEQ2998XQ",
     ),
     "ExtraDocs-Statement-of-Penalties-Issued-by-Deprivation-of-Liberty": os.environ.get(
         "TemplateIDs_Extradocs_Statement_of_Penalties_Issued_by_Deprivation_of_Liberty",
-        "1G42GpqZrapdmjbinaa6JGeKXK0v2V4wkX4Be2K7RvoI",
+        "1JLRy9ncr_wYduwEZsvbaspsgBJw_DbWc3NTTgGGMoq4",
     ),
     "ExtraDocs-Registration-Certificate": os.environ.get(
         "TemplateIDs_ExtraDocs_Registration_Certificate",
-        "1O_7KR2t0m4eSPbCsSCu5uhuUasn7e-Vxo3TIfJHmUKA",
+        "1QAGI7vLF0N7iZz4ZGX5hewqIHCg_LoK4QwKIWyI5QeE",
     ),
     "ExtraDocs-Technical-University-Degree": os.environ.get(
         "TemplateIDs_ExtraDocs_Technical_University_Degree",
-        "1O_7KR2t0m4eSPbCsSCu5uhuUasn7e-Vxo3TIfJHmUKA",
+        "1N_1iIdGK_R2AC227cfkmCATITL9-8lt_yRgOMtPD5xw",
     ),
     "ExtraDocs-Certificate-of-Achievement": os.environ.get(
         "TemplateIDs_ExtraDocs_Certificate_of_Achievement",
-        "168Q9wIx0aiGOp6Fco4EDac_867xDNq41JLFW57IJh58",
+        "1TQs-wT3ussThmuGzD-PqGfGPGWoLmOV7QV3XgwDpKbc",
     ),
     "ExtraDocs-Bank-Statement": os.environ.get(
         "TemplateIDs_ExtraDocs_Bank_Statement",

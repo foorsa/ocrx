@@ -22,6 +22,7 @@ from flask import Blueprint, jsonify, request
 # Import any other required modules
 from Modules.SessionGenerator import SessionGenerator
 from Config import UPLOAD_FOLDER, DOWNLOAD_FOLDER
+from TemplateHealth import check_template_service
 
 # Create a Blueprint object for the API routes
 API_BLUEPRINT = Blueprint("API", __name__, template_folder="templates")
@@ -38,6 +39,15 @@ def Ping():
     # Heroku puts the server to sleep after 30 minutes of inactivity
     # This endpoint is used to wake the server up
     return jsonify({"Status": "OK"}), 200
+
+
+@API_BLUEPRINT.route("/api/v1/health/templates", methods=["GET"])
+def TemplateHealth():
+    deep = str(request.args.get("deep", "")).lower() in {"1", "true", "yes"}
+    document_type = request.args.get("document_type")
+    result = check_template_service(deep=deep, document_type=document_type)
+    status_code = 200 if result["Status"] == "OK" else 503
+    return jsonify(result), status_code
 
 
 # INITIALIZATION API
