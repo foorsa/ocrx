@@ -98,97 +98,94 @@ setTableColumnWidths(docId, tables[t].startIndex, numCols, colWidths);
   }
 console.log("Auto-fit table widths applied for " + tables.length + " table(s).");
 }
+function safeString(value) {
+return value === null || value === undefined ? "" : String(value);
+}
+
+function replaceTextEverywhere(doc, placeholder, value) {
+var text = safeString(value);
+var body = doc.getBody();
+if (body) body.replaceText(placeholder, text);
+var header = doc.getHeader();
+if (header) header.replaceText(placeholder, text);
+var footer = doc.getFooter();
+if (footer) footer.replaceText(placeholder, text);
+}
+
 function createDocumentFromTemplate(TemplateId, Session) {
 try {
+if (!TemplateId) throw new Error("TemplateId is required.");
+if (!Session || !Session["Translation"] || !Session["Translation"]["Text"]) {
+throw new Error("Session.Translation.Text is required.");
+    }
+
 var templateFile = DriveApp.getFileById(TemplateId);
 var newFile = templateFile.makeCopy();
 var doc = DocumentApp.openById(newFile.getId());
 var body = doc.getBody();
-var documentType = convertToReadableFormat(Session["Document Type"])
-var studentName = Session["Translation"]["Text"]["Student Name"]
-var fileName = studentName + " | " + documentType
+var documentType = convertToReadableFormat(safeString(Session["Document Type"]));
+var replacements = Session["Translation"]["Text"] || {};
+var studentName = safeString(replacements["Student Name"] || replacements["Full Name"] || "Document");
+var fileName = studentName + " | " + documentType;
 doc.setName(fileName);
-let replacements = Session["Translation"]["Text"];
+
 for (var key in replacements) {
-let placeholder = "{{" + key + "}}";
-body.replaceText(placeholder, replacements[key]);
+replaceTextEverywhere(doc, "{{" + key + "}}", replacements[key]);
     }
-const parent = doc.getHeader().getParent();
-for (let i = 0; i < parent.getNumChildren(); i += 1) {
-const child = parent.getChild(i);
-if (child.getType() === DocumentApp.ElementType.FOOTER_SECTION) {
-child.asFooterSection().replaceText("{{Session Id}}", Session["Session Id"]);
-child.asFooterSection().replaceText("{{Translation Date}}", Session["Operation Date"]);
-      }
-    }
+replaceTextEverywhere(doc, "{{Session Id}}", Session["Session Id"]);
+replaceTextEverywhere(doc, "{{Translation Date}}", Session["Operation Date"]);
+
 if (Session["Information Type"] == "Tabular") {
-var documentType = Session["Document Type"];
 var searchText = "{{Grades}}";
 var foundElement = body.findText(searchText);
 if (foundElement != null) {
-switch (documentType) {
-case "Master-Transcript-of-Marks":
-var tableInformation = Session["Translation"]["Tables"];
-if (tableInformation != null) {
-var numRows = tableInformation.length;
-var cells = [];
-var headingRow = ["Subject", "Mark", "Result", "Session"];
-cells.push(headingRow);
-for (let row = 0; row < numRows; row++) {
-let rowData = [];
-rowData.push(tableInformation[row]["Subject"]);
-rowData.push(tableInformation[row]["Mark"]);
-rowData.push(tableInformation[row]["Result"]);
-rowData.push(tableInformation[row]["Session"]);
-cells.push(rowData);
-              }
 var foundParagraph = foundElement.getElement().getParent();
 var parParent = foundParagraph.getParent();
-var newTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, cells);
-formatTableCompact(newTable);
+switch (Session["Document Type"]) {
+case "Master-Transcript-of-Marks":
+var tableInformation = Session["Translation"]["Tables"] || [];
+if (tableInformation.length > 0) {
+var cells = [["Subject", "Mark", "Result", "Session"]];
+for (var masterRow = 0; masterRow < tableInformation.length; masterRow++) {
+cells.push([
+safeString(tableInformation[masterRow]["Subject"]),
+safeString(tableInformation[masterRow]["Mark"]),
+safeString(tableInformation[masterRow]["Result"]),
+safeString(tableInformation[masterRow]["Session"]),
+                ]);
+              }
+formatTableCompact(parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, cells));
             }
 break;
 case "Baccalaureate-Transcript-of-Marks-V1":
 case "Baccalaureate-Transcript-of-Marks-V2":
-var transcriptData = Session["Translation"]["Tables"];
-console.log("Processing Table case for: ", "Baccalaureate-Transcript-of-Marks")
-if (transcriptData != null) {
+var transcriptData = Session["Translation"]["Tables"] || {};
 var transcriptTable = transcriptData["Transcript"];
 var overallTable = transcriptData["Overall"];
-if (overallTable != null) {
-var overallCells = [];
-overallCells.push(overallTable["Columns"]);
-for (let row = 0; row < overallTable["Rows"].length; row++) {
-overallCells.push(overallTable["Rows"][row]);
+if (overallTable && overallTable["Columns"] && overallTable["Rows"]) {
+var overallCells = [overallTable["Columns"]];
+for (var overallRow = 0; overallRow < overallTable["Rows"].length; overallRow++) {
+overallCells.push(overallTable["Rows"][overallRow]);
                 }
-var foundParagraph = foundElement.getElement().getParent();
-var parParent = foundParagraph.getParent();
-var newOverallTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, overallCells);
-formatTableCompact(newOverallTable);
+formatTableCompact(parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, overallCells));
               }
-if (transcriptTable != null) {
-var transcriptCells = [];
-transcriptCells.push(transcriptTable["Columns"]);
-for (let row = 0; row < transcriptTable["Rows"].length; row++) {
-transcriptCells.push(transcriptTable["Rows"][row]);
+if (transcriptTable && transcriptTable["Columns"] && transcriptTable["Rows"]) {
+var transcriptCells = [transcriptTable["Columns"]];
+for (var transcriptRow = 0; transcriptRow < transcriptTable["Rows"].length; transcriptRow++) {
+transcriptCells.push(transcriptTable["Rows"][transcriptRow]);
                 }
-var foundParagraph = foundElement.getElement().getParent();
-var parParent = foundParagraph.getParent();
-var newTranscriptTable = parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, transcriptCells);
-formatTableCompact(newTranscriptTable);
+formatTableCompact(parParent.insertTable(parParent.getChildIndex(foundParagraph) + 1, transcriptCells));
               }
-foundElement.getElement().getParent().removeFromParent();
-            }
 break;
 default:
-throw new Error("Document Type Not Supported !");
+throw new Error("Document Type Not Supported: " + Session["Document Type"]);
         }
-body.replaceText(searchText, "")
+foundParagraph.removeFromParent();
       }
     }
-// Save Document
+
 doc.saveAndClose();
-// Resize table columns using Docs API (requires Docs advanced service)
+
 if (Session["Information Type"] == "Tabular") {
 try {
 autoFitTables(newFile.getId(), Session);
@@ -196,49 +193,74 @@ autoFitTables(newFile.getId(), Session);
 console.log("Table column resize skipped: " + e.message);
       }
     }
-// Move the document to the specified folder
+
+try {
 var folderId = "1q_ZBhJ1v-EKYH7vWKYgFxwlrf2WKtNYE";
-var destinationFolder = DriveApp.getFolderById(folderId);
-destinationFolder.addFile(newFile);
-// Make the document viewable by anyone with the link (needed for preview iframe)
+DriveApp.getFolderById(folderId).addFile(newFile);
+  } catch (e) {
+console.log("Document move skipped: " + e.message);
+  }
+
+try {
 newFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-// Return the ID of the new document
+  } catch (e) {
+console.log("Document sharing skipped: " + e.message);
+  }
+
 return { status: "success", documentId: newFile.getId() };
   } catch (error) {
 return { status: "error", message: error.message };
   }
 }
+
+function jsonOutput(payload) {
+return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function testAccess(templateId) {
+try {
+var result = {
+status: "success",
+message: "Service is authorized",
+drive: "ok",
+    };
+if (templateId) {
+var templateFile = DriveApp.getFileById(templateId);
+result.templateName = templateFile.getName();
+    }
+DriveApp.getFolderById("1q_ZBhJ1v-EKYH7vWKYgFxwlrf2WKtNYE").getName();
+return result;
+  } catch (error) {
+return { status: "error", message: error.message };
+  }
+}
+
+function doGet(e) {
+var action = e && e.parameter ? e.parameter.action : "";
+if (action === "testAccess") {
+return jsonOutput(testAccess(e.parameter.templateId));
+  }
+return jsonOutput({ status: "success", message: "Service is running" });
+}
+
 function doPost(e) {
 try {
 var requestData = JSON.parse(e.postData.contents);
-var result = createDocumentFromTemplate(
-requestData.TemplateId,
-requestData.Session
-    );
+if (requestData.action === "testAccess") {
+return jsonOutput(testAccess(requestData.TemplateId));
+    }
+var result = createDocumentFromTemplate(requestData.TemplateId, requestData.Session);
 if (result.status === "success") {
-return ContentService.createTextOutput(
-JSON.stringify({
+return jsonOutput({
 status: "success",
 docLink: "https://docs.google.com/document/d/" + result.documentId,
 pdfLink: "https://docs.google.com/document/d/" + result.documentId + "/export?format=pdf",
 previewLink: "https://docs.google.com/document/d/" + result.documentId + "/preview",
-        })
-      ).setMimeType(ContentService.MimeType.JSON);
-    } else {
-return ContentService.createTextOutput(
-JSON.stringify({
-status: "error",
-message: result.message,
-        })
-      ).setMimeType(ContentService.MimeType.JSON);
+      });
     }
+return jsonOutput({ status: "error", message: result.message });
   } catch (error) {
-return ContentService.createTextOutput(
-JSON.stringify({
-status: "error",
-message: "An unexpected error occurred.",
-      })
-    ).setMimeType(ContentService.MimeType.JSON);
+return jsonOutput({ status: "error", message: "An unexpected error occurred: " + error.message });
   }
 }
 

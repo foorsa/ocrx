@@ -47,6 +47,7 @@ interface Session {
         "Google Docs Link": string;
         "Preview Link": string;
         "Generation Source"?: "Template" | "Local";
+        "Template Error"?: string;
         "File Data"?: string;
         "File Name"?: string;
     }

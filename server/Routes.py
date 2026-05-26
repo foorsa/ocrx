@@ -563,7 +563,17 @@ def Generate():
 
     print("[...] Retrieving Session from Database...")
     Session = SessionGenerator()
-    Session.Set(Session_Id)
+    if not Session.Set(Session_Id):
+        print("[X] Session was not found.")
+        return (
+            jsonify(
+                {
+                    "Status": "Error",
+                    "Error": "Session was not found. Please process the document again.",
+                }
+            ),
+            404,
+        )
 
     print("[OK] Retrieving Session from Database Finished !")
 

@@ -107,7 +107,7 @@ class PDFGenerator:
         # If no template ID is configured, fall back to local PDF generation for tabular docs
         if not Template_Id:
             print(f"[!] No Template ID configured for '{Document_Type}'. Available types: {list(TemplateIDs.keys())}")
-            return self._fallback_local_pdf(Session)
+            return self._fallback_local_pdf(Session, f"No template ID configured for {Document_Type}")
 
         print(f"[OK] Template ID found: {Template_Id}")
 
@@ -115,7 +115,7 @@ class PDFGenerator:
         URL = os.environ.get("GOOGLE_SCRIPT_URL")
         if not URL:
             print("[!] GOOGLE_SCRIPT_URL not configured — cannot use Google Docs templates")
-            return self._fallback_local_pdf(Session)
+            return self._fallback_local_pdf(Session, "GOOGLE_SCRIPT_URL is not configured")
 
         # [3] Gather the information to fill in the template
         print("[...] Generating document using Google Apps Script template...")
@@ -139,13 +139,13 @@ class PDFGenerator:
                 redirect_url = Response.headers.get("Location")
                 if not redirect_url:
                     print("[X] Google Apps Script redirected without a Location header")
-                    return self._fallback_local_pdf(Session)
+                    return self._fallback_local_pdf(Session, "Google Apps Script redirected without a Location header")
 
                 print("[...] Following Google Apps Script redirect...")
                 Response = requests.get(redirect_url, timeout=120)
         except Exception as Error:
             print(f"[X] Error sending request to Google Apps Script: {Error}")
-            return self._fallback_local_pdf(Session)
+            return self._fallback_local_pdf(Session, str(Error))
 
         # [5] Check the Response
         if Response.status_code == 200 and Response.content is not None:
@@ -153,8 +153,9 @@ class PDFGenerator:
                 ResponseData = Response.json()
 
                 if ResponseData["status"] != "success":
-                    print(f"[X] Google Apps Script error: {ResponseData.get('message', 'unknown')}")
-                    return self._fallback_local_pdf(Session)
+                    template_error = ResponseData.get("message", "unknown")
+                    print(f"[X] Google Apps Script error: {template_error}")
+                    return self._fallback_local_pdf(Session, template_error)
 
                 pdf_link = ResponseData.get("pdfLink", "")
                 doc_link = ResponseData.get("docLink", "")
@@ -162,7 +163,7 @@ class PDFGenerator:
 
                 if not pdf_link:
                     print("[X] Google Apps Script returned empty PDF link")
-                    return self._fallback_local_pdf(Session)
+                    return self._fallback_local_pdf(Session, "Google Apps Script returned empty PDF link")
 
                 Links = {
                     "PDF Link": pdf_link,
@@ -175,12 +176,12 @@ class PDFGenerator:
                 return Links
             except Exception as Error:
                 print(f"[X] Error parsing Google Apps Script response: {Error}")
-                return self._fallback_local_pdf(Session)
+                return self._fallback_local_pdf(Session, str(Error))
         else:
             print(f"[X] Google Apps Script returned status {Response.status_code}: {Response.reason}")
-            return self._fallback_local_pdf(Session)
+            return self._fallback_local_pdf(Session, f"Google Apps Script returned status {Response.status_code}: {Response.reason}")
 
-    def _fallback_local_pdf(self, Session):
+    def _fallback_local_pdf(self, Session, template_error=None):
         """Fall back to local PDF generation."""
         docx_gen = DocxTableGenerator()
         try:
@@ -198,9 +199,12 @@ class PDFGenerator:
                 "Google Docs Link": download_path,
                 "Preview Link": download_path,
                 "Generation Source": "Local",
+                "Template Error": template_error or "",
                 "File Data": file_base64,
                 "File Name": filename,
             }
         except Exception as e:
             print(f"[X] Local PDF generation failed: {e}")
+            if template_error:
+                raise Exception(f"Template generation failed: {template_error}; local PDF generation failed: {e}")
             raise Exception(f"PDF generation failed: {e}")

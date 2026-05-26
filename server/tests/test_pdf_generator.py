@@ -96,10 +96,32 @@ def test_fallback_local_pdf_supports_regular_documents(monkeypatch):
 
     monkeypatch.setattr(pdf_generator_module, "DocxTableGenerator", DummyDocxTableGenerator)
 
-    result = PDFGenerator()._fallback_local_pdf(_regular_session())
+    result = PDFGenerator()._fallback_local_pdf(_regular_session(), "Drive authorization failed")
 
     assert result["PDF Link"] == "/api/v1/download/fallback.pdf"
     assert result["Preview Link"] == "/api/v1/download/fallback.pdf"
     assert result["Generation Source"] == "Local"
+    assert result["Template Error"] == "Drive authorization failed"
     assert result["File Name"] == "fallback.pdf"
     assert result["File Data"] == "ZmFrZQ=="
+
+
+def test_template_and_local_failures_are_reported_together(monkeypatch):
+    class BrokenDocxTableGenerator:
+        def is_tabular(self, session):
+            return False
+
+        def generate_text_pdf(self, session):
+            raise RuntimeError("font encoding failed")
+
+    monkeypatch.setattr(pdf_generator_module, "DocxTableGenerator", BrokenDocxTableGenerator)
+
+    try:
+        PDFGenerator()._fallback_local_pdf(_regular_session(), "Drive authorization failed")
+    except Exception as error:
+        message = str(error)
+    else:
+        raise AssertionError("expected fallback failure")
+
+    assert "Drive authorization failed" in message
+    assert "font encoding failed" in message
