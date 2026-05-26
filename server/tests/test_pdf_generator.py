@@ -67,7 +67,11 @@ def test_apps_script_redirect_keeps_generation_payload(monkeypatch):
 
     monkeypatch.setattr(pdf_generator_module.requests, "post", fake_post)
     monkeypatch.setattr(pdf_generator_module.requests, "get", fake_get)
-    monkeypatch.setattr(PDFGenerator, "_generate_local_pdf", lambda self, session: ("local.pdf", "ZmFrZQ=="))
+
+    def fail_if_local_pdf_runs(self, session):
+        raise AssertionError("template success should not generate a local PDF")
+
+    monkeypatch.setattr(PDFGenerator, "_generate_local_pdf", fail_if_local_pdf_runs)
 
     result = PDFGenerator().Generate(_regular_session())
 
@@ -77,7 +81,9 @@ def test_apps_script_redirect_keeps_generation_payload(monkeypatch):
     assert calls["post"]["kwargs"]["allow_redirects"] is False
     assert calls["get"]["url"] == "https://script.googleusercontent.com/macros/echo"
     assert result["Google Docs Link"] == "https://docs.google.com/document/d/doc-id"
-    assert result["File Data"] == "ZmFrZQ=="
+    assert result["Generation Source"] == "Template"
+    assert "File Data" not in result
+    assert "File Name" not in result
 
 
 def test_fallback_local_pdf_supports_regular_documents(monkeypatch):
@@ -94,5 +100,6 @@ def test_fallback_local_pdf_supports_regular_documents(monkeypatch):
 
     assert result["PDF Link"] == "/api/v1/download/fallback.pdf"
     assert result["Preview Link"] == "/api/v1/download/fallback.pdf"
+    assert result["Generation Source"] == "Local"
     assert result["File Name"] == "fallback.pdf"
     assert result["File Data"] == "ZmFrZQ=="

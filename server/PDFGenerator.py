@@ -168,17 +168,9 @@ class PDFGenerator:
                     "PDF Link": pdf_link,
                     "Google Docs Link": doc_link,
                     "Preview Link": preview_link,
+                    "Generation Source": "Template",
                 }
                 print(f"[OK] Document generated via template: {Links['PDF Link']}")
-
-                # Always generate a local PDF for reliable blob download
-                try:
-                    filename, file_base64 = self._generate_local_pdf(Session)
-                    Links["File Data"] = file_base64
-                    Links["File Name"] = filename
-                    print(f"[OK] Local PDF also generated for download: {filename}")
-                except Exception as e:
-                    print(f"[!] Local PDF generation failed, download will use Google link: {e}")
 
                 return Links
             except Exception as Error:
@@ -205,6 +197,7 @@ class PDFGenerator:
                 "PDF Link": download_path,
                 "Google Docs Link": download_path,
                 "Preview Link": download_path,
+                "Generation Source": "Local",
                 "File Data": file_base64,
                 "File Name": filename,
             }

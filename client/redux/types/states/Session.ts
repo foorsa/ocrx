@@ -46,10 +46,10 @@ interface Session {
         "PDF Link": string;
         "Google Docs Link": string;
         "Preview Link": string;
+        "Generation Source"?: "Template" | "Local";
         "File Data"?: string;
         "File Name"?: string;
     }
 }
 
 export type { Session };
-
