@@ -36,8 +36,7 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "Uploads")
 def CreateFlaskApp():
     FlaskApp = Flask(__name__)
     CORS(FlaskApp, resources={r"*": {"origins": "*"}})
-    # Enable debug mode
-    FlaskApp.debug = True
+    FlaskApp.debug = os.environ.get("FLASK_DEBUG") == "1"
 
     # Set the Upload Folder
     FlaskApp.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
