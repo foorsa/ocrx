@@ -4,7 +4,6 @@
 # You can use libraries like ReportLab or PyFPDF to generate the PDF files.
 import os
 import requests
-import json
 from Modules.Classes.DocxTableGenerator import DocxTableGenerator
 
 
@@ -125,9 +124,25 @@ class PDFGenerator:
             "Session": Session,
         }
 
-        # [4] Send the POST Request to the Script
+        # [4] Send the POST Request to the Script. Google Apps Script web apps
+        # often respond with a redirect to script.googleusercontent.com. If
+        # requests follows that redirect automatically, a 302 turns the POST
+        # into a GET and the script never receives e.postData.
         try:
-            Response = requests.post(URL, data=json.dumps(DATA))
+            Response = requests.post(
+                URL,
+                json=DATA,
+                allow_redirects=False,
+                timeout=120,
+            )
+            if Response.status_code in (301, 302, 303, 307, 308):
+                redirect_url = Response.headers.get("Location")
+                if not redirect_url:
+                    print("[X] Google Apps Script redirected without a Location header")
+                    return self._fallback_local_pdf(Session)
+
+                print("[...] Following Google Apps Script redirect...")
+                Response = requests.get(redirect_url, timeout=120)
         except Exception as Error:
             print(f"[X] Error sending request to Google Apps Script: {Error}")
             return self._fallback_local_pdf(Session)

@@ -8,7 +8,6 @@ from flask import (
     Flask,
     jsonify,
     request,
-    render_template,
     send_from_directory,
     Response,
 )
@@ -30,7 +29,7 @@ API_BLUEPRINT = Blueprint("API", __name__, template_folder="templates")
 
 @API_BLUEPRINT.route("/api/v1", methods=["GET"])
 def Home():
-    return render_template("index.html")
+    return jsonify({"Status": "OK", "Service": "OCRX API"}), 200
 
 
 # PING API

@@ -21,7 +21,6 @@ from flask import (
     Flask,
     jsonify,
     request,
-    render_template,
 )
 from flask_cors import CORS, cross_origin
 from werkzeug.utils import secure_filename
@@ -69,4 +68,4 @@ FlaskApp = CreateFlaskApp()
 
 @FlaskApp.route("/")
 def hello_world():
-    return render_template("index.html")
+    return jsonify({"Status": "OK", "Service": "OCRX API"}), 200
