@@ -6,7 +6,13 @@ from dotenv import load_dotenv, find_dotenv
 
 _ = load_dotenv(find_dotenv())
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Bounded timeout: the SDK default (600s x retries) can pin a gunicorn thread
+# for half an hour when OpenAI stalls.
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    timeout=float(os.getenv("OPENAI_TIMEOUT_SECONDS", "120")),
+    max_retries=2,
+)
 
 # Model to use for all GPT calls
 GPT_MODEL = "gpt-4o-mini"

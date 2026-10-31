@@ -20,19 +20,10 @@ from Modules.Classes.GPTCorrector import GPTCorrector
 from PDFGenerator import PDFGenerator
 
 
-username = quote_plus("yassinechettouch")
-password = quote_plus("0tr7$F1m!@OCRX")
-cluster = "ocrx-db.rpxyaec.mongodb.net"
-
-uri = (
-    "mongodb+srv://"
-    + username
-    + ":"
-    + password
-    + "@"
-    + cluster
-    + "/?retryWrites=true&w=majority"
-)
+# Connection string comes from the environment (never commit credentials).
+uri = os.environ.get("MONGODB_URI")
+if not uri:
+    raise RuntimeError("MONGODB_URI is not set. Configure it in the environment or server/.env.")
 
 # Maximum number of retries
 max_retries = 5
@@ -52,6 +43,12 @@ while retry_count < max_retries:
         )
         db = client.get_database("OCRX-db")
         print("[MongoDB] Connected to the database successfully.")
+        try:
+            # Every request looks sessions up by "Session Id"; without an index
+            # each lookup is a full collection scan. No-op if it already exists.
+            db.sessions.create_index("Session Id")
+        except Exception as e:
+            print(f"[MongoDB] Could not ensure Session Id index: {e}")
         break  # Connection successful, break out of the loop
     except pymongo.errors.ServerSelectionTimeoutError:
         # Retry the connection after a short delay
@@ -143,9 +140,19 @@ class SessionGenerator:
             }
         return self._file_cache[str_id]
 
+    def _new_session_id(self, attempts=5):
+        # IDs carry only 32 random bits, so collisions become likely after tens
+        # of thousands of sessions; SaveToDatabase upserts by id and would
+        # overwrite another student's session. Re-roll on collision.
+        for _ in range(attempts):
+            candidate = GenerateSessionId()
+            if self.db.sessions.find_one({"Session Id": candidate}, {"_id": 1}) is None:
+                return candidate
+        raise Exception("Could not allocate a unique session id.")
+
     def Initialize(self, DocumentType, Files, skip_db_write=False):
         # Session ID
-        self.id = GenerateSessionId()
+        self.id = self._new_session_id()
         self.document_type = DocumentType
         self.files = Files
 
@@ -583,6 +590,8 @@ class SessionGenerator:
     # Method to set Values for Corrected Fields
     def SetValues(self, NewValues):
         OldValues = self.session["Translation"]["Text"]
+        if not isinstance(OldValues, dict):
+            OldValues = {}
 
         for Field in NewValues:
             OldValues[Field] = NewValues[Field]

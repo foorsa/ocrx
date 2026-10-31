@@ -123,6 +123,9 @@ class PDFGenerator:
             "TemplateId": Template_Id,
             "Session": Session,
         }
+        # Optional shared secret checked by Code.gs (Script Property OCRX_SHARED_SECRET)
+        if os.environ.get("GOOGLE_SCRIPT_SECRET"):
+            DATA["Secret"] = os.environ["GOOGLE_SCRIPT_SECRET"]
 
         # [4] Send the POST Request to the Script. Google Apps Script web apps
         # often respond with a redirect to script.googleusercontent.com. If

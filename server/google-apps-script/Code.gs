@@ -243,9 +243,22 @@ return jsonOutput(testAccess(e.parameter.templateId));
 return jsonOutput({ status: "success", message: "Service is running" });
 }
 
+// Optional shared secret. When the Script Property OCRX_SHARED_SECRET is set,
+// POST requests must carry the same value in "Secret" (server env
+// GOOGLE_SCRIPT_SECRET). Without it, anyone who knows the web app URL can copy
+// and link-share any Google Doc this account can read by passing its ID.
+function isAuthorized(requestData) {
+var expected = PropertiesService.getScriptProperties().getProperty("OCRX_SHARED_SECRET");
+if (!expected) return true;
+return requestData && requestData.Secret === expected;
+}
+
 function doPost(e) {
 try {
 var requestData = JSON.parse(e.postData.contents);
+if (!isAuthorized(requestData)) {
+return jsonOutput({ status: "error", message: "Unauthorized" });
+    }
 if (requestData.action === "testAccess") {
 return jsonOutput(testAccess(requestData.TemplateId));
     }

@@ -26,7 +26,11 @@ except ImportError:
 class OCRProcessor:
     def __init__(self):
         self.ET_SESSION = ExtractTable(os.environ.get("ET_API_KEY"))
-        self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.openai_client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY"),
+            timeout=float(os.getenv("OPENAI_TIMEOUT_SECONDS", "120")),
+            max_retries=2,
+        )
         # Cache the Google Vision client (gRPC channel setup is expensive)
         self._vision_client = None
         self._vision_lock = threading.Lock()
@@ -329,15 +333,14 @@ class OCRProcessor:
 # Optical Character Recognition Processor
 OCR = OCRProcessor()
 
-print("API Key: " + str(os.environ.get("ET_API_KEY")))
-
-# USAGE
-USAGE = OCR.Check_API_USAGE()
-
-CREDITS = USAGE["credits"]
-USED = USAGE["used"]
-PERCENTAGE = USED / CREDITS * 100
-
-print(
-    f"[Extract Table] API Usage: Credits: {CREDITS}, Used: {USED}, Percentage: {PERCENTAGE}%."
-)
+# USAGE (informational only — a failure here must not stop the API from booting)
+try:
+    USAGE = OCR.Check_API_USAGE()
+    CREDITS = USAGE["credits"]
+    USED = USAGE["used"]
+    PERCENTAGE = USED / CREDITS * 100 if CREDITS else 0
+    print(
+        f"[Extract Table] API Usage: Credits: {CREDITS}, Used: {USED}, Percentage: {PERCENTAGE}%."
+    )
+except Exception as e:
+    print(f"[Extract Table] Could not check API usage: {e}")

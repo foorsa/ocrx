@@ -17,6 +17,8 @@ import json
 import datetime
 import os
 import tempfile
+import uuid
+import hmac
 from flask import Blueprint, jsonify, request
 
 # Import any other required modules
@@ -26,6 +28,86 @@ from TemplateHealth import check_template_service
 
 # Create a Blueprint object for the API routes
 API_BLUEPRINT = Blueprint("API", __name__, template_folder="templates")
+
+ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg"}
+MAX_FILES_PER_REQUEST = int(os.environ.get("MAX_FILES_PER_REQUEST", "10"))
+MAX_PDF_PAGES = int(os.environ.get("MAX_PDF_PAGES", "20"))
+
+
+def _file_extension(filename):
+    if not filename or "." not in filename:
+        return ""
+    return filename.rsplit(".", 1)[1].lower()
+
+
+def _pdf_page_count(file_path):
+    from PyPDF2 import PdfReader
+
+    with open(file_path, "rb") as f:
+        return len(PdfReader(f).pages)
+
+
+def _remove_files(paths):
+    for path in paths:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
+def _validate_and_save_uploads():
+    """Validate the multipart upload and save it to UPLOAD_FOLDER.
+
+    Returns (saved_paths, doctype, None) on success or
+    (None, None, (response, status)) when the request must be rejected.
+    """
+    if "file" not in request.files or "document_type" not in request.form:
+        return None, None, (jsonify({"error": "File and Document Type fields are required."}), 400)
+
+    Files = [File for File in request.files.getlist("file") if File and File.filename]
+    Doctype = request.form["document_type"]
+
+    if not Files:
+        return None, None, (jsonify({"error": "File field is required."}), 400)
+    if len(Files) > MAX_FILES_PER_REQUEST:
+        return None, None, (jsonify({"error": f"Too many files (max {MAX_FILES_PER_REQUEST})."}), 400)
+    if not Doctype:
+        return None, None, (jsonify({"error": "Document Type field is required."}), 400)
+
+    for File in Files:
+        if _file_extension(File.filename) not in ALLOWED_EXTENSIONS:
+            return None, None, (jsonify({"error": "Invalid file extension."}), 400)
+
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    SavedFiles = []
+    for File in Files:
+        Extension = _file_extension(File.filename)
+        Filename = secure_filename(uuid.uuid4().hex + "." + Extension)
+        FilePath = os.path.join(UPLOAD_FOLDER, Filename)
+        File.save(FilePath)
+        SavedFiles.append(FilePath)
+
+        if Extension == "pdf":
+            try:
+                Pages = _pdf_page_count(FilePath)
+            except Exception:
+                _remove_files(SavedFiles)
+                return None, None, (jsonify({"error": "The PDF file could not be read."}), 400)
+            if Pages > MAX_PDF_PAGES:
+                _remove_files(SavedFiles)
+                return None, None, (jsonify({"error": f"PDF has too many pages (max {MAX_PDF_PAGES})."}), 400)
+
+    return SavedFiles, Doctype, None
+
+
+def _load_session(Session_Id):
+    """Load a session by id. Returns (Session, None) or (None, error_response)."""
+    if not Session_Id:
+        return None, (jsonify({"Status": "Error", "Error": "No Session Id Provided."}), 400)
+    Session = SessionGenerator()
+    if not Session.Set(Session_Id):
+        return None, (jsonify({"Status": "Error", "Error": "Session was not found."}), 404)
+    return Session, None
 
 
 @API_BLUEPRINT.route("/api/v1", methods=["GET"])
@@ -45,6 +127,14 @@ def Ping():
 def TemplateHealth():
     deep = str(request.args.get("deep", "")).lower() in {"1", "true", "yes"}
     document_type = request.args.get("document_type")
+
+    # The deep check creates a real, link-shared Google Doc on every call.
+    # When TEMPLATE_HEALTH_TOKEN is configured, require it for deep checks.
+    expected_token = os.environ.get("TEMPLATE_HEALTH_TOKEN")
+    if deep and expected_token:
+        provided = request.headers.get("X-Health-Token") or request.args.get("token") or ""
+        if not hmac.compare_digest(provided, expected_token):
+            return jsonify({"Status": "Error", "Error": "Unauthorized"}), 401
     result = check_template_service(deep=deep, document_type=document_type)
     status_code = 200 if result["Status"] == "OK" else 503
     return jsonify(result), status_code
@@ -57,52 +147,9 @@ def Initialize():
 
     print("[...] Validating the Request Parameters...")
 
-    # Request Validation Code
-    if "file" not in request.files or "document_type" not in request.form:
-        if "file" not in request.files:
-            print("[X] File field is required.")
-            return (jsonify({"error": "File field is required."}), 400, 2)
-        elif "document_type" not in request.form:
-            print("[X] Document Type field is required.")
-            return jsonify({"error": "Document Type field is required."}), 400
-
-        print("[X] File and Document Type fields are required.")
-        return jsonify({"error": "File and Document Type fields are required."}), 400
-
-    # Store the File
-    Files = request.files.getlist("file")
-
-    # Store the Document Type
-    Doctype = request.form["document_type"]
-
-    # Check if the File is Empty - No File Selected
-    for File in Files:
-        # Declare Allowed File Extensions
-        AllowedExtensions = {"pdf", "png", "jpg", "jpeg"}
-
-        # Isolate the File Extension of the Request File
-        FileExtension = File.filename.rsplit(".", 1)[1].lower()
-
-        # Check if the File Extension is Allowed
-        if FileExtension not in AllowedExtensions:
-            print("[X] Invalid file extension.")
-            return jsonify({"error": "Invalid file extension."}), 400
-
-    # Save files to a temporary directory
-    SavedFiles = []
-    print("[...] Saving Files to Temporary Directory [...]")
-    for File in Files:
-        # Filename should be the unique identifier of the file
-        ID = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
-        Filename = secure_filename(ID + "." + File.filename.rsplit(".", 1)[1].lower())
-
-        FilePath = os.path.join(UPLOAD_FOLDER, Filename)
-        File.save(FilePath)
-
-        WindowsPath = FilePath
-
-        SavedFiles.append(WindowsPath)
-
+    SavedFiles, Doctype, Rejection = _validate_and_save_uploads()
+    if Rejection:
+        return Rejection
     print("[OK] Saving Files to Temporary Directory Finished !")
 
     # Queue the file processing task
@@ -111,7 +158,11 @@ def Initialize():
     Session = SessionGenerator()
 
     print("[...] Saving Session to Database...")
-    Session.Initialize(Doctype, SavedFiles)
+    try:
+        Session.Initialize(Doctype, SavedFiles)
+    finally:
+        # Uploads are stored in GridFS; the local copies are no longer needed
+        _remove_files(SavedFiles)
     print("[OK] Saving Session to Database Finished !")
 
     # DEBUG PRINT
@@ -135,31 +186,16 @@ def Process():
     t_start = time.time()
     print("[PROCESS] Starting combined document processing pipeline")
 
-    # --- Validation (same as Initialize) ---
-    if "file" not in request.files or "document_type" not in request.form:
-        return jsonify({"error": "File and Document Type fields are required."}), 400
-
-    Files = request.files.getlist("file")
-    Doctype = request.form["document_type"]
-
-    for File in Files:
-        AllowedExtensions = {"pdf", "png", "jpg", "jpeg"}
-        FileExtension = File.filename.rsplit(".", 1)[1].lower()
-        if FileExtension not in AllowedExtensions:
-            return jsonify({"error": "Invalid file extension."}), 400
-
-    # --- Save files ---
-    SavedFiles = []
-    for File in Files:
-        ID = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
-        Filename = secure_filename(ID + "." + File.filename.rsplit(".", 1)[1].lower())
-        FilePath = os.path.join(UPLOAD_FOLDER, Filename)
-        File.save(FilePath)
-        SavedFiles.append(FilePath)
+    SavedFiles, Doctype, Rejection = _validate_and_save_uploads()
+    if Rejection:
+        return Rejection
 
     # --- Initialize Session (skip DB write — deferred to final save) ---
     Session = SessionGenerator()
-    Session.Initialize(Doctype, SavedFiles, skip_db_write=True)
+    try:
+        Session.Initialize(Doctype, SavedFiles, skip_db_write=True)
+    finally:
+        _remove_files(SavedFiles)
     t_init = time.time()
     print(f"[PROCESS] Session {Session.Get()['Session Id']} initialized (in-memory) [{t_init - t_start:.1f}s]")
 
@@ -265,31 +301,16 @@ def ProcessStream():
     import time
     import threading
 
-    # --- Validation (same as Process) ---
-    if "file" not in request.files or "document_type" not in request.form:
-        return jsonify({"error": "File and Document Type fields are required."}), 400
-
-    Files = request.files.getlist("file")
-    Doctype = request.form["document_type"]
-
-    for File in Files:
-        AllowedExtensions = {"pdf", "png", "jpg", "jpeg"}
-        FileExtension = File.filename.rsplit(".", 1)[1].lower()
-        if FileExtension not in AllowedExtensions:
-            return jsonify({"error": "Invalid file extension."}), 400
-
-    # --- Save files ---
-    SavedFiles = []
-    for File in Files:
-        ID = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
-        Filename = secure_filename(ID + "." + File.filename.rsplit(".", 1)[1].lower())
-        FilePath = os.path.join(UPLOAD_FOLDER, Filename)
-        File.save(FilePath)
-        SavedFiles.append(FilePath)
+    SavedFiles, Doctype, Rejection = _validate_and_save_uploads()
+    if Rejection:
+        return Rejection
 
     # --- Initialize Session ---
     Session = SessionGenerator()
-    Session.Initialize(Doctype, SavedFiles, skip_db_write=True)
+    try:
+        Session.Initialize(Doctype, SavedFiles, skip_db_write=True)
+    finally:
+        _remove_files(SavedFiles)
 
     def sse_event(data):
         """Format a dict as an SSE data line."""
@@ -409,7 +430,11 @@ def ProcessStream():
 
                 Session.session["Status"] = "Translated"
             except json.JSONDecodeError as e:
+                # Truncated/invalid model output: report it instead of
+                # sending "complete" with an untranslated session.
                 print(f"[STREAM] Failed to parse JSON: {e}")
+                yield sse_event({"phase": "error", "message": "Could not read the document. Please try again."})
+                return
 
             # Save to database in background thread (don't block SSE response)
             threading.Thread(target=Session.SaveToDatabase, daemon=True).start()
@@ -441,9 +466,9 @@ def ExtractText():
     print("[OK] Retrieving Session Id Finished !")
 
     print("[...] Retrieving Session from Database...")
-    Session = SessionGenerator()
-
-    Session.Set(Session_Id)
+    Session, Missing = _load_session(Session_Id)
+    if Missing:
+        return Missing
     print("[OK] Retrieving Session from Database Finished !")
 
     print("[...] Extracting Text from Session File...")
@@ -467,9 +492,9 @@ def CorrectText():
     print("[OK] Retrieving Session Id Finished !")
 
     print("[...] Retrieving Session from Database...")
-    Session = SessionGenerator()
-
-    Session.Set(Session_Id)
+    Session, Missing = _load_session(Session_Id)
+    if Missing:
+        return Missing
     print("[OK] Retrieving Session from Database Finished !")
 
     print("[...] Checking Presence of Extracted Text...")
@@ -513,9 +538,9 @@ def TranslateText():
     print("[OK] Retrieving Session Id Finished !")
 
     print("[...] Retrieving Session from Database...")
-    Session = SessionGenerator()
-
-    Session.Set(Session_Id)
+    Session, Missing = _load_session(Session_Id)
+    if Missing:
+        return Missing
     print("[OK] Retrieving Session from Database Finished !")
 
     print("[...] Checking Presence of Corrected Text...")
@@ -605,11 +630,11 @@ def Generate():
         )
     # If the Request has Document Values
     print("[...] Retrieving Request Data...")
-    try:
-        DATA = request.get_json()
-        Values = DATA["Values"]
-    except:
-        Values = None
+    DATA = request.get_json(silent=True)
+    Values = DATA.get("Values") if isinstance(DATA, dict) else None
+
+    if Values and not isinstance(Values, dict):
+        return jsonify({"Status": "Error", "Error": "Values must be an object."}), 400
 
     if not Values:
         print("[X] No Values Provided.")
@@ -654,9 +679,9 @@ def ExtractTable():
     print("[OK] Retrieving Session Id Finished !")
 
     print("[...] Retrieving Session from Database...")
-    Session = SessionGenerator()
-
-    Session.Set(Session_Id)
+    Session, Missing = _load_session(Session_Id)
+    if Missing:
+        return Missing
     print("[OK] Retrieving Session from Database Finished !")
 
     print("[...] Extracting Table from Session File...")
@@ -680,9 +705,9 @@ def CorrectTable():
     print("[OK] Retrieving Session Id Finished !")
 
     print("[...] Retrieving Session from Database...")
-    Session = SessionGenerator()
-
-    Session.Set(Session_Id)
+    Session, Missing = _load_session(Session_Id)
+    if Missing:
+        return Missing
     print("[OK] Retrieving Session from Database Finished !")
 
     print("[...] Checking Presence of Extracted Tables...")
@@ -726,9 +751,9 @@ def TranslateTable():
     print("[OK] Retrieving Session Id Finished !")
 
     print("[...] Retrieving Session from Database...")
-    Session = SessionGenerator()
-
-    Session.Set(Session_Id)
+    Session, Missing = _load_session(Session_Id)
+    if Missing:
+        return Missing
     print("[OK] Retrieving Session from Database Finished !")
 
     print("[...] Checking Presence of Corrected Table...")
