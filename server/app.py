@@ -41,6 +41,12 @@ def CreateFlaskApp():
     # Set the Upload Folder
     FlaskApp.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+    # Reject oversized request bodies with 413 before they are buffered to
+    # disk/memory (the client already caps files at 10 MB).
+    FlaskApp.config["MAX_CONTENT_LENGTH"] = int(
+        os.environ.get("MAX_UPLOAD_MB", "25")
+    ) * 1024 * 1024
+
     # Flask Timezone
     FlaskApp.config["TIMEZONE"] = "Africa/Casablanca"
 

@@ -33,22 +33,32 @@ def _fetch_apps_script(payload=None, timeout=60):
             },
         }
 
-    if payload is None:
-        response = requests.get(url, timeout=timeout)
-    else:
-        response = requests.post(url, json=payload, allow_redirects=False, timeout=timeout)
-        if response.status_code in (301, 302, 303, 307, 308):
-            redirect_url = response.headers.get("Location")
-            if not redirect_url:
-                return {
-                    "ok": False,
-                    "statusCode": response.status_code,
-                    "payload": {
-                        "status": "error",
-                        "message": "Google Apps Script redirected without a Location header",
-                    },
-                }
-            response = requests.get(redirect_url, timeout=timeout)
+    try:
+        if payload is None:
+            response = requests.get(url, timeout=timeout)
+        else:
+            response = requests.post(url, json=payload, allow_redirects=False, timeout=timeout)
+            if response.status_code in (301, 302, 303, 307, 308):
+                redirect_url = response.headers.get("Location")
+                if not redirect_url:
+                    return {
+                        "ok": False,
+                        "statusCode": response.status_code,
+                        "payload": {
+                            "status": "error",
+                            "message": "Google Apps Script redirected without a Location header",
+                        },
+                    }
+                response = requests.get(redirect_url, timeout=timeout)
+    except requests.RequestException as error:
+        return {
+            "ok": False,
+            "statusCode": None,
+            "payload": {
+                "status": "error",
+                "message": f"Template service request failed: {error.__class__.__name__}",
+            },
+        }
 
     payload = _json_response(response)
     return {
@@ -122,6 +132,8 @@ def check_template_service(deep=False, document_type=None):
         "TemplateId": template_id,
         "Session": _canary_session(document_type),
     }
+    if os.environ.get("GOOGLE_SCRIPT_SECRET"):
+        payload["Secret"] = os.environ["GOOGLE_SCRIPT_SECRET"]
     template = _fetch_apps_script(payload=payload, timeout=120)
     response_payload = template["payload"]
     pdf_link = response_payload.get("pdfLink", "")

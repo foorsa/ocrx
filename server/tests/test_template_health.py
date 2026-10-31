@@ -91,3 +91,20 @@ def test_deep_health_requires_google_docs_links(monkeypatch):
     assert result["Checks"][1]["name"] == "template_generation"
     assert result["Checks"][1]["ok"] is True
     assert calls[1][2]["allow_redirects"] is False
+
+
+def test_template_service_network_error_reports_unhealthy(monkeypatch):
+    import requests
+    import TemplateHealth
+
+    monkeypatch.setenv("GOOGLE_SCRIPT_URL", "https://script.google.com/macros/s/test/exec")
+
+    def boom(*args, **kwargs):
+        raise requests.ConnectionError("down")
+
+    monkeypatch.setattr(TemplateHealth.requests, "get", boom)
+
+    result = TemplateHealth.check_template_service(deep=False)
+
+    assert result["Status"] == "Error"
+    assert result["Checks"][0]["ok"] is False
